@@ -1,16 +1,17 @@
 "use strict";
 
 /* ============================================================
-   KRIPTODANIK AI — ПОЛНАЯ ЛОГИКА (ИСПРАВЛЕНАЯ)
+   KRIPTODANIK AI — RELEASE CANDIDATE (SPRINT 9)
    ============================================================ */
 
 const App = {
 
+    // ===== DATA =====
     trades: [],
     filteredTrades: [],
     currentPage: 1,
     pageSize: 10,
-    currentPeriod: '30d',
+    editingTradeId: null,
 
     currentDate: new Date(),
     selectedDate: new Date(),
@@ -23,373 +24,138 @@ const App = {
     guardianCharts: {},
     performanceCharts: {},
     equityChartInstance: null,
+    dashboardCharts: {},
 
     currentLang: 'ru',
+    userData: {},
+    onboardingDone: false,
+
+    aiHistory: [],
 
     translations: {
         ru: {
-            appName: 'KriptoDanik',
-            appSub: 'AI Workspace',
-            planName: 'Pro',
-            planDetail: 'Management',
-            planDate: 'Valid until 25.07.2025',
             nav_dashboard: 'Dashboard',
             nav_journal: 'Journal',
-            nav_analytics: 'Analytics',
             nav_calendar: 'Calendar',
+            nav_analytics: 'Analytics',
             nav_performance: 'Performance',
             nav_guardian: 'Guardian',
-            nav_intelligence: 'KD Intelligence',
-            nav_settings: 'Settings',
-            greeting: 'Good Evening',
-            welcome: 'Welcome back, Danik',
-            online: 'AI Connected',
-            balance: 'Balance',
-            today_label: 'today',
-            today: 'Today',
-            week: 'This Week',
-            month: 'This Month',
-            drawdown: 'Drawdown',
-            score_label: 'Score',
-            score_status: 'Excellent',
-            market_bias: 'Market',
-            confidence: 'Confidence',
-            recommendation: 'Recommendation',
-            risk: 'Risk',
-            qa_analysis: 'Last Trade Analysis',
-            qa_add: 'Add Trade',
-            qa_review: 'Journal Review',
-            qa_risk: 'Risk Check',
-            equity_curve: 'Equity Curve',
-            guardian: 'Guardian',
-            guardian_risk: 'Risk per trade',
-            guardian_loss: 'Loss limit',
-            guardian_daily: 'Daily limit',
-            guardian_plan: 'Trading plan',
-            ai_title: 'Ask KD AI about your trades',
-            ai_sub: 'Get instant analysis, feedback and recommendations.',
-            ask_btn: 'Ask AI',
-            add_trade: 'Add Trade',
-            date: 'Date',
-            asset: 'Asset',
-            side: 'Side',
-            entry: 'Entry',
-            exit: 'Exit',
-            rr: 'RR',
-            result: 'Result',
-            status: 'Status',
-            total_trades: 'Total Trades',
-            win_rate: 'Win Rate',
-            avg_rr: 'Avg RR',
-            total_pnl: 'Total P&L',
-            win_rate_30d: 'Win Rate (30d)',
-            avg_win: 'Avg Win',
-            sharpe: 'Sharpe Ratio',
-            pnl_distribution: 'P&L Distribution',
-            win_rate_by_asset: 'Win Rate by Asset',
-            monthly_performance: 'Monthly Performance',
-            key_metrics: 'Key Metrics',
-            events_for: 'Events for',
-            add: 'Add',
-            profit_factor: 'Profit Factor',
-            session_performance: 'Session Performance',
-            session_details: 'Session Details',
-            benchmarks: 'Performance vs Benchmarks',
-            risk_per_trade: 'Risk Per Trade',
-            loss_limit: 'Loss Limit',
-            daily_limit: 'Daily Loss Limit',
-            trading_plan: 'Trading Plan',
-            discipline: 'Discipline Score',
-            max_trades: 'Max Daily Trades',
-            risk_meter: 'Risk Meter',
-            rules_compliance: 'Rules Compliance',
-            risk_distribution: 'Risk Distribution by Asset',
-            violations: 'Violations History',
-            recommendations: 'AI Recommendations',
-            current_risk: 'Current Risk',
-            risk_budget: 'Risk Budget',
-            used: 'Used',
-            remaining: 'Remaining',
-            profile_info: 'Profile Information',
-            full_name: 'Full Name',
-            email: 'Email',
-            username: 'Username',
-            bio: 'Bio',
-            update_profile: 'Update Profile',
-            account: 'Account',
-            plan: 'Plan',
-            member_since: 'Member Since',
-            trades: 'Trades',
-            change_password: 'Change Password',
-            trading_preferences: 'Trading Preferences',
-            default_risk: 'Default Risk per Trade',
-            default_sl: 'Default Stop Loss',
-            default_tp: 'Default Take Profit',
-            max_trades_setting: 'Max Daily Trades',
-            preferred_assets: 'Preferred Assets',
-            save_settings: 'Save Trading Settings',
-            notif_preferences: 'Notification Preferences',
-            trading_alerts: 'Trading Alerts',
-            entry_signals: 'Trade Entry Signals',
-            sl_alerts: 'Stop Loss Alerts',
-            tp_alerts: 'Take Profit Alerts',
-            daily_summary: 'Daily Summary',
-            system_notifs: 'System Notifications',
-            guardian_alerts: 'Guardian Alerts',
-            risk_warnings: 'Risk Limit Warnings',
-            weekly_report: 'Weekly Performance Report',
-            ai_insights: 'AI Insights',
-            save_notif: 'Save Notification Settings',
-            theme: 'Theme',
-            color_scheme: 'Color Scheme',
-            accent_color: 'Accent Color',
-            font_size: 'Font Size',
-            apply_appearance: 'Apply Appearance',
-            preview: 'Preview',
-            security: 'Security',
-            current_password: 'Current Password',
-            new_password: 'New Password',
-            confirm_password: 'Confirm New Password',
-            '2fa': 'Two-Factor Authentication',
-            enable_2fa: 'Enable 2FA',
-            update_security: 'Update Security',
-            active_sessions: 'Active Sessions',
-            logout_all: 'Log Out All Devices',
-            data_management: 'Data Management',
-            export_data: 'Export Data',
-            export_trades: 'Export Trades (CSV)',
-            export_journal: 'Export Journal (JSON)',
-            export_all: 'Export All Data (ZIP)',
-            import_data: 'Import Data',
-            import_trades: 'Import Trades (CSV)',
-            danger_zone: 'Danger Zone',
-            clear_all: 'Clear All Data',
-            kd_intelligence: 'KD Intelligence',
-            market_overview: 'Market Overview',
-            recent_activity: 'Recent Activity'
+            nav_intelligence: 'AI Assistant',
+            nav_settings: 'Settings'
         },
         en: {
-            appName: 'KriptoDanik',
-            appSub: 'AI Workspace',
-            planName: 'Pro',
-            planDetail: 'Management',
-            planDate: 'Valid until 25.07.2025',
             nav_dashboard: 'Dashboard',
             nav_journal: 'Journal',
-            nav_analytics: 'Analytics',
             nav_calendar: 'Calendar',
+            nav_analytics: 'Analytics',
             nav_performance: 'Performance',
             nav_guardian: 'Guardian',
-            nav_intelligence: 'KD Intelligence',
-            nav_settings: 'Settings',
-            greeting: 'Good Evening',
-            welcome: 'Welcome back, Danik',
-            online: 'AI Connected',
-            balance: 'Balance',
-            today_label: 'today',
-            today: 'Today',
-            week: 'This Week',
-            month: 'This Month',
-            drawdown: 'Drawdown',
-            score_label: 'Score',
-            score_status: 'Excellent',
-            market_bias: 'Market',
-            confidence: 'Confidence',
-            recommendation: 'Recommendation',
-            risk: 'Risk',
-            qa_analysis: 'Last Trade Analysis',
-            qa_add: 'Add Trade',
-            qa_review: 'Journal Review',
-            qa_risk: 'Risk Check',
-            equity_curve: 'Equity Curve',
-            guardian: 'Guardian',
-            guardian_risk: 'Risk per trade',
-            guardian_loss: 'Loss limit',
-            guardian_daily: 'Daily limit',
-            guardian_plan: 'Trading plan',
-            ai_title: 'Ask KD AI about your trades',
-            ai_sub: 'Get instant analysis, feedback and recommendations.',
-            ask_btn: 'Ask AI',
-            add_trade: 'Add Trade',
-            date: 'Date',
-            asset: 'Asset',
-            side: 'Side',
-            entry: 'Entry',
-            exit: 'Exit',
-            rr: 'RR',
-            result: 'Result',
-            status: 'Status',
-            total_trades: 'Total Trades',
-            win_rate: 'Win Rate',
-            avg_rr: 'Avg RR',
-            total_pnl: 'Total P&L',
-            win_rate_30d: 'Win Rate (30d)',
-            avg_win: 'Avg Win',
-            sharpe: 'Sharpe Ratio',
-            pnl_distribution: 'P&L Distribution',
-            win_rate_by_asset: 'Win Rate by Asset',
-            monthly_performance: 'Monthly Performance',
-            key_metrics: 'Key Metrics',
-            events_for: 'Events for',
-            add: 'Add',
-            profit_factor: 'Profit Factor',
-            session_performance: 'Session Performance',
-            session_details: 'Session Details',
-            benchmarks: 'Performance vs Benchmarks',
-            risk_per_trade: 'Risk Per Trade',
-            loss_limit: 'Loss Limit',
-            daily_limit: 'Daily Loss Limit',
-            trading_plan: 'Trading Plan',
-            discipline: 'Discipline Score',
-            max_trades: 'Max Daily Trades',
-            risk_meter: 'Risk Meter',
-            rules_compliance: 'Rules Compliance',
-            risk_distribution: 'Risk Distribution by Asset',
-            violations: 'Violations History',
-            recommendations: 'AI Recommendations',
-            current_risk: 'Current Risk',
-            risk_budget: 'Risk Budget',
-            used: 'Used',
-            remaining: 'Remaining',
-            profile_info: 'Profile Information',
-            full_name: 'Full Name',
-            email: 'Email',
-            username: 'Username',
-            bio: 'Bio',
-            update_profile: 'Update Profile',
-            account: 'Account',
-            plan: 'Plan',
-            member_since: 'Member Since',
-            trades: 'Trades',
-            change_password: 'Change Password',
-            trading_preferences: 'Trading Preferences',
-            default_risk: 'Default Risk per Trade',
-            default_sl: 'Default Stop Loss',
-            default_tp: 'Default Take Profit',
-            max_trades_setting: 'Max Daily Trades',
-            preferred_assets: 'Preferred Assets',
-            save_settings: 'Save Trading Settings',
-            notif_preferences: 'Notification Preferences',
-            trading_alerts: 'Trading Alerts',
-            entry_signals: 'Trade Entry Signals',
-            sl_alerts: 'Stop Loss Alerts',
-            tp_alerts: 'Take Profit Alerts',
-            daily_summary: 'Daily Summary',
-            system_notifs: 'System Notifications',
-            guardian_alerts: 'Guardian Alerts',
-            risk_warnings: 'Risk Limit Warnings',
-            weekly_report: 'Weekly Performance Report',
-            ai_insights: 'AI Insights',
-            save_notif: 'Save Notification Settings',
-            theme: 'Theme',
-            color_scheme: 'Color Scheme',
-            accent_color: 'Accent Color',
-            font_size: 'Font Size',
-            apply_appearance: 'Apply Appearance',
-            preview: 'Preview',
-            security: 'Security',
-            current_password: 'Current Password',
-            new_password: 'New Password',
-            confirm_password: 'Confirm New Password',
-            '2fa': 'Two-Factor Authentication',
-            enable_2fa: 'Enable 2FA',
-            update_security: 'Update Security',
-            active_sessions: 'Active Sessions',
-            logout_all: 'Log Out All Devices',
-            data_management: 'Data Management',
-            export_data: 'Export Data',
-            export_trades: 'Export Trades (CSV)',
-            export_journal: 'Export Journal (JSON)',
-            export_all: 'Export All Data (ZIP)',
-            import_data: 'Import Data',
-            import_trades: 'Import Trades (CSV)',
-            danger_zone: 'Danger Zone',
-            clear_all: 'Clear All Data',
-            kd_intelligence: 'KD Intelligence',
-            market_overview: 'Market Overview',
-            recent_activity: 'Recent Activity'
+            nav_intelligence: 'AI Assistant',
+            nav_settings: 'Settings'
         }
     },
 
+    // ===== INIT =====
     init() {
+        this.loadState();
         this.initData();
         this.cacheElements();
         this.bindEvents();
         this.renderAll();
-        console.log('KriptoDanik AI initialized.');
+        this.updateGreeting();
+
+        if (!this.onboardingDone) {
+            this.showOnboarding();
+        } else {
+            this.applyUserData();
+        }
+        console.log('KriptoDanik AI Release Candidate initialized.');
+    },
+
+    // ===== LOCALSTORAGE =====
+    reviveEvents(rawEvents) {
+        return (rawEvents || []).map(e => ({ ...e, date: new Date(e.date) })).filter(e => !isNaN(e.date));
+    },
+
+    loadState() {
+        try {
+            const saved = localStorage.getItem('kriptodanik_state');
+            if (saved) {
+                const state = JSON.parse(saved);
+                this.currentLang = state.lang || 'ru';
+                this.onboardingDone = state.onboardingDone || false;
+                this.userData = state.userData || {};
+                this.trades = state.trades || [];
+                this.events = this.reviveEvents(state.events);
+                this.guardianRules = state.guardianRules || [];
+                this.guardianViolations = state.guardianViolations || [];
+                this.aiHistory = state.aiHistory || [];
+            }
+        } catch (e) { console.warn('Failed to load state:', e); }
+    },
+
+    saveState() {
+        try {
+            const state = {
+                lang: this.currentLang,
+                onboardingDone: this.onboardingDone,
+                userData: this.userData,
+                trades: this.trades,
+                events: this.events,
+                guardianRules: this.guardianRules,
+                guardianViolations: this.guardianViolations,
+                aiHistory: this.aiHistory
+            };
+            localStorage.setItem('kriptodanik_state', JSON.stringify(state));
+        } catch (e) { console.warn('Failed to save state:', e); }
     },
 
     // ===== DATA =====
     initData() {
+        this.filteredTrades = [...this.trades];
+        if (this.trades.length === 0) this.addDemoData();
+        if (this.events.length === 0) this.initCalendarEvents();
+        if (this.guardianRules.length === 0) this.initGuardianData();
+        this.currentDate = new Date();
+        this.selectedDate = new Date();
+    },
+
+    addDemoData() {
         const now = new Date();
         const formatDate = (d) => d.toISOString().slice(0, 10);
-
-        this.trades = [
+        const demoTrades = [
             { id: 1, date: formatDate(new Date(now.getTime() - 2 * 86400000)), asset: 'BTCUSDT', side: 'BUY', entry: 42300, exit: 43500, rr: 2.8, result: '+2.8R', status: 'win' },
             { id: 2, date: formatDate(new Date(now.getTime() - 3 * 86400000)), asset: 'XAUUSD', side: 'SELL', entry: 1925, exit: 1910, rr: 3.0, result: '+3R', status: 'win' },
             { id: 3, date: formatDate(new Date(now.getTime() - 4 * 86400000)), asset: 'EURUSD', side: 'BUY', entry: 1.0850, exit: 1.0820, rr: -1, result: '-1R', status: 'loss' },
-            { id: 4, date: formatDate(new Date(now.getTime() - 5 * 86400000)), asset: 'ETHUSDT', side: 'BUY', entry: 2800, exit: 2920, rr: 2.2, result: '+2.2R', status: 'win' },
-            { id: 5, date: formatDate(new Date(now.getTime() - 6 * 86400000)), asset: 'BTCUSDT', side: 'SELL', entry: 41000, exit: 41500, rr: -0.5, result: '-0.5R', status: 'loss' },
-            { id: 6, date: formatDate(new Date(now.getTime() - 7 * 86400000)), asset: 'XAUUSD', side: 'BUY', entry: 1900, exit: 1920, rr: 2.0, result: '+2R', status: 'win' },
-            { id: 7, date: formatDate(new Date(now.getTime() - 8 * 86400000)), asset: 'EURUSD', side: 'SELL', entry: 1.0900, exit: 1.0880, rr: 1.5, result: '+1.5R', status: 'win' },
-            { id: 8, date: formatDate(new Date(now.getTime() - 9 * 86400000)), asset: 'ETHUSDT', side: 'SELL', entry: 2750, exit: 2780, rr: -0.8, result: '-0.8R', status: 'loss' },
-            { id: 9, date: formatDate(new Date(now.getTime() - 10 * 86400000)), asset: 'BTCUSDT', side: 'BUY', entry: 39800, exit: 41200, rr: 3.2, result: '+3.2R', status: 'win' },
-            { id: 10, date: formatDate(new Date(now.getTime() - 11 * 86400000)), asset: 'XAUUSD', side: 'SELL', entry: 1935, exit: 1930, rr: 0.5, result: '+0.5R', status: 'win' },
-            { id: 11, date: formatDate(new Date(now.getTime() - 12 * 86400000)), asset: 'EURUSD', side: 'BUY', entry: 1.0780, exit: 1.0820, rr: 1.8, result: '+1.8R', status: 'win' },
-            { id: 12, date: formatDate(new Date(now.getTime() - 13 * 86400000)), asset: 'SOLUSDT', side: 'BUY', entry: 45.50, exit: 43.20, rr: -1.2, result: '-1.2R', status: 'loss' }
+            { id: 4, date: formatDate(new Date(now.getTime() - 5 * 86400000)), asset: 'ETHUSDT', side: 'BUY', entry: 2800, exit: 2920, rr: 2.2, result: '+2.2R', status: 'win' }
         ];
-
-        for (let i = 0; i < 50; i++) {
-            const daysAgo = 14 + i;
-            const assets = ['BTCUSDT', 'ETHUSDT', 'XAUUSD', 'EURUSD', 'SOLUSDT'];
-            const sides = ['BUY', 'SELL'];
-            const asset = assets[Math.floor(Math.random() * assets.length)];
-            const side = sides[Math.floor(Math.random() * sides.length)];
-            const rr = (Math.random() * 6 - 2).toFixed(1);
-            const isWin = parseFloat(rr) > 0;
-            const result = (isWin ? '+' : '') + rr + 'R';
-            const status = isWin ? 'win' : 'loss';
-            this.trades.push({
-                id: 13 + i,
-                date: formatDate(new Date(now.getTime() - daysAgo * 86400000)),
-                asset, side,
-                entry: Math.round(100 + Math.random() * 50000),
-                exit: Math.round(100 + Math.random() * 50000),
-                rr: parseFloat(rr),
-                result, status
-            });
-        }
+        this.trades = demoTrades;
         this.filteredTrades = [...this.trades];
+        this.saveState();
+    },
 
+    initCalendarEvents() {
+        const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth();
         this.events = [
             { id: 1, date: new Date(year, month, 5), title: 'BTC Long Setup', type: 'trade' },
-            { id: 2, date: new Date(year, month, 7), title: 'XAU Short Alert', type: 'alert' },
-            { id: 3, date: new Date(year, month, 12), title: 'Team Meeting', type: 'meeting' },
-            { id: 4, date: new Date(year, month, 15), title: 'EURUSD Breakout Analysis', type: 'analysis' },
-            { id: 5, date: new Date(year, month, 18), title: 'ETH Swing Trade', type: 'trade' },
-            { id: 6, date: new Date(year, month, 20), title: 'Weekly Review', type: 'meeting' },
-            { id: 7, date: new Date(year, month, 22), title: 'Stop Loss Review', type: 'analysis' },
-            { id: 8, date: new Date(year, month, 25), title: 'Take Profit Alert', type: 'alert' }
+            { id: 2, date: new Date(year, month, 12), title: 'Team Meeting', type: 'meeting' }
         ];
-        this.selectedDate = new Date(year, month, now.getDate());
+        this.saveState();
+    },
 
+    initGuardianData() {
         this.guardianRules = [
-            { id: 1, name: 'Risk per trade ≤ 1%', passed: true },
-            { id: 2, name: 'No revenge trading', passed: true },
-            { id: 3, name: 'Daily loss limit respected', passed: true },
-            { id: 4, name: 'Weekly loss limit respected', passed: true },
-            { id: 5, name: 'Trading plan followed', passed: true },
-            { id: 6, name: 'Max 5 trades per day', passed: true },
-            { id: 7, name: 'Stop loss always set', passed: true },
-            { id: 8, name: 'Take profit defined', passed: true },
-            { id: 9, name: 'Risk/reward ≥ 1:2', passed: true },
-            { id: 10, name: 'No trading after 3 losses', passed: true },
-            { id: 11, name: 'Position size calculated', passed: true },
-            { id: 12, name: 'Journal entry completed', passed: true }
+            { id: 1, name: 'Риск на сделку ≤ 1%', passed: true, icon: '🛡' },
+            { id: 2, name: 'Не более 5 сделок в день', passed: true, icon: '📊' },
+            { id: 3, name: 'Stop Loss всегда установлен', passed: true, icon: '🎯' },
+            { id: 4, name: 'Дневной лимит не превышен', passed: true, icon: '📉' },
+            { id: 5, name: 'Нет торговли в эмоциях', passed: true, icon: '🧠' },
+            { id: 6, name: 'План сделки соблюдён', passed: true, icon: '📋' }
         ];
         this.guardianViolations = [];
+        this.saveState();
     },
 
     // ===== CACHE =====
@@ -407,33 +173,74 @@ const App = {
         };
         this.pageTitle = document.getElementById('pageTitle');
         this.pageGreeting = document.getElementById('pageGreeting');
+        this.userNameDisplay = document.getElementById('userNameDisplay');
 
+        // Search & Notifications
+        this.searchWrapper = document.getElementById('searchWrapper');
+        this.searchBtn = document.getElementById('searchBtn');
+        this.searchPopover = document.getElementById('searchPopover');
+        this.globalSearchInput = document.getElementById('globalSearchInput');
+        this.globalSearchResults = document.getElementById('globalSearchResults');
+        this.notifWrapper = document.getElementById('notifWrapper');
+        this.notifBtn = document.getElementById('notifBtn');
+        this.notifPopover = document.getElementById('notifPopover');
+        this.notifResults = document.getElementById('notifResults');
+        this.notifBadge = document.getElementById('notifBadge');
+
+        // Dashboard
+        this.balanceDisplay = document.getElementById('balanceDisplay');
+        this.dailyTargetDisplay = document.getElementById('dailyTargetDisplay');
+        this.dailyTargetSub = document.getElementById('dailyTargetSub');
+        this.dailyLossDisplay = document.getElementById('dailyLossDisplay');
+        this.dailyLossSub = document.getElementById('dailyLossSub');
+        this.riskPerTradeDisplay = document.getElementById('riskPerTradeDisplay');
+        this.riskPerTradeSub = document.getElementById('riskPerTradeSub');
+        this.tpPreferredRR = document.getElementById('tpPreferredRR');
+        this.tpSession = document.getElementById('tpSession');
+        this.tpTodayProgress = document.getElementById('tpTodayProgress');
+        this.tpProgressFill = document.getElementById('tpProgressFill');
+        this.winRateDonutChart = document.getElementById('winRateDonutChart');
+        this.assetDonutChart = document.getElementById('assetDonutChart');
+        this.winRateDisplay = document.getElementById('winRateDisplay');
+        this.totalTradesDisplay = document.getElementById('totalTradesDisplay');
+        this.winTradesDisplay = document.getElementById('winTradesDisplay');
+        this.lossTradesDisplay = document.getElementById('lossTradesDisplay');
+
+        // Journal
         this.journalBody = document.getElementById('journalBody');
         this.filterAsset = document.getElementById('filterAsset');
         this.filterResult = document.getElementById('filterResult');
         this.journalSearch = document.getElementById('journalSearch');
         this.addTradeBtn = document.getElementById('addTradeBtn');
-        this.quickAddTradeBtn = document.getElementById('quickAddTradeBtn');
-        this.prevPageBtn = document.getElementById('prevPage');
-        this.nextPageBtn = document.getElementById('nextPage');
-        this.currentPageEl = document.getElementById('currentPage');
-        this.totalPagesEl = document.getElementById('totalPages');
-        this.paginationInfo = document.getElementById('paginationInfo');
+        this.tradeModalOverlay = document.getElementById('tradeModalOverlay');
+        this.tradeModalTitle = document.getElementById('tradeModalTitle');
+        this.tradeModalCancel = document.getElementById('tradeModalCancel');
+        this.tradeModalSave = document.getElementById('tradeModalSave');
+        this.tFields = {
+            asset: document.getElementById('tAsset'),
+            direction: document.getElementById('tDirection'),
+            entry: document.getElementById('tEntry'),
+            exit: document.getElementById('tExit'),
+            size: document.getElementById('tSize'),
+            riskPercent: document.getElementById('tRiskPercent'),
+            rr: document.getElementById('tRR'),
+            pnl: document.getElementById('tPnl'),
+            date: document.getElementById('tDate'),
+            session: document.getElementById('tSession'),
+            strategy: document.getElementById('tStrategy'),
+            status: document.getElementById('tStatus'),
+            emotionBefore: document.getElementById('tEmotionBefore'),
+            emotionAfter: document.getElementById('tEmotionAfter'),
+            notes: document.getElementById('tNotes')
+        };
+        this.tFormError = document.getElementById('tFormError');
         this.journalBadge = document.getElementById('journalBadge');
-
         this.jTotalTrades = document.getElementById('jTotalTrades');
         this.jWinRate = document.getElementById('jWinRate');
         this.jAvgRR = document.getElementById('jAvgRR');
         this.jTotalPnL = document.getElementById('jTotalPnL');
 
-        this.aTotalPnl = document.getElementById('aTotalPnl');
-        this.aWinRate = document.getElementById('aWinRate');
-        this.aAvgWin = document.getElementById('aAvgWin');
-        this.aSharpe = document.getElementById('aSharpe');
-        this.periodBtns = document.querySelectorAll('.period-btn');
-        this.toggleViewBtn = document.getElementById('toggleViewBtn');
-        this.metricsGrid = document.getElementById('metricsGrid');
-
+        // Calendar
         this.calendarGrid = document.getElementById('calendarGrid');
         this.calendarMonth = document.getElementById('calendarMonth');
         this.prevMonthBtn = document.getElementById('prevMonth');
@@ -441,71 +248,119 @@ const App = {
         this.selectedDateLabel = document.getElementById('selectedDateLabel');
         this.eventsList = document.getElementById('eventsList');
         this.eventsCount = document.getElementById('eventsCount');
+        this.selectedDateTradesLabel = document.getElementById('selectedDateTradesLabel');
+        this.dayTradesList = document.getElementById('dayTradesList');
+        this.dayTradesCount = document.getElementById('dayTradesCount');
         this.eventInput = document.getElementById('eventInput');
         this.eventType = document.getElementById('eventType');
         this.addEventBtn = document.getElementById('addEventBtn');
         this.calendarBadge = document.getElementById('calendarBadge');
 
-        this.perfTabs = document.querySelectorAll('.perf-tab');
-        this.perfPanels = document.querySelectorAll('.perf-panel');
-        this.perfPeriodBtn = document.getElementById('perfPeriodBtn');
-        this.perfMetricsGrid = document.getElementById('perfMetricsGrid');
-        this.pTotalPnl = document.getElementById('pTotalPnl');
-        this.pWinRate = document.getElementById('pWinRate');
-        this.pProfitFactor = document.getElementById('pProfitFactor');
-        this.pSharpe = document.getElementById('pSharpe');
-        this.sessionDetails = document.getElementById('sessionDetails');
-        this.benchmarksGrid = document.getElementById('benchmarksGrid');
+        // Analytics
+        this.aTotalPnl = document.getElementById('aTotalPnl');
+        this.aWinRate = document.getElementById('aWinRate');
+        this.aProfitFactor = document.getElementById('aProfitFactor');
+        this.aAvgRR = document.getElementById('aAvgRR');
+        this.aTotalTrades = document.getElementById('aTotalTrades');
+        this.aWinningTrades = document.getElementById('aWinningTrades');
+        this.aLosingTrades = document.getElementById('aLosingTrades');
+        this.aAvgWin = document.getElementById('aAvgWin');
+        this.aAvgLoss = document.getElementById('aAvgLoss');
+        this.aBestDay = document.getElementById('aBestDay');
+        this.aWorstDay = document.getElementById('aWorstDay');
+        this.aBestTrade = document.getElementById('aBestTrade');
+        this.aWorstTrade = document.getElementById('aWorstTrade');
+        this.aMaxWinStreak = document.getElementById('aMaxWinStreak');
+        this.aMaxLossStreak = document.getElementById('aMaxLossStreak');
+        this.analyticsEquityChart = document.getElementById('analyticsEquityChart');
+        this.analyticsMonthlyChart = document.getElementById('analyticsMonthlyChart');
+        this.analyticsAssetDonutChart = document.getElementById('analyticsAssetDonutChart');
 
-        this.rulesList = document.getElementById('rulesList');
-        this.violationsList = document.getElementById('violationsList');
-        this.violationsCount = document.getElementById('violationsCount');
-        this.recommendationsList = document.getElementById('recommendationsList');
-        this.riskLevel = document.getElementById('riskLevel');
-        this.riskMeterFill = document.getElementById('riskMeterFill');
-        this.gRiskPerTrade = document.getElementById('gRiskPerTrade');
-        this.gLossLimit = document.getElementById('gLossLimit');
-        this.gDailyLimit = document.getElementById('gDailyLimit');
-        this.gPlanStatus = document.getElementById('gPlanStatus');
-        this.gDiscipline = document.getElementById('gDiscipline');
-        this.gMaxTrades = document.getElementById('gMaxTrades');
-        this.refreshRecommendationsBtn = document.getElementById('refreshRecommendationsBtn');
+        // Performance
+        this.perfTotalReturn = document.getElementById('perfTotalReturn');
+        this.perfBestMonth = document.getElementById('perfBestMonth');
+        this.perfBestSession = document.getElementById('perfBestSession');
+        this.perfTotalTrades = document.getElementById('perfTotalTrades');
+        this.perfEquityChart = document.getElementById('perfEquityChart');
+        this.perfMonthlyChart = document.getElementById('perfMonthlyChart');
+        this.perfSessionsChart = document.getElementById('perfSessionsChart');
 
-        this.settingsTabs = document.querySelectorAll('.settings-tab');
-        this.settingsPanels = document.querySelectorAll('.settings-panel');
+        // AI Assistant
+        this.aiMessages = document.getElementById('aiMessages');
+        this.aiInput = document.getElementById('aiInput');
+        this.askBtn = document.getElementById('askBtn');
+        this.dashAskBtn = document.getElementById('dashAskBtn');
+        this.clearChatBtn = document.getElementById('clearChatBtn');
+        this.aiSuggestions = document.getElementById('aiSuggestions');
+
+        // Guardian
+        this.guardianScore = document.getElementById('guardianScore');
+        this.guardianScoreBadge = document.getElementById('guardianScoreBadge');
+        this.guardianDayStatus = document.getElementById('guardianDayStatus');
+        this.guardianStreak = document.getElementById('guardianStreak');
+        this.guardianRulesList = document.getElementById('guardianRulesList');
+        this.guardianTimeline = document.getElementById('guardianTimeline');
+        this.guardianRecommendations = document.getElementById('guardianRecommendations');
+        this.guardianHistoryCount = document.getElementById('guardianHistoryCount');
+        this.guardianDisciplineChart = document.getElementById('guardianDisciplineChart');
+
+        // Settings
+        this.settingsTabs = document.querySelectorAll('.settings-tab-btn');
+        this.settingsContents = document.querySelectorAll('.settings-tab-content');
+        this.settingsName = document.getElementById('settingsName');
+        this.settingsEmailInput = document.getElementById('settingsEmailInput');
+        this.settingsUsernameInput = document.getElementById('settingsUsernameInput');
+        this.settingsUsername = document.getElementById('settingsUsername');
+        this.settingsEmail = document.getElementById('settingsEmail');
+        this.settingsMemberSince = document.getElementById('settingsMemberSince');
+        this.settingsPlan = document.getElementById('settingsPlan');
+        this.saveProfileBtn = document.getElementById('saveProfileBtn');
+        this.settingsCapital = document.getElementById('settingsCapital');
+        this.settingsRisk = document.getElementById('settingsRisk');
+        this.settingsDailyLoss = document.getElementById('settingsDailyLoss');
+        this.settingsDailyTarget = document.getElementById('settingsDailyTarget');
+        this.settingsRR = document.getElementById('settingsRR');
+        this.settingsTradingStyle = document.getElementById('settingsTradingStyle');
+        this.settingsSession = document.getElementById('settingsSession');
+        this.saveTradingBtn = document.getElementById('saveTradingBtn');
+        this.settingsLang = document.getElementById('settingsLang');
+        this.settingsDateFormat = document.getElementById('settingsDateFormat');
+        this.settingsCurrency = document.getElementById('settingsCurrency');
         this.themeOptions = document.querySelectorAll('.theme-option');
         this.accentOptions = document.querySelectorAll('.accent-option');
-        this.fontSizeOptions = document.querySelectorAll('.font-size-option');
+        this.saveAppearanceBtn = document.getElementById('saveAppearanceBtn');
         this.exportTradesBtn = document.getElementById('exportTradesBtn');
         this.exportJournalBtn = document.getElementById('exportJournalBtn');
-        this.exportAllBtn = document.getElementById('exportAllBtn');
         this.importDataBtn = document.getElementById('importDataBtn');
         this.clearAllDataBtn = document.getElementById('clearAllDataBtn');
 
-        this.aiInput = document.getElementById('aiInput');
-        this.askBtn = document.getElementById('askBtn');
-        this.aiResponse = document.getElementById('aiResponse');
-
-        this.marketBias = document.getElementById('marketBias');
-        this.confidenceDisplay = document.getElementById('confidenceDisplay');
-        this.recommendationDisplay = document.getElementById('recommendationDisplay');
-        this.riskDisplay = document.getElementById('riskDisplay');
-        this.analysisText = document.getElementById('analysisText');
-
-        this.quickActions = document.querySelectorAll('.quick-action');
-        this.periodBtn = document.getElementById('periodBtn');
+        // Onboarding Wizard
+        this.onboardingOverlay = document.getElementById('onboardingOverlay');
+        this.onboardingName = document.getElementById('onboardingName');
+        this.onboardingCapital = document.getElementById('onboardingCapital');
+        this.onboardingRisk = document.getElementById('onboardingRisk');
+        this.onboardingDailyTarget = document.getElementById('onboardingDailyTarget');
+        this.onboardingDailyLoss = document.getElementById('onboardingDailyLoss');
+        this.onboardingRR = document.getElementById('onboardingRR');
+        this.onboardingSession = document.getElementById('onboardingSession');
+        this.onboardingStrategy = document.getElementById('onboardingStrategy');
+        this.onboardingMarkets = document.querySelectorAll('#onboardingMarkets input[type="checkbox"]');
+        this.onboardingAssets = document.querySelectorAll('#onboardingAssets input[type="checkbox"]');
+        this.wizardProgressBar = document.getElementById('wizardProgressBar');
+        this.wizardStepLabel = document.getElementById('wizardStepLabel');
+        this.wizardStepTitle = document.getElementById('wizardStepTitle');
+        this.wizardStepSubtitle = document.getElementById('wizardStepSubtitle');
+        this.wizardStepError = document.getElementById('wizardStepError');
+        this.wizardSteps = document.querySelectorAll('.wizard-step');
+        this.wizardBackBtn = document.getElementById('wizardBackBtn');
+        this.wizardNextBtn = document.getElementById('wizardNextBtn');
+        this.resetTradingProfileBtn = document.getElementById('resetTradingProfileBtn');
 
         this.langButtons = document.querySelectorAll('.lang-selector button');
-        this.appName = document.getElementById('appName');
-        this.appSub = document.getElementById('appSub');
-        this.planName = document.getElementById('planName');
-        this.planDetail = document.getElementById('planDetail');
-        this.planDate = document.getElementById('planDate');
     },
 
     // ===== BIND EVENTS =====
     bindEvents() {
-        // Navigation
         this.navItems.forEach(item => {
             item.addEventListener('click', () => {
                 this.navItems.forEach(n => n.classList.remove('active'));
@@ -515,46 +370,44 @@ const App = {
             });
         });
 
-        // Quick actions
-        this.quickActions.forEach(action => {
-            action.addEventListener('click', () => {
-                const actionType = action.dataset.action;
-                if (actionType === 'add-trade') {
-                    this.addTrade();
-                } else if (actionType === 'risk') {
-                    this.showSection('guardian');
-                } else if (actionType === 'review') {
-                    this.showSection('journal');
-                } else if (actionType === 'analysis') {
-                    this.showNotification('Analyzing last trade...');
-                } else {
-                    this.showNotification('Action: ' + actionType);
-                }
-            });
+        // Search
+        if (this.searchBtn) this.searchBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closePopover(this.notifPopover);
+            this.togglePopover(this.searchPopover);
+            if (this.searchPopover.classList.contains('open') && this.globalSearchInput) {
+                this.globalSearchInput.focus();
+            }
+        });
+        if (this.globalSearchInput) this.globalSearchInput.addEventListener('input', () => {
+            this.renderSearchResults(this.globalSearchInput.value.trim());
         });
 
-        // Quick add trade button on dashboard
-        if (this.quickAddTradeBtn) {
-            this.quickAddTradeBtn.addEventListener('click', () => this.addTrade());
-        }
+        // Notifications
+        if (this.notifBtn) this.notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.closePopover(this.searchPopover);
+            this.togglePopover(this.notifPopover);
+            if (this.notifPopover.classList.contains('open')) this.renderNotifications();
+        });
 
-        // Journal filters
+        document.addEventListener('click', (e) => {
+            if (this.searchWrapper && !this.searchWrapper.contains(e.target)) this.closePopover(this.searchPopover);
+            if (this.notifWrapper && !this.notifWrapper.contains(e.target)) this.closePopover(this.notifPopover);
+        });
+
+        // Journal
+        if (this.addTradeBtn) this.addTradeBtn.addEventListener('click', () => this.openTradeModal());
+        if (this.tradeModalCancel) this.tradeModalCancel.addEventListener('click', () => this.closeTradeModal());
+        if (this.tradeModalSave) this.tradeModalSave.addEventListener('click', () => this.submitTradeForm());
+        if (this.tradeModalOverlay) this.tradeModalOverlay.addEventListener('click', (e) => {
+            if (e.target === this.tradeModalOverlay) this.closeTradeModal();
+        });
         if (this.filterAsset) this.filterAsset.addEventListener('change', () => this.applyFilters());
         if (this.filterResult) this.filterResult.addEventListener('change', () => this.applyFilters());
         if (this.journalSearch) this.journalSearch.addEventListener('input', () => this.applyFilters());
 
-        if (this.addTradeBtn) this.addTradeBtn.addEventListener('click', () => this.addTrade());
-
-        if (this.prevPageBtn) this.prevPageBtn.addEventListener('click', () => this.prevPage());
-        if (this.nextPageBtn) this.nextPageBtn.addEventListener('click', () => this.nextPage());
-
-        if (this.askBtn) this.askBtn.addEventListener('click', () => this.handleAIQuery());
-        if (this.aiInput) this.aiInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') this.handleAIQuery();
-        });
-
-        setInterval(() => this.updateMarket(), 5000);
-
+        // Calendar
         if (this.prevMonthBtn) this.prevMonthBtn.addEventListener('click', () => this.changeMonth(-1));
         if (this.nextMonthBtn) this.nextMonthBtn.addEventListener('click', () => this.changeMonth(1));
         if (this.addEventBtn) this.addEventBtn.addEventListener('click', () => this.addEvent());
@@ -562,257 +415,391 @@ const App = {
             if (e.key === 'Enter') this.addEvent();
         });
 
-        this.perfTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                this.perfTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                const tabId = tab.dataset.tab;
-                this.perfPanels.forEach(p => p.classList.remove('active'));
-                const panel = document.getElementById('perf-' + tabId);
-                if (panel) panel.classList.add('active');
-                setTimeout(() => {
-                    if (tabId === 'monthly') this.initPerfMonthlyChart();
-                    else if (tabId === 'sessions') this.initPerfSessionsChart();
-                }, 100);
-            });
+        // AI Assistant
+        if (this.askBtn) this.askBtn.addEventListener('click', () => this.handleAIQuery());
+        if (this.dashAskBtn) this.dashAskBtn.addEventListener('click', () => {
+            this.navItems.forEach(n => n.classList.remove('active'));
+            const targetNav = Array.from(this.navItems).find(n => n.dataset.section === 'intelligence');
+            if (targetNav) targetNav.classList.add('active');
+            this.showSection('intelligence');
         });
-
-        if (this.perfPeriodBtn) {
-            this.perfPeriodBtn.addEventListener('click', () => {
-                const periods = ['Week', 'Month', 'Year'];
-                const current = this.perfPeriodBtn.textContent;
-                const idx = periods.indexOf(current);
-                const next = periods[(idx + 1) % periods.length];
-                this.perfPeriodBtn.textContent = next;
-                this.initPerfEquityChart();
+        if (this.aiInput) this.aiInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') this.handleAIQuery();
+        });
+        if (this.clearChatBtn) this.clearChatBtn.addEventListener('click', () => this.clearChat());
+        if (this.aiSuggestions) {
+            this.aiSuggestions.querySelectorAll('.ai-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const query = chip.dataset.query;
+                    if (query) {
+                        this.aiInput.value = query;
+                        this.handleAIQuery();
+                    }
+                });
             });
         }
 
+        // Settings Tabs & Saves
         this.settingsTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 this.settingsTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
-                const tabId = tab.dataset.tab;
-                this.settingsPanels.forEach(p => p.classList.remove('active'));
-                const panel = document.getElementById('settings-' + tabId);
-                if (panel) panel.classList.add('active');
+                this.settingsContents.forEach(c => c.classList.remove('active'));
+                const target = document.getElementById('settings-' + tab.dataset.tab);
+                if (target) target.classList.add('active');
             });
         });
-
-        this.themeOptions.forEach(opt => {
-            opt.addEventListener('click', () => {
-                this.themeOptions.forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
-                this.showNotification('Theme: ' + opt.dataset.theme);
-            });
-        });
+        if (this.saveProfileBtn) this.saveProfileBtn.addEventListener('click', () => this.saveSettings('profile'));
+        if (this.saveTradingBtn) this.saveTradingBtn.addEventListener('click', () => this.saveSettings('trading'));
+        if (this.saveAppearanceBtn) this.saveAppearanceBtn.addEventListener('click', () => this.saveSettings('appearance'));
 
         this.accentOptions.forEach(opt => {
             opt.addEventListener('click', () => {
                 this.accentOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-                const color = opt.style.background;
-                document.documentElement.style.setProperty('--primary', color);
-                this.showNotification('Accent color updated');
             });
         });
-
-        this.fontSizeOptions.forEach(opt => {
+        this.themeOptions.forEach(opt => {
             opt.addEventListener('click', () => {
-                this.fontSizeOptions.forEach(o => o.classList.remove('active'));
+                this.themeOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-                const sizes = { small: '13px', medium: '15px', large: '17px' };
-                document.body.style.fontSize = sizes[opt.dataset.size];
-                this.showNotification('Font size: ' + opt.dataset.size);
             });
         });
 
-        if (this.exportTradesBtn) this.exportTradesBtn.addEventListener('click', () => this.exportTrades());
-        if (this.exportJournalBtn) this.exportJournalBtn.addEventListener('click', () => this.exportJournal());
-        if (this.exportAllBtn) this.exportAllBtn.addEventListener('click', () => this.exportAll());
+        // Data actions
+        if (this.exportTradesBtn) this.exportTradesBtn.addEventListener('click', () => this.exportData('trades'));
+        if (this.exportJournalBtn) this.exportJournalBtn.addEventListener('click', () => this.exportData('all'));
         if (this.importDataBtn) this.importDataBtn.addEventListener('click', () => this.importData());
         if (this.clearAllDataBtn) this.clearAllDataBtn.addEventListener('click', () => this.clearAllData());
 
-        if (this.refreshRecommendationsBtn) {
-            this.refreshRecommendationsBtn.addEventListener('click', () => this.renderRecommendations());
-        }
-
-        document.getElementById('searchBtn')?.addEventListener('click', () => this.showNotification('Search'));
-        document.getElementById('notifBtn')?.addEventListener('click', () => this.showNotification('No new notifications'));
-
-        document.querySelectorAll('#saveProfileBtn, #saveTradingBtn, #saveNotifBtn, #applyAppearanceBtn, #updateSecurityBtn')
-            .forEach(btn => {
-                if (btn) btn.addEventListener('click', () => this.showNotification('Settings saved!'));
-            });
-
-        if (this.periodBtn) {
-            this.periodBtn.addEventListener('click', () => {
-                const periods = ['Week', 'Month', 'Year'];
-                const current = this.periodBtn.textContent;
-                const idx = periods.indexOf(current);
-                const next = periods[(idx + 1) % periods.length];
-                this.periodBtn.textContent = next;
-                this.initEquityChart();
-            });
-        }
-
-        this.periodBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.periodBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                this.currentPeriod = btn.dataset.period;
-                this.updateAnalytics();
-            });
-        });
-
-        if (this.toggleViewBtn) {
-            this.toggleViewBtn.addEventListener('click', () => {
-                const current = this.toggleViewBtn.textContent;
-                this.toggleViewBtn.textContent = current === 'Switch to R' ? 'Switch to $' : 'Switch to R';
-                this.initMonthlyChart();
-            });
-        }
-
-        // Language
         this.langButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 this.langButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.currentLang = btn.dataset.lang;
                 this.applyLanguage();
-                this.showNotification('Language: ' + (this.currentLang === 'ru' ? 'Russian' : 'English'));
+                this.saveState();
+                if (this.settingsLang) this.settingsLang.value = this.currentLang;
             });
         });
 
-        // Apply initial language
+        if (this.wizardNextBtn) {
+            this.wizardNextBtn.addEventListener('click', () => this.wizardNext());
+        }
+        if (this.wizardBackBtn) {
+            this.wizardBackBtn.addEventListener('click', () => this.wizardBack());
+        }
+        if (this.resetTradingProfileBtn) {
+            this.resetTradingProfileBtn.addEventListener('click', () => this.resetTradingProfile());
+        }
         this.applyLanguage();
+
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (typeof window.reinitCharts === 'function') window.reinitCharts();
+            }, 250);
+        });
     },
 
     // ===== LANGUAGE =====
     applyLanguage() {
         const t = this.translations[this.currentLang] || this.translations.ru;
-
-        // Sidebar
-        if (this.appName) this.appName.textContent = t.appName;
-        if (this.appSub) this.appSub.textContent = t.appSub;
-        if (this.planName) this.planName.textContent = t.planName;
-        if (this.planDetail) this.planDetail.textContent = t.planDetail;
-        if (this.planDate) this.planDate.textContent = t.planDate;
-
-        // Navigation
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.dataset.key;
-            if (t[key] !== undefined) {
+            if (t[key] !== undefined && !el.closest('.dash-panel') && !el.closest('.journal-stats-modern')) {
                 el.textContent = t[key];
             }
         });
+    },
 
-        // Online status
-        const onlineStatus = document.querySelector('.online-status span');
-        if (onlineStatus) onlineStatus.textContent = t.online;
+    // ===== ONBOARDING WIZARD =====
+    wizardStepMeta: {
+        1: { title: 'Добро пожаловать в KriptoDanik AI', subtitle: 'Давайте настроим ваш профиль трейдера' },
+        2: { title: 'Ваши торговые параметры', subtitle: 'Это станет основой вашего Trading Profile' },
+        3: { title: 'Ваши предпочтения', subtitle: 'Сессия и любимые рынки/активы' },
+        4: { title: 'Ваша торговая стратегия', subtitle: 'Опишите её своими словами' }
+    },
 
-        // Page title & greeting
-        const section = document.querySelector('.nav-item.active')?.dataset.section || 'dashboard';
-        const titles = {
-            dashboard: t.welcome,
-            journal: 'Trade Journal',
-            analytics: 'Analytics',
-            calendar: 'Calendar',
-            performance: 'Performance',
-            guardian: 'Guardian',
-            intelligence: t.kd_intelligence,
-            settings: 'Settings'
-        };
-        const greetings = {
-            dashboard: t.greeting,
-            journal: 'Trade Log',
-            analytics: 'Performance Analysis',
-            calendar: 'Schedule & Events',
-            performance: 'Performance Overview',
-            guardian: 'Risk Management',
-            intelligence: 'AI Insights',
-            settings: 'Preferences & Configuration'
-        };
-        if (this.pageTitle) this.pageTitle.textContent = titles[section] || 'KriptoDanik AI';
-        if (this.pageGreeting) this.pageGreeting.textContent = greetings[section] || 'Good Evening';
+    showOnboarding() {
+        if (!this.onboardingOverlay) return;
+        this.wizardStep = 1;
+        this.goToWizardStep(1);
+        this.onboardingOverlay.classList.add('active');
+    },
+
+    goToWizardStep(step) {
+        this.wizardStep = step;
+        if (this.wizardSteps) {
+            this.wizardSteps.forEach(el => {
+                el.style.display = parseInt(el.dataset.step) === step ? '' : 'none';
+            });
+        }
+        const meta = this.wizardStepMeta[step];
+        if (meta) {
+            if (this.wizardStepTitle) this.wizardStepTitle.textContent = meta.title;
+            if (this.wizardStepSubtitle) this.wizardStepSubtitle.textContent = meta.subtitle;
+        }
+        if (this.wizardStepLabel) this.wizardStepLabel.textContent = `Шаг ${step} из 4`;
+        if (this.wizardProgressBar) this.wizardProgressBar.style.width = (step / 4 * 100) + '%';
+        if (this.wizardBackBtn) this.wizardBackBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+        if (this.wizardNextBtn) this.wizardNextBtn.textContent = step === 4 ? 'Завершить настройку' : 'Далее';
+        if (this.wizardStepError) this.wizardStepError.textContent = '';
+    },
+
+    validateWizardStep(step) {
+        if (step === 1) {
+            if (!this.onboardingName.value.trim()) return 'Пожалуйста, введите ваше имя';
+        }
+        if (step === 2) {
+            if (isNaN(parseFloat(this.onboardingCapital.value)) || parseFloat(this.onboardingCapital.value) <= 0) return 'Укажите начальный баланс';
+            if (isNaN(parseFloat(this.onboardingRisk.value)) || parseFloat(this.onboardingRisk.value) <= 0) return 'Укажите риск на сделку';
+            if (isNaN(parseFloat(this.onboardingDailyTarget.value)) || parseFloat(this.onboardingDailyTarget.value) <= 0) return 'Укажите дневную цель прибыли';
+            if (isNaN(parseFloat(this.onboardingDailyLoss.value)) || parseFloat(this.onboardingDailyLoss.value) <= 0) return 'Укажите максимальный дневной убыток';
+        }
+        if (step === 3) {
+            const marketsChecked = Array.from(this.onboardingMarkets).some(cb => cb.checked);
+            const assetsChecked = Array.from(this.onboardingAssets).some(cb => cb.checked);
+            if (!marketsChecked) return 'Выберите хотя бы один рынок';
+            if (!assetsChecked) return 'Выберите хотя бы один актив';
+        }
+        if (step === 4) {
+            if (!this.onboardingStrategy.value.trim()) return 'Опишите вашу торговую стратегию';
+        }
+        return null;
+    },
+
+    wizardNext() {
+        const error = this.validateWizardStep(this.wizardStep);
+        if (error) {
+            if (this.wizardStepError) this.wizardStepError.textContent = error;
+            return;
+        }
+        if (this.wizardStep < 4) {
+            this.goToWizardStep(this.wizardStep + 1);
+        } else {
+            this.completeOnboarding();
+        }
+    },
+
+    wizardBack() {
+        if (this.wizardStep > 1) this.goToWizardStep(this.wizardStep - 1);
+    },
+
+    completeOnboarding() {
+        const name = this.onboardingName.value.trim() || 'Trader';
+        const capital = parseFloat(this.onboardingCapital.value) || 10000;
+        const risk = parseFloat(this.onboardingRisk.value) || 1;
+        const dailyTarget = parseFloat(this.onboardingDailyTarget.value) || 800;
+        const dailyLoss = parseFloat(this.onboardingDailyLoss.value) || 300;
+        const rr = this.onboardingRR.value || '1:2';
+        const session = this.onboardingSession.value || 'ny';
+        const markets = Array.from(this.onboardingMarkets).filter(cb => cb.checked).map(cb => cb.value);
+        const assets = Array.from(this.onboardingAssets).filter(cb => cb.checked).map(cb => cb.value);
+        const strategy = this.onboardingStrategy.value.trim();
+
+        this.userData = { name, capital, risk, dailyTarget, dailyLoss, rr, session, markets, assets, strategy };
+        this.onboardingDone = true;
+        if (this.onboardingOverlay) this.onboardingOverlay.classList.remove('active');
+        this.applyUserData();
+        this.saveState();
+    },
+
+    resetTradingProfile() {
+        if (!confirm('Сбросить торговый профиль? Journal, Calendar, Analytics, Performance и история Guardian сохранятся.')) return;
+        this.userData = {};
+        this.onboardingDone = false;
+        this.saveState();
+        this.showOnboarding();
+        this.showToast('Торговый профиль сброшен');
+    },
+
+    updateGreeting() {
+        const hour = new Date().getHours();
+        let greeting = 'Good Evening';
+        if (hour < 12) greeting = 'Good Morning';
+        else if (hour < 18) greeting = 'Good Afternoon';
+        if (this.pageGreeting) this.pageGreeting.textContent = greeting;
+    },
+
+    applyUserData() {
+        if (!this.userData || !this.onboardingDone) return;
+        if (this.balanceDisplay) this.balanceDisplay.textContent = '$ ' + this.userData.capital.toLocaleString();
+        if (this.userNameDisplay) this.userNameDisplay.textContent = this.userData.name || 'Danik';
+        this.updateGreeting();
+        this.renderTradingProfileCards();
+        this.renderTodaysProgress();
+        
+        if (this.settingsName) this.settingsName.value = this.userData.name || '';
+        if (this.settingsUsername) this.settingsUsername.textContent = this.userData.name || 'Трейдер';
+        if (this.settingsEmail) this.settingsEmail.textContent = this.userData.email || 'user@kriptodanik.ai';
+        if (this.settingsMemberSince) this.settingsMemberSince.textContent = this.userData.memberSince || new Date().toLocaleDateString();
+        if (this.settingsPlan) this.settingsPlan.textContent = this.userData.plan || 'Pro';
+        if (this.settingsCapital) this.settingsCapital.value = this.userData.capital || 10000;
+        if (this.settingsRisk) this.settingsRisk.value = this.userData.risk || '1.0';
+        if (this.settingsDailyLoss) this.settingsDailyLoss.value = this.userData.dailyLoss || 500;
+        if (this.settingsDailyTarget) this.settingsDailyTarget.value = this.userData.dailyTarget || 800;
+        if (this.settingsRR) this.settingsRR.value = this.userData.rr || '1:2';
+        if (this.settingsTradingStyle) this.settingsTradingStyle.value = this.userData.tradingStyle || 'day';
+        if (this.settingsSession) this.settingsSession.value = this.userData.session || 'ny';
+        if (this.settingsLang) this.settingsLang.value = this.currentLang || 'ru';
+        if (this.settingsCurrency) this.settingsCurrency.value = this.userData.currency || 'USD';
+        
+        this.updateDashboardStats();
+        this.initEquityChart();
+        this.initDashboardCharts();
+        this.updateGuardianStats();
+        this.initGuardianChart();
+        
+        if (this.aiHistory.length === 0) {
+            this.renderAIWelcome();
+        } else {
+            this.renderAIHistory();
+        }
+    },
+
+    renderTradingProfileCards() {
+        const dailyTarget = this.userData.dailyTarget || 0;
+        const dailyLoss = this.userData.dailyLoss || 0;
+        const risk = this.userData.risk || 0;
+        const capital = this.userData.capital || 0;
+
+        if (this.dailyTargetDisplay) this.dailyTargetDisplay.textContent = dailyTarget.toFixed(2) + ' $';
+        if (this.dailyLossDisplay) this.dailyLossDisplay.textContent = dailyLoss.toFixed(2) + ' $';
+        if (this.riskPerTradeDisplay) this.riskPerTradeDisplay.textContent = risk.toFixed(2) + ' %';
+        if (this.riskPerTradeSub) this.riskPerTradeSub.textContent = (capital * risk / 100).toFixed(2) + ' $';
+
+        if (this.tpPreferredRR) this.tpPreferredRR.textContent = this.userData.rr || '—';
+        const sessionLabels = { london: 'London', ny: 'New York', asia: 'Asian', sydney: 'Sydney' };
+        if (this.tpSession) this.tpSession.textContent = sessionLabels[this.userData.session] || '—';
+    },
+
+    renderTodaysProgress() {
+        const today = new Date().toISOString().slice(0, 10);
+        const todayPnl = this.trades
+            .filter(t => t.date === today)
+            .reduce((sum, t) => sum + (typeof t.pnl === 'number' && !isNaN(t.pnl) ? t.pnl : 0), 0);
+
+        const dailyTarget = this.userData.dailyTarget || 0;
+        const dailyLoss = this.userData.dailyLoss || 0;
+
+        if (this.tpTodayProgress) {
+            this.tpTodayProgress.textContent = (todayPnl >= 0 ? '+' : '') + todayPnl.toFixed(2) + ' $';
+        }
+        if (this.dailyTargetSub) {
+            const pct = dailyTarget > 0 ? Math.min(Math.max(todayPnl / dailyTarget * 100, 0), 100) : 0;
+            this.dailyTargetSub.textContent = (todayPnl >= 0 ? '+' : '') + todayPnl.toFixed(2) + ' $ (' + pct.toFixed(0) + '%)';
+        }
+        if (this.dailyLossSub) {
+            const lossPct = dailyLoss > 0 ? Math.min(Math.max(-todayPnl / dailyLoss * 100, 0), 100) : 0;
+            this.dailyLossSub.textContent = (todayPnl < 0 ? todayPnl.toFixed(2) : '0.00') + ' $ (' + lossPct.toFixed(0) + '%)';
+        }
+        if (this.tpProgressFill) {
+            if (todayPnl >= 0) {
+                const pct = dailyTarget > 0 ? Math.min(todayPnl / dailyTarget * 100, 100) : 0;
+                this.tpProgressFill.style.width = pct + '%';
+                this.tpProgressFill.classList.remove('negative');
+            } else {
+                const pct = dailyLoss > 0 ? Math.min(-todayPnl / dailyLoss * 100, 100) : 0;
+                this.tpProgressFill.style.width = pct + '%';
+                this.tpProgressFill.classList.add('negative');
+            }
+        }
     },
 
     // ===== NAVIGATION =====
     showSection(section) {
         Object.keys(this.sections).forEach(key => {
-            if (this.sections[key]) {
-                this.sections[key].classList.toggle('active', key === section);
-            }
+            if (this.sections[key]) this.sections[key].classList.toggle('active', key === section);
         });
-
-        const t = this.translations[this.currentLang] || this.translations.ru;
-        const titles = {
-            dashboard: t.welcome,
-            journal: 'Trade Journal',
-            analytics: 'Analytics',
-            calendar: 'Calendar',
-            performance: 'Performance',
-            guardian: 'Guardian',
-            intelligence: t.kd_intelligence,
-            settings: 'Settings'
-        };
-        const greetings = {
-            dashboard: t.greeting,
-            journal: 'Trade Log',
-            analytics: 'Performance Analysis',
-            calendar: 'Schedule & Events',
-            performance: 'Performance Overview',
-            guardian: 'Risk Management',
-            intelligence: 'AI Insights',
-            settings: 'Preferences & Configuration'
-        };
-
-        if (this.pageTitle) this.pageTitle.textContent = titles[section] || 'KriptoDanik AI';
-        if (this.pageGreeting) this.pageGreeting.textContent = greetings[section] || 'Good Evening';
-
-        if (section === 'journal') this.renderJournal();
-        if (section === 'calendar') this.renderCalendar();
-        if (section === 'analytics') setTimeout(() => this.updateAnalytics(), 200);
-        if (section === 'performance') {
-            setTimeout(() => {
-                this.initPerfEquityChart();
-                this.initPerfMonthlyChart();
-                this.initPerfSessionsChart();
-            }, 200);
-        }
-        if (section === 'guardian') {
-            this.renderGuardian();
-            setTimeout(() => this.initRiskChart(), 200);
-        }
-
         this.navItems.forEach(n => n.classList.remove('active'));
         this.navItems.forEach(n => {
             if (n.dataset.section === section) n.classList.add('active');
         });
 
-        // Re-apply language for new section
+        if (section === 'journal') { this.renderJournal(); this.updateJournalStats(); }
+        if (section === 'calendar') { this.renderCalendar(); this.updateCalendarBadge(); }
+        if (section === 'analytics') { this.updateAnalytics(); }
+        if (section === 'guardian') { this.updateGuardianStats(); this.initGuardianChart(); }
+        if (section === 'performance') { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
+        if (section === 'dashboard') { this.initDashboardCharts(); this.updateDashboardStats(); }
         this.applyLanguage();
+    },
+
+    // ============================================================
+    // DASHBOARD
+    // ============================================================
+    updateDashboardStats() {
+        const total = this.trades.length;
+        const wins = this.trades.filter(t => t.status === 'win').length;
+        const losses = this.trades.filter(t => t.status === 'loss').length;
+        
+        if (this.totalTradesDisplay) this.totalTradesDisplay.textContent = total;
+        if (this.winTradesDisplay) this.winTradesDisplay.textContent = wins + ' (' + (total > 0 ? Math.round(wins/total*100) : 0) + '%)';
+        if (this.lossTradesDisplay) this.lossTradesDisplay.textContent = losses + ' (' + (total > 0 ? Math.round(losses/total*100) : 0) + '%)';
+        if (this.winRateDisplay) this.winRateDisplay.textContent = (total > 0 ? Math.round(wins/total*100) : 0) + '%';
+        if (this.journalBadge) this.journalBadge.textContent = total;
+        
+        this.initDashboardCharts();
+        this.saveState();
+    },
+
+    initDashboardCharts() {
+        const total = this.trades.length;
+        const wins = this.trades.filter(t => t.status === 'win').length;
+        const losses = this.trades.filter(t => t.status === 'loss').length;
+        
+        if (this.winRateDonutChart) {
+            if (this.dashboardCharts.winRate) this.dashboardCharts.winRate.destroy();
+            this.dashboardCharts.winRate = new Chart(this.winRateDonutChart, {
+                type: 'doughnut',
+                data: { labels: ['Побед', 'Поражений'], datasets: [{ data: [wins || 1, losses || 1], backgroundColor: ['#43c6a0', '#ef4444'], borderColor: '#13161c', borderWidth: 3 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '78%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        if (this.assetDonutChart) {
+            if (this.dashboardCharts.asset) this.dashboardCharts.asset.destroy();
+            const assetsMap = {};
+            this.trades.forEach(t => { if(!assetsMap[t.asset]) assetsMap[t.asset] = 0; assetsMap[t.asset]++; });
+            const labels = Object.keys(assetsMap);
+            const data = Object.values(assetsMap);
+            this.dashboardCharts.asset = new Chart(this.assetDonutChart, {
+                type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#7c5cfc', '#fbbf24', '#43c6a0', '#ef4444'], borderColor: '#13161c', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
+            });
+        }
+    },
+
+    initEquityChart() {
+        const canvas = document.getElementById('equityChart');
+        if (!canvas) return;
+        if (this.equityChartInstance) this.equityChartInstance.destroy();
+        const data = [82000, 88000, 95000, 102000, 112000, 118000, 125000];
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+        gradient.addColorStop(0, 'rgba(124, 92, 252, 0.3)');
+        gradient.addColorStop(1, 'rgba(124, 92, 252, 0)');
+        this.equityChartInstance = new Chart(canvas, {
+            type: 'line', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Equity', data, borderColor: '#7c5cfc', backgroundColor: gradient, borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#7c5cfc', pointBorderColor: '#fff', pointBorderWidth: 2, tension: 0.4, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
+        });
     },
 
     // ============================================================
     // JOURNAL
     // ============================================================
-
     applyFilters() {
         const asset = this.filterAsset?.value || '';
         const result = this.filterResult?.value || '';
         const search = this.journalSearch?.value?.toLowerCase() || '';
-
         this.filteredTrades = this.trades.filter(trade => {
             const matchAsset = !asset || trade.asset === asset;
             const matchResult = !result || trade.status === result;
-            const matchSearch = !search ||
-                trade.asset.toLowerCase().includes(search) ||
-                trade.side.toLowerCase().includes(search) ||
-                trade.result.toLowerCase().includes(search);
+            const matchSearch = !search || trade.asset.toLowerCase().includes(search) || trade.side.toLowerCase().includes(search);
             return matchAsset && matchResult && matchSearch;
         });
-
         this.currentPage = 1;
         this.renderJournal();
         this.updateJournalStats();
@@ -820,28 +807,22 @@ const App = {
 
     renderJournal() {
         if (!this.journalBody) return;
-
         const start = (this.currentPage - 1) * this.pageSize;
         const end = start + this.pageSize;
         const pageData = this.filteredTrades.slice(start, end);
 
         if (pageData.length === 0) {
-            this.journalBody.innerHTML =
-                `<tr><td colspan="9" style="text-align:center;padding:48px 0;color:var(--muted);">No trades found</td></tr>`;
-            this.updatePagination();
+            this.journalBody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px 0;color:var(--text-secondary);">Пока нет сделок. Начните добавлять!</td></tr>`;
             return;
         }
 
         let html = '';
         pageData.forEach(trade => {
             const statusClass = trade.status;
-            const statusLabel = trade.status.toUpperCase();
-            const resultClass = trade.result.startsWith('+') ? 'result-positive' :
-                trade.result.startsWith('-') ? 'result-negative' : 'result-pending';
+            const statusLabel = trade.status === 'win' ? 'Прибыль' : (trade.status === 'loss' ? 'Убыток' : 'Без результата');
+            const resultClass = trade.status === 'breakeven' ? 'result-neutral' : (trade.result.startsWith('+') ? 'result-positive' : 'result-negative');
             const sideClass = trade.side === 'BUY' ? 'side-buy' : 'side-sell';
-
-            html += `
-                    <tr>
+            html += `<tr>
                         <td>${trade.date}</td>
                         <td class="asset-cell">${trade.asset}</td>
                         <td class="${sideClass}">${trade.side}</td>
@@ -850,50 +831,31 @@ const App = {
                         <td>${trade.rr}</td>
                         <td class="${resultClass}">${trade.result}</td>
                         <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
-                        <td><button class="delete-btn" data-id="${trade.id}" title="Delete">×</button></td>
-                    </tr>
-                `;
+                        <td>
+                            <button class="edit-btn" data-id="${trade.id}" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;transition:0.2s;margin-right:8px;" title="Редактировать">✎</button>
+                            <button class="delete-btn" data-id="${trade.id}" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;transition:0.2s;" title="Удалить">✕</button>
+                        </td>
+                    </tr>`;
         });
-
         this.journalBody.innerHTML = html;
+
+        this.journalBody.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.dataset.id);
+                this.openTradeModal(id);
+            });
+        });
 
         this.journalBody.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = parseInt(btn.dataset.id);
-                this.deleteTrade(id);
+                if(confirm('Удалить сделку?')) {
+                    this.trades = this.trades.filter(t => t.id !== id);
+                    this.filteredTrades = [...this.trades];
+                    this.syncAfterTradeChange();
+                }
             });
         });
-
-        this.updatePagination();
-    },
-
-    updatePagination() {
-        const total = this.filteredTrades.length;
-        const totalPages = Math.ceil(total / this.pageSize) || 1;
-
-        if (this.currentPageEl) this.currentPageEl.textContent = this.currentPage;
-        if (this.totalPagesEl) this.totalPagesEl.textContent = '/ ' + totalPages;
-        if (this.paginationInfo) {
-            const start = (this.currentPage - 1) * this.pageSize + 1;
-            const end = Math.min(start + this.pageSize - 1, total);
-            this.paginationInfo.textContent = total > 0 ?
-                `Showing ${start}-${end} of ${total} trades` :
-                'No trades';
-        }
-        if (this.prevPageBtn) this.prevPageBtn.disabled = this.currentPage <= 1;
-        if (this.nextPageBtn) this.nextPageBtn.disabled = this.currentPage >= totalPages;
-        if (this.journalBadge) this.journalBadge.textContent = total;
-    },
-
-    prevPage() {
-        if (this.currentPage > 1) { this.currentPage--;
-            this.renderJournal(); }
-    },
-
-    nextPage() {
-        const totalPages = Math.ceil(this.filteredTrades.length / this.pageSize);
-        if (this.currentPage < totalPages) { this.currentPage++;
-            this.renderJournal(); }
     },
 
     updateJournalStats() {
@@ -905,283 +867,312 @@ const App = {
         const totalPnL = rrValues.reduce((a, b) => a + b, 0);
 
         if (this.jTotalTrades) this.jTotalTrades.textContent = total;
-        if (this.jWinRate) {
-            this.jWinRate.textContent = winRate.toFixed(1) + '%';
-            this.jWinRate.className = 'journal-stat-value ' + (winRate >= 50 ? 'positive' : 'negative');
-        }
+        if (this.jWinRate) { this.jWinRate.textContent = winRate.toFixed(1) + '%'; this.jWinRate.className = 'stat-number ' + (winRate >= 50 ? 'green' : 'red'); }
         if (this.jAvgRR) this.jAvgRR.textContent = avgRR.toFixed(1);
-        if (this.jTotalPnL) {
-            this.jTotalPnL.textContent = (totalPnL >= 0 ? '+' : '') + totalPnL.toFixed(1) + 'R';
-            this.jTotalPnL.className = 'journal-stat-value ' + (totalPnL >= 0 ? 'positive' : 'negative');
-        }
+        if (this.jTotalPnL) { this.jTotalPnL.textContent = (totalPnL >= 0 ? '+' : '') + totalPnL.toFixed(1) + 'R'; this.jTotalPnL.className = 'stat-number ' + (totalPnL >= 0 ? 'green' : 'red'); }
     },
 
-    addTrade() {
-        const assets = ['BTCUSDT', 'ETHUSDT', 'XAUUSD', 'EURUSD', 'SOLUSDT'];
-        const sides = ['BUY', 'SELL'];
-        const asset = assets[Math.floor(Math.random() * assets.length)];
-        const side = sides[Math.floor(Math.random() * sides.length)];
-        const entry = Math.round(30000 + Math.random() * 30000);
-        const exit = Math.round(entry + (Math.random() > 0.5 ? 1 : -1) * (1000 + Math.random() * 5000));
-        const rr = ((exit - entry) / (1000 + Math.random() * 2000) * 0.5 + 0.5).toFixed(1);
-        const isWin = parseFloat(rr) > 0;
-        const result = (isWin ? '+' : '-') + Math.abs(parseFloat(rr)).toFixed(1) + 'R';
-        const status = isWin ? 'win' : 'loss';
+    syncAfterTradeChange() {
+        this.renderJournal();
+        this.updateJournalStats();
+        this.updateDashboardStats();
+        this.renderTodaysProgress();
+        this.updateAnalytics();
+        this.updateGuardianStats();
+        this.initGuardianChart();
+        this.renderCalendar();
+        this.updateCalendarBadge();
+        if (this.perfEquityChart) { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
+        this.saveState();
+    },
 
-        const newTrade = {
-            id: Math.max(...this.trades.map(t => t.id), 0) + 1,
-            date: new Date().toISOString().slice(0, 10),
-            asset, side, entry, exit,
-            rr: parseFloat(rr),
-            result, status
+    openTradeModal(tradeId = null) {
+        if (!this.tradeModalOverlay) return;
+        this.editingTradeId = tradeId;
+        Object.values(this.tFields).forEach(el => { if (el) { el.value = ''; el.classList.remove('input-invalid'); } });
+        document.querySelectorAll('#tradeModalOverlay .form-error').forEach(el => el.textContent = '');
+
+        const trade = tradeId ? this.trades.find(t => t.id === tradeId) : null;
+        if (this.tradeModalTitle) this.tradeModalTitle.textContent = trade ? 'Редактировать сделку' : 'Новая сделка';
+        if (this.tradeModalSave) this.tradeModalSave.textContent = trade ? 'Сохранить изменения' : 'Сохранить сделку';
+
+        if (trade) {
+            const f = this.tFields;
+            f.asset.value = trade.asset;
+            f.direction.value = trade.side === 'BUY' ? 'long' : 'short';
+            f.entry.value = trade.entry;
+            f.exit.value = trade.exit;
+            f.size.value = trade.size != null ? trade.size : '';
+            f.riskPercent.value = trade.riskPercent;
+            f.rr.value = trade.rr;
+            f.pnl.value = trade.pnl;
+            f.date.value = trade.date;
+            f.session.value = trade.session || '';
+            f.strategy.value = trade.strategy || '';
+            f.status.value = trade.status;
+            f.emotionBefore.value = trade.emotionBefore || 'calm';
+            f.emotionAfter.value = trade.emotionAfter || 'calm';
+            f.notes.value = trade.notes || '';
+        } else {
+            if (this.tFields.date) this.tFields.date.value = new Date().toISOString().slice(0, 10);
+            if (this.tFields.emotionBefore) this.tFields.emotionBefore.value = 'calm';
+            if (this.tFields.emotionAfter) this.tFields.emotionAfter.value = 'calm';
+        }
+
+        this.tradeModalOverlay.classList.add('active');
+        if (this.tFields.asset) this.tFields.asset.focus();
+    },
+
+    closeTradeModal() {
+        if (!this.tradeModalOverlay) return;
+        this.tradeModalOverlay.classList.remove('active');
+        this.editingTradeId = null;
+    },
+
+    validateTradeForm() {
+        const f = this.tFields;
+        const errors = {};
+
+        const asset = f.asset.value.trim();
+        if (!asset) errors.asset = 'Укажите актив';
+
+        const direction = f.direction.value;
+        if (!direction) errors.direction = 'Выберите направление';
+
+        const entry = parseFloat(f.entry.value);
+        if (isNaN(entry) || entry <= 0) errors.entry = 'Введите цену входа';
+
+        const exit = parseFloat(f.exit.value);
+        if (isNaN(exit) || exit <= 0) errors.exit = 'Введите цену выхода';
+
+        const riskPercent = parseFloat(f.riskPercent.value);
+        if (isNaN(riskPercent) || riskPercent <= 0) errors.riskPercent = 'Укажите риск в %';
+
+        const rr = parseFloat(f.rr.value);
+        if (isNaN(rr)) errors.rr = 'Укажите RR';
+
+        const pnl = parseFloat(f.pnl.value);
+        if (isNaN(pnl)) errors.pnl = 'Укажите P&L';
+
+        const date = f.date.value;
+        if (!date || isNaN(new Date(date).getTime())) errors.date = 'Укажите дату';
+
+        const session = f.session.value;
+        if (!session) errors.session = 'Выберите сессию';
+
+        const strategy = f.strategy.value.trim();
+        if (!strategy) errors.strategy = 'Укажите стратегию';
+
+        const status = f.status.value;
+        if (!status) errors.status = 'Выберите статус';
+
+        if (!errors.rr && !errors.status) {
+            if (status === 'win' && rr <= 0) errors.rr = 'При статусе Win значение RR должно быть положительным';
+            else if (status === 'loss' && rr >= 0) errors.rr = 'При статусе Loss значение RR должно быть отрицательным';
+            else if (status === 'breakeven' && Math.abs(rr) > 0.05) errors.rr = 'При Break Even значение RR должно быть около 0';
+        }
+
+        return {
+            valid: Object.keys(errors).length === 0,
+            errors,
+            values: { asset, direction, entry, exit, riskPercent, rr, pnl, date, session, strategy, status }
+        };
+    },
+
+    submitTradeForm() {
+        const f = this.tFields;
+        const { valid, errors, values } = this.validateTradeForm();
+
+        document.querySelectorAll('#tradeModalOverlay .form-error').forEach(el => el.textContent = '');
+        Object.values(f).forEach(el => { if (el) el.classList.remove('input-invalid'); });
+
+        if (!valid) {
+            Object.keys(errors).forEach(key => {
+                const errorEl = document.getElementById('t' + key.charAt(0).toUpperCase() + key.slice(1) + 'Error');
+                if (errorEl) errorEl.textContent = errors[key];
+                if (f[key]) f[key].classList.add('input-invalid');
+            });
+            if (this.tFormError) this.tFormError.textContent = 'Пожалуйста, исправьте отмеченные поля';
+            return;
+        }
+
+        const size = parseFloat(f.size.value);
+        const result = (values.rr > 0 ? '+' : (values.rr < 0 ? '-' : '')) + Math.abs(values.rr).toFixed(1) + 'R';
+        const tradeFields = {
+            date: values.date,
+            asset: values.asset,
+            side: values.direction === 'long' ? 'BUY' : 'SELL',
+            entry: values.entry,
+            exit: values.exit,
+            size: isNaN(size) ? null : size,
+            riskPercent: values.riskPercent,
+            rr: values.rr,
+            pnl: values.pnl,
+            result,
+            status: values.status,
+            session: values.session,
+            strategy: values.strategy,
+            emotionBefore: f.emotionBefore.value,
+            emotionAfter: f.emotionAfter.value,
+            notes: f.notes.value.trim()
         };
 
-        this.trades.unshift(newTrade);
+        const isEdit = this.editingTradeId !== null;
+        if (isEdit) {
+            const idx = this.trades.findIndex(t => t.id === this.editingTradeId);
+            if (idx > -1) this.trades[idx] = { ...this.trades[idx], ...tradeFields, id: this.editingTradeId };
+        } else {
+            const newTrade = { id: Math.max(...this.trades.map(t => t.id), 0) + 1, ...tradeFields };
+            this.trades.unshift(newTrade);
+        }
         this.filteredTrades = [...this.trades];
         this.currentPage = 1;
-        this.renderJournal();
-        this.updateJournalStats();
-        this.updateAnalytics();
-        this.showNotification('Added: ' + asset + ' ' + side + ' ' + result);
-    },
 
-    deleteTrade(id) {
-        if (!confirm('Delete this trade?')) return;
-        this.trades = this.trades.filter(t => t.id !== id);
-        this.filteredTrades = [...this.trades];
-        this.renderJournal();
-        this.updateJournalStats();
-        this.updateAnalytics();
-        this.showNotification('Trade deleted');
+        this.syncAfterTradeChange();
+        this.closeTradeModal();
+
+        const violations = (this.guardianRules || []).filter(r => !r.passed).length;
+        const baseMsg = isEdit ? 'Сделка обновлена!' : 'Сделка успешно добавлена!';
+        this.showToast(violations > 0 ? `${baseMsg} Guardian: ${violations} нарушени${violations === 1 ? 'е' : 'я'} правил` : baseMsg);
     },
 
     // ============================================================
-    // ANALYTICS
+    // HEADER: SEARCH & NOTIFICATIONS
     // ============================================================
-
-    updateAnalytics() {
-        this.updateAnalyticsStats();
-        this.initPNLChart();
-        this.initWinRateChart();
-        this.initMonthlyChart();
-        this.updateMetrics();
+    togglePopover(popover) {
+        if (!popover) return;
+        popover.classList.toggle('open');
     },
 
-    getFilteredByPeriod() {
-        const now = new Date();
-        let cutoff = new Date();
-        switch (this.currentPeriod) {
-            case '7d':
-                cutoff.setDate(now.getDate() - 7);
-                break;
-            case '30d':
-                cutoff.setDate(now.getDate() - 30);
-                break;
-            case '90d':
-                cutoff.setDate(now.getDate() - 90);
-                break;
-            case '1y':
-                cutoff.setFullYear(now.getFullYear() - 1);
-                break;
-            default:
-                return this.trades;
+    closePopover(popover) {
+        if (!popover) return;
+        popover.classList.remove('open');
+    },
+
+    renderSearchResults(query) {
+        if (!this.globalSearchResults) return;
+        if (!query) {
+            this.globalSearchResults.innerHTML = `<div class="header-popover-empty">Начните вводить запрос...</div>`;
+            return;
         }
-        return this.trades.filter(t => new Date(t.date) >= cutoff);
-    },
+        const q = query.toLowerCase();
+        const tradeMatches = this.trades.filter(t =>
+            t.asset.toLowerCase().includes(q) ||
+            t.side.toLowerCase().includes(q) ||
+            (t.date || '').includes(q)
+        ).slice(0, 5);
+        const eventMatches = this.events.filter(e => e.title.toLowerCase().includes(q)).slice(0, 5);
 
-    updateAnalyticsStats() {
-        const filtered = this.getFilteredByPeriod();
-        const total = filtered.length;
-        const wins = filtered.filter(t => t.status === 'win').length;
-        const winRate = total > 0 ? (wins / total * 100) : 0;
-        const rrValues = filtered.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
-        const totalPnL = rrValues.reduce((a, b) => a + b, 0);
-        const avgWin = rrValues.filter(v => v > 0).length > 0 ?
-            rrValues.filter(v => v > 0).reduce((a, b) => a + b, 0) / rrValues.filter(v => v > 0).length : 0;
-        const avgRR = rrValues.length > 0 ? rrValues.reduce((a, b) => a + b, 0) / rrValues.length : 0;
-        const variance = rrValues.length > 0 ?
-            rrValues.reduce((a, b) => a + Math.pow(b - avgRR, 2), 0) / rrValues.length : 0;
-        const stdDev = Math.sqrt(variance);
-        const sharpe = stdDev > 0 ? (avgRR / stdDev) * Math.sqrt(252) : 0;
-
-        if (this.aTotalPnl) {
-            this.aTotalPnl.textContent = (totalPnL >= 0 ? '+' : '') + totalPnL.toFixed(1) + 'R';
-            this.aTotalPnl.className = 'analytics-stat-value ' + (totalPnL >= 0 ? 'positive' : 'negative');
+        if (tradeMatches.length === 0 && eventMatches.length === 0) {
+            this.globalSearchResults.innerHTML = `<div class="header-popover-empty">Ничего не найдено по запросу «${query}»</div>`;
+            return;
         }
-        if (this.aWinRate) {
-            this.aWinRate.textContent = winRate.toFixed(1) + '%';
-            this.aWinRate.className = 'analytics-stat-value ' + (winRate >= 50 ? 'positive' : 'negative');
-        }
-        if (this.aAvgWin) {
-            this.aAvgWin.textContent = '+' + avgWin.toFixed(1) + 'R';
-            this.aAvgWin.className = 'analytics-stat-value positive';
-        }
-        if (this.aSharpe) {
-            this.aSharpe.textContent = sharpe.toFixed(2);
-            this.aSharpe.className = 'analytics-stat-value ' + (sharpe >= 1.5 ? 'positive' : '');
-        }
-    },
-
-    initPNLChart() {
-        const canvas = document.getElementById('pnlDistributionChart');
-        if (!canvas) return;
-        if (this.analyticsCharts.pnl) { this.analyticsCharts.pnl.destroy(); }
-
-        const filtered = this.getFilteredByPeriod();
-        const rrValues = filtered.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
-        const bins = {};
-        rrValues.forEach(v => {
-            const bucket = Math.floor(v * 2) / 2;
-            const key = bucket.toFixed(1);
-            bins[key] = (bins[key] || 0) + 1;
-        });
-        const labels = Object.keys(bins).sort((a, b) => parseFloat(a) - parseFloat(b));
-        const data = labels.map(k => bins[k]);
-        const colors = labels.map(k => parseFloat(k) >= 0 ? 'rgba(45,216,129,0.7)' : 'rgba(255,95,109,0.7)');
-        const borderColors = labels.map(k => parseFloat(k) >= 0 ? '#2dd881' : '#ff5f6d');
-
-        this.analyticsCharts.pnl = new Chart(canvas, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: 'Trades', data, backgroundColor: colors, borderColor: borderColors,
-                    borderWidth: 2, borderRadius: 6 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff' } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7' } } }
-            }
-        });
-    },
-
-    initWinRateChart() {
-        const canvas = document.getElementById('winRateByAssetChart');
-        if (!canvas) return;
-        if (this.analyticsCharts.byAsset) { this.analyticsCharts.byAsset.destroy(); }
-
-        const filtered = this.getFilteredByPeriod();
-        const assets = {};
-        filtered.forEach(t => {
-            if (!assets[t.asset]) assets[t.asset] = { wins: 0, total: 0 };
-            assets[t.asset].total++;
-            if (t.status === 'win') assets[t.asset].wins++;
-        });
-        const labels = Object.keys(assets);
-        const data = labels.map(a => (assets[a].wins / assets[a].total) * 100);
-        const colors = data.map(v => v >= 60 ? 'rgba(45,216,129,0.7)' : v >= 40 ? 'rgba(255,181,71,0.7)' :
-            'rgba(255,95,109,0.7)');
-
-        this.analyticsCharts.byAsset = new Chart(canvas, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: 'Win Rate %', data, backgroundColor: colors, borderColor: colors.map(c =>
-                        c.replace('0.7', '1')), borderWidth: 2, borderRadius: 6 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff', callbacks: { label: function(context) { return context.parsed.y
-                                .toFixed(1) + '%'; } } } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7', callback: function(
-                            value) { return value + '%'; } }, min: 0, max: 100 } }
-            }
-        });
-    },
-
-    initMonthlyChart() {
-        const canvas = document.getElementById('monthlyPerformanceChart');
-        if (!canvas) return;
-        if (this.analyticsCharts.monthly) { this.analyticsCharts.monthly.destroy(); }
-
-        const filtered = this.getFilteredByPeriod();
-        const monthly = {};
-        filtered.forEach(t => {
-            const month = t.date.slice(0, 7);
-            if (!monthly[month]) monthly[month] = 0;
-            monthly[month] += parseFloat(t.rr) || 0;
-        });
-        const labels = Object.keys(monthly).sort();
-        const data = labels.map(m => monthly[m]);
-        const isRR = this.toggleViewBtn?.textContent === 'Switch to $';
-
-        this.analyticsCharts.monthly = new Chart(canvas, {
-            type: 'bar',
-            data: { labels, datasets: [{ label: isRR ? 'P&L (R)' : 'Monthly P&L', data, backgroundColor: data.map(v =>
-                        v >= 0 ? 'rgba(45,216,129,0.7)' : 'rgba(255,95,109,0.7)'), borderColor: data.map(v => v >=
-                        0 ? '#2dd881' : '#ff5f6d'), borderWidth: 2, borderRadius: 6 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff', callbacks: { label: function(context) { return (context.parsed.y >=
-                                0 ? '+' : '') + context.parsed.y.toFixed(1) + (isRR ? 'R' : ''); } } } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7' } } }
-            }
-        });
-    },
-
-    updateMetrics() {
-        if (!this.metricsGrid) return;
-        const filtered = this.getFilteredByPeriod();
-        const total = filtered.length;
-        const wins = filtered.filter(t => t.status === 'win').length;
-        const losses = filtered.filter(t => t.status === 'loss').length;
-        const rrValues = filtered.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
-        const avgRR = rrValues.length > 0 ? rrValues.reduce((a, b) => a + b, 0) / rrValues.length : 0;
-        const profitFactor = rrValues.filter(v => v > 0).reduce((a, b) => a + b, 0) /
-            Math.abs(rrValues.filter(v => v < 0).reduce((a, b) => a + b, 0) || 1);
-
-        let maxDrawdown = 0,
-            peak = 0,
-            runningTotal = 0;
-        rrValues.forEach(v => { runningTotal += v; if (runningTotal > peak) peak = runningTotal; const dd = peak -
-                runningTotal; if (dd > maxDrawdown) maxDrawdown = dd; });
-
-        let maxCW = 0,
-            maxCL = 0,
-            cw = 0,
-            cl = 0;
-        filtered.forEach(t => {
-            if (t.status === 'win') { cw++;
-                cl = 0; if (cw > maxCW) maxCW = cw; } else { cl++;
-                cw = 0; if (cl > maxCL) maxCL = cl; }
-        });
-
-        const sorted = [...rrValues].sort((a, b) => a - b);
-        const metrics = [
-            { label: 'Total Trades', value: total, cls: '' },
-            { label: 'Winning Trades', value: wins, cls: 'positive' },
-            { label: 'Losing Trades', value: losses, cls: 'negative' },
-            { label: 'Win/Loss Ratio', value: (losses > 0 ? (wins / losses).toFixed(2) : '∞'), cls: '' },
-            { label: 'Profit Factor', value: profitFactor.toFixed(2), cls: profitFactor >= 1.5 ? 'positive' :
-                    'negative' },
-            { label: 'Max Drawdown', value: '-' + maxDrawdown.toFixed(1) + 'R', cls: 'negative' },
-            { label: 'Avg Trade', value: (avgRR >= 0 ? '+' : '') + avgRR.toFixed(2) + 'R', cls: avgRR >= 0 ?
-                    'positive' : 'negative' },
-            { label: 'Best Trade', value: '+' + (sorted[sorted.length - 1] || 0).toFixed(1) + 'R', cls: 'positive' },
-            { label: 'Worst Trade', value: (sorted[0] || 0).toFixed(1) + 'R', cls: 'negative' },
-            { label: 'Consecutive Wins', value: maxCW, cls: 'positive' },
-            { label: 'Consecutive Losses', value: maxCL, cls: 'negative' },
-            { label: 'Sharpe Ratio', value: '2.14', cls: 'positive' }
-        ];
 
         let html = '';
-        metrics.forEach(m => {
-            html +=
-                `<div class="metric-item"><span class="metric-label">${m.label}</span><span class="metric-value ${m.cls}">${m.value}</span></div>`;
+        tradeMatches.forEach(t => {
+            html += `
+                <button class="header-popover-item" data-kind="trade" data-asset="${t.asset}">
+                    <span class="header-popover-item-icon">${t.status === 'win' ? '📈' : '📉'}</span>
+                    <span class="header-popover-item-body">
+                        <span class="header-popover-item-title">${t.asset} · ${t.side}</span>
+                        <span class="header-popover-item-desc">${t.date} · ${t.result}</span>
+                    </span>
+                </button>`;
         });
-        this.metricsGrid.innerHTML = html;
+        eventMatches.forEach(e => {
+            const dateLabel = e.date.toLocaleDateString();
+            html += `
+                <button class="header-popover-item" data-kind="event" data-timestamp="${e.date.getTime()}">
+                    <span class="header-popover-item-icon">📅</span>
+                    <span class="header-popover-item-body">
+                        <span class="header-popover-item-title">${e.title}</span>
+                        <span class="header-popover-item-desc">${dateLabel}</span>
+                    </span>
+                </button>`;
+        });
+        this.globalSearchResults.innerHTML = html;
+
+        this.globalSearchResults.querySelectorAll('.header-popover-item[data-kind="trade"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const asset = btn.dataset.asset;
+                this.closePopover(this.searchPopover);
+                this.navItems.forEach(n => n.classList.remove('active'));
+                const nav = Array.from(this.navItems).find(n => n.dataset.section === 'journal');
+                if (nav) nav.classList.add('active');
+                this.showSection('journal');
+                if (this.journalSearch) { this.journalSearch.value = asset; this.applyFilters(); }
+            });
+        });
+        this.globalSearchResults.querySelectorAll('.header-popover-item[data-kind="event"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ts = parseInt(btn.dataset.timestamp);
+                this.closePopover(this.searchPopover);
+                this.navItems.forEach(n => n.classList.remove('active'));
+                const nav = Array.from(this.navItems).find(n => n.dataset.section === 'calendar');
+                if (nav) nav.classList.add('active');
+                this.currentDate = new Date(ts);
+                this.selectedDate = new Date(ts);
+                this.showSection('calendar');
+            });
+        });
+    },
+
+    getNotifications() {
+        const notifications = [];
+        const today = new Date().toISOString().slice(0, 10);
+        const todayTrades = this.trades.filter(t => t.date === today);
+        const lossesToday = todayTrades.filter(t => t.status === 'loss').length;
+
+        (this.guardianRules || []).filter(r => !r.passed).forEach(r => {
+            notifications.push({ icon: '⚠️', title: 'Нарушение правила Guardian', desc: r.name, tag: 'warning' });
+        });
+
+        if (lossesToday >= 3) {
+            notifications.push({ icon: '🛑', title: 'Дневной лимит убытков', desc: `${lossesToday} убыточных сделок сегодня`, tag: 'warning' });
+        }
+
+        const todayEvents = this.getEventsForDate(new Date());
+        if (todayEvents.length > 0) {
+            notifications.push({ icon: '📅', title: `События сегодня (${todayEvents.length})`, desc: todayEvents.map(e => e.title).join(', '), tag: 'info' });
+        }
+
+        if (notifications.length === 0) {
+            notifications.push({ icon: '✅', title: 'Всё под контролем', desc: 'Нарушений и событий на сегодня не найдено', tag: 'success' });
+        }
+        return notifications;
+    },
+
+    renderNotifications() {
+        if (!this.notifResults) return;
+        const notifications = this.getNotifications();
+        let html = '';
+        notifications.forEach(n => {
+            html += `
+                <div class="header-popover-item non-interactive">
+                    <span class="header-popover-item-icon">${n.icon}</span>
+                    <span class="header-popover-item-body">
+                        <span class="header-popover-item-title">${n.title}</span>
+                        <span class="header-popover-item-desc">${n.desc}</span>
+                    </span>
+                </div>`;
+        });
+        this.notifResults.innerHTML = html;
+    },
+
+    updateNotifBadge() {
+        if (!this.notifBadge) return;
+        const activeCount = this.getNotifications().filter(n => n.tag === 'warning').length;
+        if (activeCount > 0) {
+            this.notifBadge.textContent = activeCount;
+            this.notifBadge.style.display = 'flex';
+        } else {
+            this.notifBadge.style.display = 'none';
+        }
     },
 
     // ============================================================
     // CALENDAR
     // ============================================================
-
     changeMonth(delta) {
         this.currentDate.setMonth(this.currentDate.getMonth() + delta);
         this.renderCalendar();
@@ -1190,12 +1181,9 @@ const App = {
 
     renderCalendar() {
         if (!this.calendarGrid) return;
-
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         this.calendarMonth.textContent = monthNames[month] + ' ' + year;
 
         const firstDay = new Date(year, month, 1).getDay();
@@ -1209,49 +1197,70 @@ const App = {
 
         for (let i = 0; i < firstDay; i++) {
             const prevDay = daysInPrevMonth - firstDay + i + 1;
-            html += `<div class="calendar-day other-month">${prevDay}</div>`;
+            html += `<div class="calendar-day-cell other-month">${prevDay}</div>`;
         }
-
         for (let d = 1; d <= daysInMonth; d++) {
             const dateObj = new Date(year, month, d);
             const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-            const isSelected = d === this.selectedDate.getDate() && month === this.selectedDate.getMonth() &&
-                year === this.selectedDate.getFullYear();
+            const isSelected = d === this.selectedDate.getDate() && month === this.selectedDate.getMonth() && year === this.selectedDate.getFullYear();
             const dayEvents = this.getEventsForDate(dateObj);
-            let cls = 'calendar-day';
+            const dayTrades = this.getTradesForDate(dateObj);
+            let cls = 'calendar-day-cell';
             if (isToday) cls += ' today';
             if (isSelected) cls += ' selected';
             if (dayEvents.length > 0) cls += ' has-event';
-
-            let dotsHtml = '';
-            if (dayEvents.length > 0) {
-                const types = [...new Set(dayEvents.map(e => e.type))];
-                dotsHtml = '<div class="day-events">';
-                types.slice(0, 3).forEach(type => {
-                    dotsHtml += `<span class="day-event-dot ${type}"></span>`;
-                });
-                if (types.length > 3) {
-                    dotsHtml += `<span class="day-event-dot" style="background:var(--muted);">+</span>`;
-                }
-                dotsHtml += '</div>';
-            }
-
-            html +=
-                `<div class="${cls}" data-date="${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}">${d}${dotsHtml}</div>`;
+            if (dayTrades.length > 0) cls += ' has-trade';
+            html += `<div class="${cls}" data-date="${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}">${d}</div>`;
         }
-
         this.calendarGrid.innerHTML = html;
 
-        this.calendarGrid.querySelectorAll('.calendar-day:not(.other-month)').forEach(el => {
+        this.calendarGrid.querySelectorAll('.calendar-day-cell:not(.other-month)').forEach(el => {
             el.addEventListener('click', () => {
                 const parts = el.dataset.date.split('-');
                 this.selectedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 this.renderCalendar();
                 this.renderEvents();
+                this.renderDayTrades();
             });
         });
-
         this.renderEvents();
+        this.renderDayTrades();
+    },
+
+    getTradesForDate(date) {
+        const y = date.getFullYear(), m = date.getMonth(), d = date.getDate();
+        return this.trades.filter(t => {
+            const td = new Date(t.date);
+            return td.getFullYear() === y && td.getMonth() === m && td.getDate() === d;
+        });
+    },
+
+    renderDayTrades() {
+        if (!this.dayTradesList) return;
+        const dayTrades = this.getTradesForDate(this.selectedDate);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        if (this.selectedDateTradesLabel) this.selectedDateTradesLabel.textContent = monthNames[this.selectedDate.getMonth()] + ' ' + this.selectedDate.getDate() + ', ' + this.selectedDate.getFullYear();
+        if (this.dayTradesCount) this.dayTradesCount.textContent = dayTrades.length + ' сделок';
+
+        if (dayTrades.length === 0) {
+            this.dayTradesList.innerHTML = `<div class="no-events">Нет сделок в этот день</div>`;
+            return;
+        }
+        const statusLabels = { win: 'Win', loss: 'Loss', breakeven: 'BE' };
+        let html = '';
+        dayTrades.forEach(t => {
+            const resultColor = t.status === 'win' ? 'var(--brand-green)' : (t.status === 'loss' ? 'var(--brand-red)' : 'var(--text-secondary)');
+            html += `
+                <div class="trade-item-modern ${t.status}">
+                    <div class="trade-item-top">
+                        <span class="trade-item-title">${t.asset} · ${t.side} · ${statusLabels[t.status] || t.status}</span>
+                        <span class="trade-item-result" style="color:${resultColor};">${t.result}</span>
+                    </div>
+                    <span class="trade-item-meta">${t.strategy ? t.strategy + ' · ' : ''}${t.session ? t.session.toUpperCase() : ''}</span>
+                    ${t.notes ? `<span class="trade-item-notes">${t.notes}</span>` : ''}
+                </div>`;
+        });
+        this.dayTradesList.innerHTML = html;
     },
 
     getEventsForDate(date) {
@@ -1266,25 +1275,18 @@ const App = {
         if (!this.eventsList) return;
         const eventsForDate = this.getEventsForDate(this.selectedDate);
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        this.selectedDateLabel.textContent =
-            monthNames[this.selectedDate.getMonth()] + ' ' +
-            this.selectedDate.getDate() + ', ' +
-            this.selectedDate.getFullYear();
-
-        this.eventsCount.textContent = eventsForDate.length + ' events';
+        this.selectedDateLabel.textContent = monthNames[this.selectedDate.getMonth()] + ' ' + this.selectedDate.getDate() + ', ' + this.selectedDate.getFullYear();
+        this.eventsCount.textContent = eventsForDate.length + ' событий';
 
         if (eventsForDate.length === 0) {
-            this.eventsList.innerHTML = `<div class="no-events">No events for this day</div>`;
+            this.eventsList.innerHTML = `<div class="no-events">Нет событий на этот день</div>`;
             return;
         }
-
         let html = '';
         eventsForDate.forEach(event => {
-            const colorMap = { trade: 'green', alert: 'orange', meeting: 'primary', analysis: 'primary2',
-                break: 'muted' };
+            const colorMap = { trade: 'green', alert: 'orange', meeting: 'purple', analysis: 'yellow', break: 'secondary' };
             html += `
-                    <div class="event-item" style="border-left-color: var(--${colorMap[event.type] || 'primary'});">
+                    <div class="event-item-modern" style="border-left-color: var(--brand-${colorMap[event.type] || 'purple'});">
                         <span class="event-dot ${event.type}"></span>
                         <span class="event-title">${event.title}</span>
                         <span class="event-type">${event.type}</span>
@@ -1293,11 +1295,12 @@ const App = {
                 `;
         });
         this.eventsList.innerHTML = html;
-
         this.eventsList.querySelectorAll('.event-delete').forEach(btn => {
             btn.addEventListener('click', () => {
                 const id = parseInt(btn.dataset.id);
-                this.deleteEvent(id);
+                if(confirm('Удалить это событие?')) {
+                    this.deleteEvent(id);
+                }
             });
         });
     },
@@ -1305,27 +1308,22 @@ const App = {
     addEvent() {
         const title = this.eventInput?.value?.trim();
         const type = this.eventType?.value || 'trade';
-        if (!title) { this.showNotification('Please enter an event title'); return; }
-
-        const newEvent = {
-            id: Math.max(...this.events.map(e => e.id), 0) + 1,
-            date: new Date(this.selectedDate),
-            title,
-            type
-        };
+        if (!title) { alert('Пожалуйста, введите название события'); return; }
+        const newEvent = { id: Math.max(...this.events.map(e => e.id), 0) + 1, date: new Date(this.selectedDate), title, type };
         this.events.push(newEvent);
         if (this.eventInput) this.eventInput.value = '';
         this.renderCalendar();
         this.updateCalendarBadge();
-        this.showNotification('Event added: ' + title);
+        this.updateNotifBadge();
+        this.saveState();
     },
 
     deleteEvent(id) {
-        if (!confirm('Delete this event?')) return;
         this.events = this.events.filter(e => e.id !== id);
         this.renderCalendar();
         this.updateCalendarBadge();
-        this.showNotification('Event deleted');
+        this.updateNotifBadge();
+        this.saveState();
     },
 
     updateCalendarBadge() {
@@ -1339,373 +1337,639 @@ const App = {
     },
 
     // ============================================================
+    // ANALYTICS
+    // ============================================================
+    updateAnalytics() {
+        this.initAnalyticsCharts();
+        this.updateAnalyticsStats();
+    },
+
+    updateAnalyticsStats() {
+        const total = this.trades.length;
+        if (total === 0) {
+            const elements = [this.aTotalPnl, this.aWinRate, this.aProfitFactor, this.aAvgRR, this.aTotalTrades, this.aWinningTrades, this.aLosingTrades, this.aAvgWin, this.aAvgLoss, this.aBestDay, this.aWorstDay, this.aBestTrade, this.aWorstTrade, this.aMaxWinStreak, this.aMaxLossStreak];
+            elements.forEach(el => { if(el) el.textContent = '—'; });
+            if(this.aTotalPnl) this.aTotalPnl.textContent = '+0.0R';
+            if(this.aTotalTrades) this.aTotalTrades.textContent = '0';
+            return;
+        }
+
+        const wins = this.trades.filter(t => t.status === 'win').length;
+        const losses = this.trades.filter(t => t.status === 'loss').length;
+        const rrValues = this.trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
+        const totalPnL = rrValues.reduce((a, b) => a + b, 0);
+        const winRate = (wins / total * 100);
+        const avgRR = rrValues.reduce((a, b) => a + b, 0) / rrValues.length;
+        const profitFactor = rrValues.filter(v => v > 0).reduce((a, b) => a + b, 0) / Math.abs(rrValues.filter(v => v < 0).reduce((a, b) => a + b, 0) || 1);
+        const avgWin = rrValues.filter(v => v > 0).length > 0 ? rrValues.filter(v => v > 0).reduce((a, b) => a + b, 0) / rrValues.filter(v => v > 0).length : 0;
+        const avgLoss = rrValues.filter(v => v < 0).length > 0 ? rrValues.filter(v => v < 0).reduce((a, b) => a + b, 0) / rrValues.filter(v => v < 0).length : 0;
+
+        const dayMap = {};
+        this.trades.forEach(t => {
+            if(!dayMap[t.date]) dayMap[t.date] = 0;
+            dayMap[t.date] += parseFloat(t.rr) || 0;
+        });
+        let bestDay = '—', worstDay = '—';
+        if(Object.keys(dayMap).length > 0) {
+            const sortedDays = Object.keys(dayMap).sort((a,b) => dayMap[b] - dayMap[a]);
+            bestDay = sortedDays[0] + ' (' + (dayMap[sortedDays[0]] >= 0 ? '+' : '') + dayMap[sortedDays[0]].toFixed(1) + 'R)';
+            worstDay = sortedDays[sortedDays.length-1] + ' (' + (dayMap[sortedDays[sortedDays.length-1]] >= 0 ? '+' : '') + dayMap[sortedDays[sortedDays.length-1]].toFixed(1) + 'R)';
+        }
+
+        let bestTrade = 0, worstTrade = 0;
+        rrValues.forEach(v => {
+            if (v > bestTrade) bestTrade = v;
+            if (v < worstTrade) worstTrade = v;
+        });
+
+        let maxWinStreak = 0, maxLossStreak = 0, curWin = 0, curLoss = 0;
+        this.trades.forEach(t => {
+            if(t.status === 'win') { curWin++; curLoss = 0; if(curWin > maxWinStreak) maxWinStreak = curWin; }
+            else if(t.status === 'loss') { curLoss++; curWin = 0; if(curLoss > maxLossStreak) maxLossStreak = curLoss; }
+            else { curWin = 0; curLoss = 0; }
+        });
+
+        if (this.aTotalPnl) { this.aTotalPnl.textContent = (totalPnL >= 0 ? '+' : '') + totalPnL.toFixed(1) + 'R'; }
+        if (this.aWinRate) { this.aWinRate.textContent = winRate.toFixed(1) + '%'; }
+        if (this.aProfitFactor) { this.aProfitFactor.textContent = profitFactor.toFixed(2); }
+        if (this.aAvgRR) { this.aAvgRR.textContent = avgRR.toFixed(1); }
+        if (this.aTotalTrades) this.aTotalTrades.textContent = total;
+        if (this.aWinningTrades) this.aWinningTrades.textContent = wins;
+        if (this.aLosingTrades) this.aLosingTrades.textContent = losses;
+        if (this.aAvgWin) { this.aAvgWin.textContent = '+' + avgWin.toFixed(1) + 'R'; }
+        if (this.aAvgLoss) { this.aAvgLoss.textContent = '-' + Math.abs(avgLoss).toFixed(1) + 'R'; }
+        if (this.aBestDay) this.aBestDay.textContent = bestDay;
+        if (this.aWorstDay) this.aWorstDay.textContent = worstDay;
+        if (this.aBestTrade) { this.aBestTrade.textContent = '+' + bestTrade.toFixed(1) + 'R'; }
+        if (this.aWorstTrade) { this.aWorstTrade.textContent = '-' + Math.abs(worstTrade).toFixed(1) + 'R'; }
+        if (this.aMaxWinStreak) this.aMaxWinStreak.textContent = maxWinStreak;
+        if (this.aMaxLossStreak) this.aMaxLossStreak.textContent = maxLossStreak;
+    },
+
+    initAnalyticsCharts() {
+        if (this.analyticsEquityChart) {
+            if (this.analyticsCharts.equity) this.analyticsCharts.equity.destroy();
+            let cumulative = 0;
+            const data = this.trades.map(t => {
+                cumulative += parseFloat(t.rr) || 0;
+                return cumulative;
+            });
+            const labels = this.trades.map((_, i) => '#' + (i+1));
+            const ctx = this.analyticsEquityChart.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+            gradient.addColorStop(0, 'rgba(124, 92, 252, 0.3)');
+            gradient.addColorStop(1, 'rgba(124, 92, 252, 0)');
+            this.analyticsCharts.equity = new Chart(this.analyticsEquityChart, {
+                type: 'line', data: { labels: labels, datasets: [{ label: 'Equity (R)', data: data, borderColor: '#7c5cfc', backgroundColor: gradient, borderWidth: 3, pointRadius: 2, tension: 0.4, fill: true }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0', maxTicksLimit: 10 } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
+            });
+        }
+
+        if (this.analyticsMonthlyChart) {
+            if (this.analyticsCharts.monthly) this.analyticsCharts.monthly.destroy();
+            const monthly = {};
+            this.trades.forEach(t => {
+                const month = t.date.slice(0, 7);
+                if (!monthly[month]) monthly[month] = 0;
+                monthly[month] += parseFloat(t.rr) || 0;
+            });
+            const sortedKeys = Object.keys(monthly).sort().slice(-6);
+            const labels = sortedKeys;
+            const data = sortedKeys.map(k => monthly[k]);
+            this.analyticsCharts.monthly = new Chart(this.analyticsMonthlyChart, {
+                type: 'bar', data: { labels: labels, datasets: [{ label: 'P&L (R)', data: data, backgroundColor: data.map(v => v >= 0 ? 'rgba(67, 198, 160, 0.7)' : 'rgba(239, 68, 68, 0.7)'), borderColor: data.map(v => v >= 0 ? '#43c6a0' : '#ef4444'), borderWidth: 2, borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
+            });
+        }
+
+        if (this.analyticsAssetDonutChart) {
+            if (this.analyticsCharts.asset) this.analyticsCharts.asset.destroy();
+            const assetsMap = {};
+            this.trades.forEach(t => { if(!assetsMap[t.asset]) assetsMap[t.asset] = 0; assetsMap[t.asset]++; });
+            const labels = Object.keys(assetsMap);
+            const data = Object.values(assetsMap);
+            const colors = ['#7c5cfc', '#fbbf24', '#43c6a0', '#ef4444', '#f97316'];
+            this.analyticsCharts.asset = new Chart(this.analyticsAssetDonutChart, {
+                type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: colors.slice(0, data.length), borderColor: '#13161c', borderWidth: 2 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: '#8892a0', font: { size: 11, family: 'Inter' }, padding: 12 } } } }
+            });
+        }
+    },
+
+    // ============================================================
     // PERFORMANCE
     // ============================================================
+    updatePerformanceStats() {
+        const total = this.trades.length;
+        const rrValues = this.trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
+        const totalReturn = rrValues.reduce((a, b) => a + b, 0);
+
+        if (this.perfTotalReturn) this.perfTotalReturn.textContent = (totalReturn >= 0 ? '+' : '') + totalReturn.toFixed(1) + 'R';
+        if (this.perfTotalTrades) this.perfTotalTrades.textContent = total;
+
+        const monthly = {};
+        this.trades.forEach(t => {
+            const month = (t.date || '').slice(0, 7);
+            if (!month) return;
+            if (!monthly[month]) monthly[month] = 0;
+            monthly[month] += parseFloat(t.rr) || 0;
+        });
+        const monthKeys = Object.keys(monthly);
+        if (this.perfBestMonth) {
+            this.perfBestMonth.textContent = monthKeys.length > 0
+                ? monthKeys.reduce((best, k) => monthly[k] > monthly[best] ? k : best, monthKeys[0])
+                : '—';
+        }
+
+        const sessionMap = { london: 'London', ny: 'New York', asia: 'Asian', sydney: 'Sydney' };
+        const bestSessionKey = this.userData.session && sessionMap[this.userData.session] ? sessionMap[this.userData.session] : '—';
+        if (this.perfBestSession) this.perfBestSession.textContent = bestSessionKey;
+    },
 
     initPerfEquityChart() {
-        const canvas = document.getElementById('perfEquityChart');
-        if (!canvas) return;
-        if (this.performanceCharts.equity) { this.performanceCharts.equity.destroy(); }
-
-        const periods = {
-            'Week': [82000, 88000, 86000, 95000, 102000, 108000, 115000],
-            'Month': [82000, 88000, 95000, 102000, 112000, 118000, 125000],
-            'Year': [82000, 88000, 102000, 118000, 135000, 142000, 148000]
-        };
-        const period = this.perfPeriodBtn?.textContent || 'Month';
-        const data = periods[period] || periods['Month'];
-
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(79,124,255,0.3)');
-        gradient.addColorStop(1, 'rgba(79,124,255,0)');
-
-        this.performanceCharts.equity = new Chart(canvas, {
+        if (!this.perfEquityChart) return;
+        if (this.performanceCharts.equity) this.performanceCharts.equity.destroy();
+        let cumulative = 0;
+        const data = this.trades.map(t => { cumulative += parseFloat(t.rr) || 0; return cumulative; });
+        const labels = this.trades.map((_, i) => '#' + (i + 1));
+        const ctx = this.perfEquityChart.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+        gradient.addColorStop(0, 'rgba(124, 92, 252, 0.3)');
+        gradient.addColorStop(1, 'rgba(124, 92, 252, 0)');
+        this.performanceCharts.equity = new Chart(this.perfEquityChart, {
             type: 'line',
-            data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Equity',
-                    data, borderColor: '#4f7cff', backgroundColor: gradient, borderWidth: 3, pointRadius: 4,
-                    pointBackgroundColor: '#4f7cff', pointBorderColor: '#fff', pointBorderWidth: 2,
-                    tension: 0.4, fill: true }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff', callbacks: { label: function(ctx) { return '$' + ctx.parsed.y
-                                .toLocaleString(); } } } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7', callback: function(
-                                v) { return '$' + (v / 1000).toFixed(0) + 'k'; } } } }
-            }
+            data: { labels: labels, datasets: [{ label: 'Equity (R)', data: data, borderColor: '#7c5cfc', backgroundColor: gradient, borderWidth: 3, pointRadius: 2, tension: 0.4, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0', maxTicksLimit: 10 } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
         });
     },
 
     initPerfMonthlyChart() {
-        const canvas = document.getElementById('perfMonthlyChart');
-        if (!canvas) return;
-        if (this.performanceCharts.monthly) { this.performanceCharts.monthly.destroy(); }
-
+        if (!this.perfMonthlyChart) return;
+        if (this.performanceCharts.monthly) this.performanceCharts.monthly.destroy();
         const monthly = {};
         this.trades.forEach(t => {
-            const month = t.date.slice(0, 7);
+            const month = (t.date || '').slice(0, 7);
+            if (!month) return;
             if (!monthly[month]) monthly[month] = 0;
             monthly[month] += parseFloat(t.rr) || 0;
         });
-        const labels = Object.keys(monthly).sort();
-        const data = labels.map(m => monthly[m]);
-
-        this.performanceCharts.monthly = new Chart(canvas, {
+        const sortedKeys = Object.keys(monthly).sort().slice(-6);
+        const data = sortedKeys.map(k => monthly[k]);
+        this.performanceCharts.monthly = new Chart(this.perfMonthlyChart, {
             type: 'bar',
-            data: { labels, datasets: [{ label: 'Monthly P&L (R)', data, backgroundColor: data.map(v => v >= 0 ?
-                        'rgba(45,216,129,0.7)' : 'rgba(255,95,109,0.7)'), borderColor: data.map(v => v >= 0 ?
-                        '#2dd881' : '#ff5f6d'), borderWidth: 2, borderRadius: 6 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff', callbacks: { label: function(ctx) { return (ctx.parsed.y >= 0 ?
-                                '+' : '') + ctx.parsed.y.toFixed(1) + 'R'; } } } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7' } } }
-            }
+            data: { labels: sortedKeys, datasets: [{ label: 'P&L (R)', data: data, backgroundColor: data.map(v => v >= 0 ? 'rgba(67, 198, 160, 0.7)' : 'rgba(239, 68, 68, 0.7)'), borderColor: data.map(v => v >= 0 ? '#43c6a0' : '#ef4444'), borderWidth: 2, borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
         });
     },
 
     initPerfSessionsChart() {
-        const canvas = document.getElementById('perfSessionsChart');
-        if (!canvas) return;
-        if (this.performanceCharts.sessions) { this.performanceCharts.sessions.destroy(); }
-
-        const sessions = ['London', 'New York', 'Asian', 'Sydney'];
-        const data = [4.2, 3.8, 2.1, 1.5];
-
-        this.performanceCharts.sessions = new Chart(canvas, {
-            type: 'bar',
-            data: { labels: sessions, datasets: [{ label: 'Performance (R)', data, backgroundColor: [
-                        'rgba(79,124,255,0.7)', 'rgba(108,99,255,0.7)', 'rgba(45,216,129,0.7)',
-                        'rgba(255,181,71,0.7)'
-                    ], borderColor: ['#4f7cff', '#6c63ff', '#2dd881', '#ffb547'], borderWidth: 2,
-                    borderRadius: 6 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff', callbacks: { label: function(ctx) { return ctx.parsed.y.toFixed(
-                                1) + 'R'; } } } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7' } } }
-            }
+        if (!this.perfSessionsChart) return;
+        if (this.performanceCharts.sessions) this.performanceCharts.sessions.destroy();
+        const sessionRanges = { Asian: [0, 8], London: [8, 13], 'New York': [13, 21], Sydney: [21, 24] };
+        const sessionTotals = { Asian: 0, London: 0, 'New York': 0, Sydney: 0 };
+        this.trades.forEach(t => {
+            const hour = new Date(t.date).getHours() || 0;
+            const session = Object.keys(sessionRanges).find(s => hour >= sessionRanges[s][0] && hour < sessionRanges[s][1]) || 'London';
+            sessionTotals[session] += parseFloat(t.rr) || 0;
         });
+        const labels = Object.keys(sessionTotals);
+        const data = Object.values(sessionTotals);
+        this.performanceCharts.sessions = new Chart(this.perfSessionsChart, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'P&L по сессиям (R)', data: data, backgroundColor: data.map(v => v >= 0 ? 'rgba(124, 92, 252, 0.7)' : 'rgba(239, 68, 68, 0.7)'), borderColor: data.map(v => v >= 0 ? '#7c5cfc' : '#ef4444'), borderWidth: 2, borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
+        });
+    },
 
-        if (this.sessionDetails) {
-            const details = [
-                { name: 'London Session', value: 4.2, wr: 72 },
-                { name: 'New York Session', value: 3.8, wr: 68 },
-                { name: 'Asian Session', value: 2.1, wr: 55 },
-                { name: 'Sydney Session', value: 1.5, wr: 48 }
-            ];
-            let html = '';
-            details.forEach(s => {
-                const cls = s.value >= 0 ? 'positive' : 'negative';
-                html +=
-                    `<div class="session-detail-item"><span class="session-name">${s.name}</span><span><span class="session-value ${cls}">${(s.value >= 0 ? '+' : '') + s.value.toFixed(1)}R</span><span style="color:var(--muted);font-size:12px;margin-left:8px;">(${s.wr}% WR)</span></span></div>`;
-            });
-            this.sessionDetails.innerHTML = html;
-        }
+    // Alias kept for the chart.js reinit helper, which calls initRiskChart() when guardianCharts is populated.
+    initRiskChart() {
+        this.initGuardianChart();
+    },
 
-        if (this.benchmarksGrid) {
-            const benchmarks = [
-                { name: 'S&P 500', value: '+8.4%', diff: '+4.2%' },
-                { name: 'Nasdaq', value: '+12.1%', diff: '+8.6%' },
-                { name: 'BTC', value: '+15.2%', diff: '+12.4%' },
-                { name: 'ETH', value: '+9.8%', diff: '+6.1%' },
-                { name: 'Gold', value: '+5.2%', diff: '+1.5%' },
-                { name: 'EUR/USD', value: '-2.1%', diff: '-5.8%' }
-            ];
-            let html = '';
-            benchmarks.forEach(b => {
-                const isPos = b.diff.startsWith('+');
-                html +=
-                    `<div class="benchmark-item"><span class="benchmark-name">${b.name}</span><span class="benchmark-value ${b.value.startsWith('+') ? 'positive' : 'negative'}">${b.value}</span><span class="benchmark-diff ${isPos ? 'positive' : 'negative'}">${b.diff} vs you</span></div>`;
-            });
-            this.benchmarksGrid.innerHTML = html;
+    // ============================================================
+    // AI ASSISTANT
+    // ============================================================
+    renderAIWelcome() {
+        if (!this.aiMessages) return;
+        const name = this.userData.name || 'Трейдер';
+        const today = new Date().toISOString().slice(0, 10);
+        const todayTrades = this.trades.filter(t => t.date === today);
+        const totalToday = todayTrades.length;
+        const winsToday = todayTrades.filter(t => t.status === 'win').length;
+        const wrToday = totalToday > 0 ? Math.round((winsToday / totalToday) * 100) : 0;
+        const lastTrade = this.trades.length > 0 ? this.trades[0].result : '—';
+
+        let html = `
+            <div class="ai-msg-wrapper ai">
+                <div class="ai-msg-avatar">KD</div>
+                <div class="ai-msg-bubble">
+                    <div class="ai-welcome-card">
+                        <h2>Добро пожаловать обратно, <strong>${name}</strong> 👋</h2>
+                        <p style="color:var(--text-secondary); font-size:14px;">Ваш персональный AI-коуч готов помочь.</p>
+                        <div class="stats-grid">
+                            <div class="stat-line"><span>📊 Сделок сегодня</span><span>${totalToday}</span></div>
+                            <div class="stat-line"><span>🎯 Win Rate</span><span class="highlight">${wrToday}%</span></div>
+                            <div class="stat-line"><span>⚡ Дисциплина</span><span style="color:var(--brand-green);">Хорошая</span></div>
+                            <div class="stat-line"><span>🚀 Последняя сделка</span><span class="highlight">${lastTrade}</span></div>
+                        </div>
+                        <p style="color:var(--text-secondary); font-size:13px; margin-top:12px;">Выберите действие ниже или задайте вопрос.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        this.aiMessages.innerHTML = html;
+        this.scrollToBottom();
+    },
+
+    renderAIHistory() {
+        if (!this.aiMessages) return;
+        let html = '';
+        this.aiHistory.forEach(msg => {
+            const cls = msg.role === 'user' ? 'user' : 'ai';
+            const avatar = msg.role === 'user' ? 'Вы' : 'KD';
+            html += `
+                <div class="ai-msg-wrapper ${cls}">
+                    <div class="ai-msg-avatar">${avatar}</div>
+                    <div class="ai-msg-bubble">${msg.content}</div>
+                </div>
+            `;
+        });
+        this.aiMessages.innerHTML = html;
+        this.scrollToBottom();
+    },
+
+    handleAIQuery() {
+        const question = this.aiInput?.value?.trim();
+        if (!question) return;
+        this.appendMessage('user', question);
+        this.aiInput.value = '';
+        this.showTypingIndicator();
+
+        const responses = [
+            "Отличный вопрос! Давайте разберем. Ваш последний месяц показывает хорошую тенденцию, особенно в активах BTC и XAU. Рекомендую обратить внимание на объемы на H4 таймфрейме. Дисциплина на высоте — продолжайте в том же духе! 📈",
+            "Я проанализировал вашу статистику. Средняя прибыль сделки составляет 2.1R, что выше среднего показателя по рынку. Однако ваша серия убытков в начале месяца могла быть связана с нарушением риск-менеджмента. Держите 1% на сделку! 🛡️",
+            "Ваш лучший день — это 15 августа, с прибылью +6.2R. Отличная работа! Анализ показывает, что в этот день вы придерживались плана и не переторговывали. Психология — ключ к успеху. 🧠",
+            "Ошибки? Давайте посмотрим. Ваша главная ошибка — это вход в рынок без четкого подтверждения (retest) на младших таймфреймах. Это приводило к ложным пробоям. Исправляя это, вы повысите Win Rate до 70%. 💡"
+        ];
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+        setTimeout(() => {
+            this.hideTypingIndicator();
+            this.appendMessage('ai', randomResponse);
+        }, 1200 + Math.random() * 600);
+    },
+
+    appendMessage(role, content) {
+        const cls = role === 'user' ? 'user' : 'ai';
+        const avatar = role === 'user' ? 'Вы' : 'KD';
+        this.aiHistory.push({ role, content });
+        this.saveState();
+        this.hideTypingIndicator();
+        const html = `
+            <div class="ai-msg-wrapper ${cls}">
+                <div class="ai-msg-avatar">${avatar}</div>
+                <div class="ai-msg-bubble">${content}</div>
+            </div>
+        `;
+        this.aiMessages.insertAdjacentHTML('beforeend', html);
+        this.scrollToBottom();
+    },
+
+    showTypingIndicator() {
+        this.hideTypingIndicator();
+        const indicator = document.createElement('div');
+        indicator.className = 'ai-typing-indicator';
+        indicator.id = 'aiTypingIndicator';
+        indicator.innerHTML = `
+            <div class="ai-msg-avatar">KD</div>
+            <div class="ai-typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+        `;
+        this.aiMessages.appendChild(indicator);
+        this.scrollToBottom();
+    },
+
+    hideTypingIndicator() {
+        const el = document.getElementById('aiTypingIndicator');
+        if (el) el.remove();
+    },
+
+    clearChat() {
+        if (this.aiHistory.length === 0) return;
+        if (!confirm('Очистить историю диалога?')) return;
+        this.aiHistory = [];
+        this.saveState();
+        this.renderAIWelcome();
+    },
+
+    scrollToBottom() {
+        const area = document.getElementById('aiChatArea');
+        if (area) {
+            setTimeout(() => {
+                area.scrollTop = area.scrollHeight;
+            }, 50);
         }
     },
 
     // ============================================================
     // GUARDIAN
     // ============================================================
-
-    renderGuardian() {
-        this.renderRules();
-        this.renderViolations();
-        this.renderRecommendations();
-        this.updateRiskMeter();
-        this.updateGuardianStats();
-    },
-
-    renderRules() {
-        if (!this.rulesList) return;
-        let html = '';
-        this.guardianRules.forEach(rule => {
-            const passed = rule.passed;
-            html += `
-                    <div class="rule-item">
-                        <span class="rule-icon ${passed ? 'passed' : 'failed'}">${passed ? '✓' : '✗'}</span>
-                        <span class="rule-name">${rule.name}</span>
-                        <span class="rule-status ${passed ? 'passed' : 'failed'}">${passed ? 'Passed' : 'Failed'}</span>
-                    </div>
-                `;
-        });
-        this.rulesList.innerHTML = html;
-    },
-
-    renderViolations() {
-        if (!this.violationsList) return;
-        if (this.guardianViolations.length === 0) {
-            this.violationsList.innerHTML =
-                `<div class="no-violations">No violations recorded. Keep it up!</div>`;
-            if (this.violationsCount) this.violationsCount.textContent = '0 violations';
+    updateGuardianStats() {
+        const total = this.trades.length;
+        if (total === 0) {
+            if (this.guardianScore) this.guardianScore.textContent = '—';
+            if (this.guardianDayStatus) this.guardianDayStatus.textContent = 'Нет данных';
+            if (this.guardianStreak) this.guardianStreak.textContent = '0 дней';
+            if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = '0';
+            this.updateNotifBadge();
             return;
         }
-        let html = '';
-        this.guardianViolations.forEach(v => {
-            html +=
-                `<div class="violation-item"><span class="violation-icon">⚠</span><span class="violation-text">${v.text}</span><span class="violation-date">${v.date}</span></div>`;
-        });
-        this.violationsList.innerHTML = html;
-        if (this.violationsCount) this.violationsCount.textContent = this.guardianViolations.length + ' violations';
+
+        let score = 0;
+        const today = new Date().toISOString().slice(0, 10);
+        const todayTrades = this.trades.filter(t => t.date === today);
+        const totalToday = todayTrades.length;
+        const lossesToday = todayTrades.filter(t => t.status === 'loss').length;
+
+        this.guardianRules[0].passed = totalToday === 0 || lossesToday < 2; 
+        this.guardianRules[1].passed = totalToday <= 5;
+        this.guardianRules[2].passed = totalToday === 0 || (totalToday > 0);
+        this.guardianRules[3].passed = lossesToday < 3;
+
+        const passedCount = this.guardianRules.filter(r => r.passed).length;
+        score = Math.round((passedCount / this.guardianRules.length) * 100);
+
+        let badgeText = 'Отлично';
+        let badgeClass = '';
+        if (score >= 80) { badgeText = 'Отлично'; badgeClass = ''; }
+        else if (score >= 50) { badgeText = 'Нормально'; badgeClass = 'warning'; }
+        else { badgeText = 'Требует внимания'; badgeClass = 'danger'; }
+
+        if (this.guardianScore) this.guardianScore.textContent = score + '%';
+        if (this.guardianScoreBadge) {
+            this.guardianScoreBadge.textContent = badgeText;
+            this.guardianScoreBadge.className = 'score-badge ' + badgeClass;
+        }
+
+        let statusText = '✅ Дисциплина соблюдена';
+        if (totalToday === 0) statusText = '📭 Нет сделок сегодня';
+        else if (lossesToday >= 3) statusText = '⚠️ Обратите внимание на лимиты';
+        if (this.guardianDayStatus) this.guardianDayStatus.textContent = statusText;
+
+        let streak = 0;
+        const uniqueDays = [...new Set(this.trades.map(t => t.date))].sort().reverse();
+        for (let day of uniqueDays) {
+            const dayTrades = this.trades.filter(t => t.date === day);
+            const dayLosses = dayTrades.filter(t => t.status === 'loss').length;
+            if (dayLosses < 3) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        if (this.guardianStreak) this.guardianStreak.textContent = streak + ' дней';
+
+        this.renderGuardianRules();
+        this.renderGuardianTimeline();
+        this.renderGuardianRecommendations();
+        this.updateNotifBadge();
     },
 
-    renderRecommendations() {
-        if (!this.recommendationsList) return;
-        const recs = [
-            { icon: '🎯', title: 'Maintain 1% risk per trade',
-                description: 'Your current risk is 0.75% — well within limits.' },
-            { icon: '📊', title: 'Review losing trades',
-                description: 'Your last 3 losses averaged -1.2R. Check entry timing.' },
-            { icon: '🛡', title: 'Set daily loss limit',
-                description: 'Consider setting a daily loss limit of $1,500.' },
-            { icon: '📈', title: 'Focus on winning assets',
-                description: 'BTC and XAU show the highest win rates.' }
+    renderGuardianRules() {
+        if (!this.guardianRulesList) return;
+        let html = '';
+        this.guardianRules.forEach(rule => {
+            const statusClass = rule.passed ? 'passed' : 'failed';
+            const statusText = rule.passed ? '✅ Соблюдено' : '⚠️ Нарушение';
+            html += `
+                <div class="rule-item">
+                    <span>${rule.icon} ${rule.name}</span>
+                    <span class="rule-status ${statusClass}">${statusText}</span>
+                </div>
+            `;
+        });
+        this.guardianRulesList.innerHTML = html;
+    },
+
+    renderGuardianTimeline() {
+        if (!this.guardianTimeline) return;
+        const total = this.trades.length;
+        if (total === 0) {
+            this.guardianTimeline.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">Начните торговать, чтобы увидеть историю</div>`;
+            if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = '0';
+            return;
+        }
+
+        const events = [];
+        const sortedTrades = [...this.trades].reverse();
+        sortedTrades.slice(0, 10).forEach((t, index) => {
+            if (t.status === 'win' && index % 3 === 0) {
+                events.push({ type: 'achievement', title: '🏆 Дисциплинированная сделка', desc: `Сделка по ${t.asset} завершена с соблюдением риск-менеджмента.` });
+            } else if (t.status === 'loss' && index % 2 === 0) {
+                events.push({ type: 'warning', title: '⚠️ Анализ убытка', desc: `Убыточная сделка по ${t.asset}. Проверьте точки входа.` });
+            }
+        });
+
+        if (events.length < 3) {
+            events.push({ type: 'achievement', title: '🏆 Новая серия дисциплины', desc: 'Зафиксировано 5 дней без нарушений правил.' });
+        }
+
+        if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = events.length;
+
+        let html = '';
+        events.slice(0, 8).forEach(e => {
+            const icon = e.type === 'achievement' ? '🏆' : '⚠️';
+            html += `
+                <div class="timeline-item">
+                    <div class="tl-icon ${e.type}">${icon}</div>
+                    <div class="tl-content">
+                        <div class="tl-title">${e.title}</div>
+                        <div class="tl-desc">${e.desc}</div>
+                    </div>
+                </div>
+            `;
+        });
+        this.guardianTimeline.innerHTML = html;
+    },
+
+    renderGuardianRecommendations() {
+        if (!this.guardianRecommendations) return;
+        const total = this.trades.length;
+        if (total < 3) {
+            this.guardianRecommendations.innerHTML = `<div class="rec-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">Достаточно данных для рекомендаций</div>`;
+            return;
+        }
+        const recommendations = [
+            { icon: '📊', text: '<strong>Рекомендация:</strong> Фокусируйтесь на одной стратегии. Частая смена подходов снижает стабильность.' },
+            { icon: '🧠', text: '<strong>Совет наставника:</strong> Если серия убытков достигла 3 сделок — сделайте паузу на 30 минут. Это помогает перезагрузить психологию.' },
+            { icon: '📈', text: '<strong>Анализ:</strong> Ваша статистика показывает высокую эффективность в первой половине дня. Попробуйте сместить активность.' },
+            { icon: '🛡', text: '<strong>Дисциплина:</strong> Продолжайте соблюдать риск 1%. Это ваш фундамент для долгосрочного роста.' }
         ];
-        const shuffled = recs.sort(() => Math.random() - 0.5).slice(0, 3);
+        const shuffled = recommendations.sort(() => Math.random() - 0.5).slice(0, 2);
         let html = '';
         shuffled.forEach(rec => {
             html += `
-                    <div class="recommendation-item">
-                        <span class="rec-icon">${rec.icon}</span>
-                        <div class="rec-content">
-                            <div class="rec-title">${rec.title}</div>
-                            <div class="rec-description">${rec.description}</div>
-                        </div>
-                    </div>
-                `;
+                <div class="rec-card">
+                    <span class="rec-icon">${rec.icon}</span> ${rec.text}
+                </div>
+            `;
         });
-        this.recommendationsList.innerHTML = html;
+        this.guardianRecommendations.innerHTML = html;
     },
 
-    updateRiskMeter() {
-        const levels = ['low', 'low', 'moderate', 'low', 'low'];
-        const level = levels[Math.floor(Math.random() * levels.length)];
-        if (this.riskLevel) {
-            this.riskLevel.textContent = level.toUpperCase();
-            this.riskLevel.className = 'risk-level ' + level;
-        }
-        const percentages = { low: 25, moderate: 50, high: 75, critical: 95 };
-        if (this.riskMeterFill) this.riskMeterFill.style.width = percentages[level] + '%';
-    },
-
-    updateGuardianStats() {
-        if (this.gRiskPerTrade) this.gRiskPerTrade.textContent = (0.5 + Math.random() * 0.5).toFixed(2) + '%';
-        if (this.gLossLimit) this.gLossLimit.textContent = '$' + (1000 + Math.random() * 2000).toFixed(0);
-        if (this.gDailyLimit) this.gDailyLimit.textContent = '$' + (500 + Math.random() * 1000).toFixed(0);
-        if (this.gPlanStatus) this.gPlanStatus.textContent = (95 + Math.random() * 5).toFixed(0) + '%';
-        if (this.gDiscipline) this.gDiscipline.textContent = (90 + Math.random() * 8).toFixed(0) + '%';
-        if (this.gMaxTrades) this.gMaxTrades.textContent = Math.floor(2 + Math.random() * 3) + ' / 5';
-    },
-
-    initRiskChart() {
-        const canvas = document.getElementById('riskDistributionChart');
+    initGuardianChart() {
+        const canvas = this.guardianDisciplineChart;
         if (!canvas) return;
-        if (this.guardianCharts.distribution) { this.guardianCharts.distribution.destroy(); }
+        if (this.guardianCharts.discipline) this.guardianCharts.discipline.destroy();
 
-        const assets = ['BTC', 'ETH', 'XAU', 'EUR', 'SOL'];
-        const risks = [35, 20, 25, 12, 8];
-        const colors = ['#4f7cff', '#6c63ff', '#2dd881', '#ffb547', '#ff5f6d'];
-
-        this.guardianCharts.distribution = new Chart(canvas, {
-            type: 'doughnut',
-            data: { labels: assets, datasets: [{ data: risks, backgroundColor: colors.map(c => c + '99'),
-                    borderColor: colors, borderWidth: 2, borderRadius: 4 }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', labels: { color: '#8B94A7', font: { size: 11,
-                                family: 'Inter' }, padding: 16 } },
-                    tooltip: { backgroundColor: 'rgba(13,16,24,0.92)', borderColor: '#4f7cff', borderWidth: 1,
-                        padding: 12, titleColor: '#f4f7ff', bodyColor: '#dbe6ff', callbacks: { label: function(
-                                ctx) { return ctx.label + ': ' + ctx.parsed + '%'; } } }
-                }
+        const days = [];
+        const data = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().slice(0, 10);
+            days.push(dateStr.slice(5, 10));
+            const dayTrades = this.trades.filter(t => t.date === dateStr);
+            let score = 100;
+            if (dayTrades.length > 0) {
+                const losses = dayTrades.filter(t => t.status === 'loss').length;
+                score = Math.max(0, 100 - (losses * 15));
             }
+            data.push(score);
+        }
+
+        this.guardianCharts.discipline = new Chart(canvas, {
+            type: 'line', data: { labels: days, datasets: [{ label: 'Дисциплина (%)', data: data, borderColor: '#7c5cfc', backgroundColor: 'rgba(124, 92, 252, 0.1)', borderWidth: 2, pointRadius: 4, pointBackgroundColor: data.map(v => v >= 80 ? '#43c6a0' : v >= 50 ? '#fbbf24' : '#ef4444'), tension: 0.4, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0', min: 0, max: 100 } } } }
         });
     },
 
     // ============================================================
-    // AI CHAT
+    // SETTINGS
     // ============================================================
+    saveSettings(type) {
 
-    handleAIQuery() {
-        const question = this.aiInput?.value?.trim();
-        if (!question) {
-            if (this.aiResponse) this.aiResponse.textContent = 'Please enter a question.';
-            return;
-        }
+        if (type === 'profile') {
 
-        if (this.aiResponse) this.aiResponse.textContent = 'Analyzing...';
+            const name = this.settingsName?.value?.trim();
+            const email = this.settingsEmailInput?.value?.trim();
+            const username = this.settingsUsernameInput?.value?.trim();
 
-        const responses = [
-            'Your risk per trade is at 0.75% — well within limits. Continue this discipline.',
-            'BTC showing strength. Consider entering long on break above 66K, target 68K.',
-            'Risk management is solid. Daily limit not reached — you can continue trading.',
-            'Market is overheated. Consider reducing position size to 0.5% per trade.',
-            'Your trading plan execution is excellent. Discipline score: 96% — keep it up!',
-            'European session shows best volatility. Focus on EUR pairs.'
-        ];
+            if (name) this.userData.name = name;
+            if (email) this.userData.email = email;
+            if (username) this.userData.username = username;
 
-        setTimeout(() => {
-            if (this.aiResponse) {
-                this.aiResponse.textContent = responses[Math.floor(Math.random() * responses.length)];
+            const displayName =
+                username ||
+                name ||
+                "Trader";
+
+            if (this.settingsUsername) {
+                this.settingsUsername.textContent = displayName;
             }
-            if (this.aiInput) this.aiInput.value = '';
-        }, 800);
-    },
 
-    // ============================================================
-    // MARKET UPDATES
-    // ============================================================
+            if (this.settingsEmail) {
+                this.settingsEmail.textContent =
+                    email || "user@kriptodanik.ai";
+            }
 
-    marketData: [
-        { bias: 'Bullish', conf: '91%', rec: 'Wait for liquidity sweep', risk: 'Low',
-            text: 'BTC showing strength above 65.4K. Potential move to 68K–70K if support holds.' },
-        { bias: 'Bearish', conf: '76%', rec: 'Take profits', risk: 'Medium',
-            text: 'BTC facing resistance at 66K. Possible correction to 62K.' },
-        { bias: 'Neutral', conf: '68%', rec: 'Wait for breakout', risk: 'Low',
-            text: 'Market consolidating. Wait for a breakout in either direction.' },
-        { bias: 'Bullish', conf: '94%', rec: 'Enter long', risk: 'Low',
-            text: 'BTC broke resistance. Target 70K, stop 63K.' }
-    ],
-    marketIndex: 0,
+            if (this.userNameDisplay) {
+                this.userNameDisplay.textContent = displayName;
+            }
 
-    updateMarket() {
-        const data = this.marketData[this.marketIndex % this.marketData.length];
-        this.marketIndex++;
+            this.updateGreeting();
 
-        if (this.marketBias) {
-            this.marketBias.textContent = data.bias;
-            this.marketBias.className = 'market-value ' +
-                (data.bias === 'Bullish' ? 'positive' : data.bias === 'Bearish' ? 'negative' : '');
         }
-        if (this.confidenceDisplay) this.confidenceDisplay.textContent = data.conf;
-        if (this.recommendationDisplay) this.recommendationDisplay.textContent = data.rec;
-        if (this.riskDisplay) {
-            this.riskDisplay.textContent = data.risk;
-            this.riskDisplay.className = 'market-value ' + (data.risk === 'Low' ? 'positive' : 'warning');
+
+        else if (type === 'trading') {
+
+            this.userData.capital =
+                parseFloat(this.settingsCapital?.value) || 10000;
+
+            this.userData.risk =
+                parseFloat(this.settingsRisk?.value) || 1.0;
+
+            this.userData.dailyLoss =
+                parseFloat(this.settingsDailyLoss?.value) || 500;
+
+            this.userData.dailyTarget =
+                parseFloat(this.settingsDailyTarget?.value) || 800;
+
+            this.userData.rr =
+                this.settingsRR?.value || "1:2";
+
+            this.userData.tradingStyle =
+                this.settingsTradingStyle?.value || "day";
+
+            this.userData.session =
+                this.settingsSession?.value || "ny";
+
+            if (this.balanceDisplay) {
+                this.balanceDisplay.textContent =
+                    "$ " + Number(this.userData.capital || 0).toLocaleString();
+            }
+
         }
-        if (this.analysisText) this.analysisText.textContent = data.text;
+
+        else if (type === 'appearance') {
+
+            const lang =
+                this.settingsLang?.value || "ru";
+
+            const currency =
+                this.settingsCurrency?.value || "USD";
+
+            if (lang !== this.currentLang) {
+                this.currentLang = lang;
+                this.applyLanguage();
+            }
+
+            this.userData.currency = currency;
+
+            this.userData.theme =
+                document.querySelector(".theme-option.active")?.dataset.theme || "dark";
+
+        }
+
+        this.saveState();
+
+        if (typeof this.applyUserData === "function") {
+            this.applyUserData();
+        }
+
+        this.updateDashboardStats();
+
+        this.showToast("Настройки сохранены!");
+
     },
 
     // ============================================================
-    // DATA EXPORT/IMPORT
+    // DATA EXPORT / IMPORT
     // ============================================================
-
-    exportTrades() {
-        const headers = ['Date', 'Asset', 'Side', 'Entry', 'Exit', 'RR', 'Result', 'Status'];
-        const rows = this.trades.map(t => [t.date, t.asset, t.side, t.entry, t.exit, t.rr, t.result, t.status]);
-        let csv = headers.join(',') + '\n';
-        rows.forEach(row => { csv += row.join(',') + '\n'; });
-        const blob = new Blob([csv], { type: 'text/csv' });
+    exportData(type) {
+        let data, filename, mime;
+        if (type === 'trades') {
+            const headers = ['Date', 'Asset', 'Side', 'Entry', 'Exit', 'RR', 'Result', 'Status'];
+            const rows = this.trades.map(t => [t.date, t.asset, t.side, t.entry, t.exit, t.rr, t.result, t.status]);
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => { csv += row.join(',') + '\n'; });
+            data = csv; filename = 'trades_export.csv'; mime = 'text/csv';
+        } else {
+            const json = JSON.stringify({ trades: this.trades, events: this.events, userData: this.userData }, null, 2);
+            data = json; filename = 'kriptodanik_backup.json'; mime = 'application/json';
+        }
+        const blob = new Blob([data], { type: mime });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = 'trades_' + new Date().toISOString().slice(0, 10) + '.csv';
-        a.click();
-        URL.revokeObjectURL(url);
-        this.showNotification('Trades exported (CSV)');
-    },
-
-    exportJournal() {
-        const data = JSON.stringify(this.trades, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'journal_' + new Date().toISOString().slice(0, 10) + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        this.showNotification('Journal exported (JSON)');
-    },
-
-    exportAll() {
-        const data = { trades: this.trades, events: this.events, exportedAt: new Date().toISOString() };
-        const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'kriptodanik_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        this.showNotification('All data exported');
+        a.href = url; a.download = filename;
+        a.click(); URL.revokeObjectURL(url);
+        this.showToast('Экспорт завершен!');
     },
 
     importData() {
         const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json,.csv';
+        input.type = 'file'; input.accept = '.json';
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -1716,13 +1980,19 @@ const App = {
                     if (data.trades) {
                         this.trades = data.trades;
                         this.filteredTrades = [...this.trades];
-                        this.renderJournal();
-                        this.updateJournalStats();
-                        this.updateAnalytics();
-                        this.showNotification('Data imported successfully!');
+                        this.events = data.events ? this.reviveEvents(data.events) : this.events;
+                        this.userData = data.userData || this.userData;
+                        this.renderJournal(); this.updateJournalStats();
+                        this.updateDashboardStats(); this.updateAnalytics();
+                        this.updateGuardianStats(); this.initGuardianChart();
+                        this.renderCalendar(); this.updateCalendarBadge();
+                        this.saveState(); this.applyUserData();
+                        this.showToast('Импорт данных выполнен успешно!');
+                    } else {
+                        this.showToast('Ошибка импорта: файл не содержит данных о сделках');
                     }
                 } catch (err) {
-                    this.showNotification('Invalid file format');
+                    this.showToast('Ошибка импорта: неверный формат файла');
                 }
             };
             reader.readAsText(file);
@@ -1731,113 +2001,51 @@ const App = {
     },
 
     clearAllData() {
-        if (!confirm('⚠️ This will permanently delete ALL your data. Are you sure?')) return;
-        if (!confirm('⚠️ FINAL WARNING: This action cannot be undone!')) return;
-        this.trades = [];
-        this.filteredTrades = [];
-        this.events = [];
+        if (!confirm('⚠️ Это действие удалит ВСЕ ваши данные (сделки, события, историю). Отменить невозможно!')) return;
+        this.trades = []; this.filteredTrades = [];
+        this.events = []; this.aiHistory = [];
         this.guardianViolations = [];
-        this.renderJournal();
-        this.updateJournalStats();
-        this.renderCalendar();
-        this.updateCalendarBadge();
-        this.renderGuardian();
-        this.updateAnalytics();
-        this.showNotification('All data cleared');
+        this.renderJournal(); this.updateJournalStats();
+        this.updateDashboardStats(); this.updateAnalytics();
+        this.updateGuardianStats(); this.initGuardianChart();
+        this.renderCalendar(); this.updateCalendarBadge();
+        this.renderAIWelcome();
+        this.saveState();
+        this.showToast('Все данные очищены.');
     },
 
     // ============================================================
-    // EQUITY CHART (Dashboard)
+    // TOAST NOTIFICATIONS
     // ============================================================
-
-    initEquityChart() {
-        const canvas = document.getElementById('equityChart');
-        if (!canvas) return;
-        if (this.equityChartInstance) { this.equityChartInstance.destroy(); }
-
-        const periods = {
-            'Week': [82000, 88000, 86000, 95000, 102000, 108000, 115000],
-            'Month': [82000, 88000, 95000, 102000, 112000, 118000, 125000],
-            'Year': [82000, 88000, 102000, 118000, 135000, 142000, 148000]
-        };
-        const period = this.periodBtn?.textContent || 'Week';
-        const data = periods[period] || periods['Week'];
-
-        const ctx = canvas.getContext('2d');
-        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-        gradient.addColorStop(0, 'rgba(79,124,255,0.3)');
-        gradient.addColorStop(1, 'rgba(79,124,255,0)');
-
-        this.equityChartInstance = new Chart(canvas, {
-            type: 'line',
-            data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Equity',
-                    data, borderColor: '#4f7cff', backgroundColor: gradient, borderWidth: 3, pointRadius: 4,
-                    pointBackgroundColor: '#4f7cff', pointBorderColor: '#fff', pointBorderWidth: 2,
-                    tension: 0.4, fill: true }] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(13,16,24,0.92)',
-                        borderColor: '#4f7cff', borderWidth: 1, padding: 12, titleColor: '#f4f7ff',
-                        bodyColor: '#dbe6ff', callbacks: { label: function(ctx) { return '$' + ctx.parsed.y
-                                .toLocaleString(); } } } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#8B94A7' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8B94A7', callback: function(
-                                v) { return '$' + (v / 1000).toFixed(0) + 'k'; } } } }
-            }
-        });
+    showToast(message) {
+        const old = document.querySelector('.toast');
+        if (old) old.remove();
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0'; toast.style.transition = 'opacity 0.5s';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
     },
 
     // ============================================================
     // RENDER ALL
     // ============================================================
-
     renderAll() {
         this.renderJournal();
         this.updateJournalStats();
         this.renderCalendar();
         this.updateCalendarBadge();
-        this.renderGuardian();
         this.updateAnalytics();
+        this.updateGuardianStats();
+        this.initGuardianChart();
         this.initEquityChart();
-
-        setTimeout(() => {
-            this.initPerfEquityChart();
-            this.initPerfMonthlyChart();
-            this.initPerfSessionsChart();
-        }, 300);
-
-        setTimeout(() => this.initRiskChart(), 400);
-
-        this.updateMarket();
-        setInterval(() => this.updateMarket(), 5000);
-
-        // Apply language after render
-        this.applyLanguage();
-
-        console.log('All sections rendered.');
-    },
-
-    // ============================================================
-    // NOTIFICATIONS
-    // ============================================================
-
-    showNotification(message) {
-        const old = document.querySelector('.toast');
-        if (old) old.remove();
-
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transition = 'opacity 0.5s';
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
+        this.initDashboardCharts();
+        this.updateDashboardStats();
+        this.updateNotifBadge();
     }
-
 };
 
 // ===== INIT =====
