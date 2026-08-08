@@ -723,3 +723,22 @@ textarea.form-input { resize: vertical; font-family: var(--font-family); }
 .timeline-item .tl-icon.neutral { background: var(--bg-hover); border-color: var(--border-color); color: var(--text-secondary); }
 .rule-item .rule-status.nodata { color: var(--text-secondary); }
 .guardian-kpi-card .score-badge.neutral { background: var(--bg-hover); color: var(--text-secondary); }
+
+/* ============================================================
+   v1.0.7 — SMART DASHBOARD
+   Reuses existing card/button classes (.dash-card, .data-action-btn,
+   .rule-status, .status-badge) so no new visual language is introduced.
+   ============================================================ */
+.quick-actions-list { display: flex; flex-direction: column; gap: 8px; }
+.quick-actions-list .data-action-btn { width: 100%; justify-content: flex-start; }
+.dash-guardian-summary { display: flex; flex-direction: column; gap: 10px; }
+.dash-guardian-score-row { display: flex; align-items: baseline; gap: 10px; }
+.dash-guardian-score-row .score-num { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+.dash-guardian-breakdown { display: flex; gap: 14px; font-size: 13px; }
+.dash-guardian-breakdown span { display: flex; align-items: center; gap: 4px; }
+.dash-recent-trade-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+.dash-recent-trade-row:last-child { border-bottom: none; }
+.dash-recent-trade-main { display: flex; flex-direction: column; gap: 2px; }
+.dash-recent-trade-asset { font-weight: 600; color: var(--text-primary); }
+.dash-recent-trade-meta { color: var(--text-secondary); font-size: 12px; }
+.dash-recent-trade-result { font-weight: 700; }

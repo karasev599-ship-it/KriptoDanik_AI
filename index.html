@@ -251,8 +251,9 @@
                             <div class="ai-msg-bubble tour-body" id="tourBody">...</div>
                         </div>
                     </div>
-                    <div class="onboarding-footer wizard-footer" style="margin-top:20px;">
+                    <div class="onboarding-footer wizard-footer" style="margin-top:20px; justify-content:space-between; align-items:center;">
                         <button class="btn-secondary" id="tourBackBtn" style="visibility:hidden;">Назад</button>
+                        <button class="about-link" id="tourSkipBtn" data-key="tour_skip" style="background:none; border:none; cursor:pointer; font-size:13px;">Пропустить тур</button>
                         <button class="btn-primary" id="tourNextBtn">Далее</button>
                     </div>
                 </div>
@@ -440,6 +441,71 @@
                             <span class="dash-label">Риск на сделку</span>
                             <h2 class="dash-amount" id="riskPerTradeDisplay">1.00 %</h2>
                             <span class="dash-sub" id="riskPerTradeSub">10.00 $</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============================================================
+                v1.0.7 — SMART DASHBOARD: brand-new-account welcome hero
+                Shown only when there are zero trades; hidden otherwise.
+                ============================================================ -->
+                <div class="dash-panel glass-panel" id="dashWelcomeHero" style="display:none; text-align:center; padding:32px 20px;">
+                    <h2 data-key="dash_welcome_title" style="margin-bottom:6px;">Welcome to KriptoDanik AI</h2>
+                    <p style="color:var(--text-secondary); margin-bottom:4px;" data-key="dash_welcome_no_data">No trading data yet</p>
+                    <p style="color:var(--text-secondary); margin-bottom:16px;" data-key="dash_welcome_cta">Start by recording your first trade.</p>
+                    <button class="btn-primary" id="dashWelcomeAddTradeBtn" data-key="add_first_trade">Add your first trade</button>
+                </div>
+
+                <!-- v1.0.7 — TODAY OVERVIEW -->
+                <div class="dash-panel-head" style="margin-top:4px; margin-bottom:8px; border-bottom:none;">
+                    <h3 data-key="today_overview">Today</h3>
+                </div>
+                <div class="dash-row-4" id="dashTodayOverview">
+                    <div class="dash-card glass-panel">
+                        <div class="dash-card-body">
+                            <span class="dash-label" data-key="today_pnl">Today's P&L</span>
+                            <h2 class="dash-amount" id="todayPnlDisplay" style="font-size:22px;">—</h2>
+                        </div>
+                    </div>
+                    <div class="dash-card glass-panel">
+                        <div class="dash-card-body">
+                            <span class="dash-label" data-key="today_trades">Today's trades</span>
+                            <h2 class="dash-amount" id="todayTradesDisplay" style="font-size:22px;">0</h2>
+                        </div>
+                    </div>
+                    <div class="dash-card glass-panel">
+                        <div class="dash-card-body">
+                            <span class="dash-label" data-key="today_winrate">Today's win rate</span>
+                            <h2 class="dash-amount" id="todayWinRateDisplay" style="font-size:22px;">—</h2>
+                        </div>
+                    </div>
+                    <div class="dash-card glass-panel">
+                        <div class="dash-card-body">
+                            <span class="dash-label" data-key="discipline_score">Discipline</span>
+                            <h2 class="dash-amount" id="todayDisciplineDisplay" style="font-size:22px;">—</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- v1.0.7 — GUARDIAN STATUS / RECENT TRADES / QUICK ACTIONS -->
+                <div class="dash-row-middle" id="dashSmartRow">
+                    <div class="dash-panel glass-panel">
+                        <div class="dash-panel-head"><h3 data-key="guardian_status">Guardian Status</h3></div>
+                        <div id="dashGuardianCard"></div>
+                    </div>
+
+                    <div class="dash-panel glass-panel">
+                        <div class="dash-panel-head"><h3 data-key="recent_trades">Recent Trades</h3></div>
+                        <div id="dashRecentTrades"></div>
+                    </div>
+
+                    <div class="dash-panel glass-panel">
+                        <div class="dash-panel-head"><h3 data-key="quick_actions">Quick Actions</h3></div>
+                        <div class="quick-actions-list">
+                            <button class="data-action-btn" id="qaAddTrade" data-key="qa_add_trade">Add Trade</button>
+                            <button class="data-action-btn" id="qaOpenJournal" data-key="qa_open_journal">Open Journal</button>
+                            <button class="data-action-btn" id="qaOpenGuardian" data-key="qa_open_guardian">Open Guardian</button>
+                            <button class="data-action-btn" id="qaOpenAnalytics" data-key="qa_open_analytics">Open Analytics</button>
                         </div>
                     </div>
                 </div>

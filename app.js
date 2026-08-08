@@ -18,6 +18,7 @@ const App = {
     events: [],
 
     guardianRules: [],
+    guardianSummary: { score: null, passed: 0, failed: 0, nodata: 0 },
     guardianViolations: [],
 
     analyticsCharts: {},
@@ -74,7 +75,35 @@ const App = {
             empty_journal: 'Сделок пока нет. Добавьте первую!',
             empty_calendar_events: 'Событий на этот день нет.',
             empty_calendar_trades: 'Сделок в этот день нет.',
-            ai_disclaimer: 'KriptoDanik AI не является финансовым советником, не даёт торговых сигналов и не предсказывает направление рынка. Он помогает вам соблюдать собственную торговую стратегию, правила и дисциплину.'
+            ai_disclaimer: 'KriptoDanik AI не является финансовым советником, не даёт торговых сигналов и не предсказывает направление рынка. Он помогает вам соблюдать собственную торговую стратегию, правила и дисциплину.',
+
+            // ===== v1.0.7 — Smart Dashboard =====
+            today_overview: 'Сегодня',
+            today_pnl: 'P&L сегодня',
+            today_trades: 'Сделок сегодня',
+            today_winrate: 'Win Rate сегодня',
+            discipline_score: 'Дисциплина',
+            no_data_short: '—',
+            no_data: 'Нет данных',
+            guardian_status: 'Статус Guardian',
+            guardian_passed: 'Соблюдено',
+            guardian_failed: 'Нарушено',
+            guardian_nodata: 'Нет данных',
+            guardian_nodata_yet: 'Guardian: нет данных',
+            recent_trades: 'Последние сделки',
+            no_trades_yet_dash: 'Сделок пока нет',
+            add_first_trade: 'Добавить первую сделку',
+            quick_actions: 'Быстрые действия',
+            qa_add_trade: 'Добавить сделку',
+            qa_open_journal: 'Открыть Journal',
+            qa_open_guardian: 'Открыть Guardian',
+            qa_open_analytics: 'Открыть Analytics',
+            dash_welcome_title: 'Добро пожаловать в KriptoDanik AI',
+            dash_welcome_no_data: 'Пока нет данных для торговли',
+            dash_welcome_cta: 'Начните с записи первой сделки.',
+            coach_snapshot: 'AI Coach',
+            coach_snapshot_empty: 'Добавьте первую сделку, чтобы получить персональные рекомендации.',
+            tour_skip: 'Пропустить тур'
         },
         en: {
             nav_dashboard: 'Dashboard',
@@ -116,7 +145,35 @@ const App = {
             empty_journal: 'No trades yet. Add your first one!',
             empty_calendar_events: 'No events on this day.',
             empty_calendar_trades: 'No trades on this day.',
-            ai_disclaimer: 'KriptoDanik AI is not a financial advisor, does not give trading signals, and does not predict market direction. It helps you follow your own trading strategy, rules, and discipline.'
+            ai_disclaimer: 'KriptoDanik AI is not a financial advisor, does not give trading signals, and does not predict market direction. It helps you follow your own trading strategy, rules, and discipline.',
+
+            // ===== v1.0.7 — Smart Dashboard =====
+            today_overview: 'Today',
+            today_pnl: "Today's P&L",
+            today_trades: "Today's trades",
+            today_winrate: "Today's win rate",
+            discipline_score: 'Discipline',
+            no_data_short: '—',
+            no_data: 'No data',
+            guardian_status: 'Guardian Status',
+            guardian_passed: 'Passed',
+            guardian_failed: 'Failed',
+            guardian_nodata: 'No data',
+            guardian_nodata_yet: 'Guardian: no data yet',
+            recent_trades: 'Recent Trades',
+            no_trades_yet_dash: 'No trades yet',
+            add_first_trade: 'Add your first trade',
+            quick_actions: 'Quick Actions',
+            qa_add_trade: 'Add Trade',
+            qa_open_journal: 'Open Journal',
+            qa_open_guardian: 'Open Guardian',
+            qa_open_analytics: 'Open Analytics',
+            dash_welcome_title: 'Welcome to KriptoDanik AI',
+            dash_welcome_no_data: 'No trading data yet',
+            dash_welcome_cta: 'Start by recording your first trade.',
+            coach_snapshot: 'AI Coach',
+            coach_snapshot_empty: 'Add your first trade to receive personalized insights.',
+            tour_skip: 'Skip tour'
         }
     },
 
@@ -356,6 +413,21 @@ const App = {
         this.aiInput = document.getElementById('aiInput');
         this.askBtn = document.getElementById('askBtn');
         this.dashAskBtn = document.getElementById('dashAskBtn');
+
+        // v1.0.7 — Smart Dashboard
+        this.dashWelcomeHero = document.getElementById('dashWelcomeHero');
+        this.dashWelcomeAddTradeBtn = document.getElementById('dashWelcomeAddTradeBtn');
+        this.dashTodayOverview = document.getElementById('dashTodayOverview');
+        this.todayPnlDisplay = document.getElementById('todayPnlDisplay');
+        this.todayTradesDisplay = document.getElementById('todayTradesDisplay');
+        this.todayWinRateDisplay = document.getElementById('todayWinRateDisplay');
+        this.todayDisciplineDisplay = document.getElementById('todayDisciplineDisplay');
+        this.dashGuardianCard = document.getElementById('dashGuardianCard');
+        this.dashRecentTrades = document.getElementById('dashRecentTrades');
+        this.qaAddTrade = document.getElementById('qaAddTrade');
+        this.qaOpenJournal = document.getElementById('qaOpenJournal');
+        this.qaOpenGuardian = document.getElementById('qaOpenGuardian');
+        this.qaOpenAnalytics = document.getElementById('qaOpenAnalytics');
         this.clearChatBtn = document.getElementById('clearChatBtn');
         this.aiSuggestions = document.getElementById('aiSuggestions');
 
@@ -430,6 +502,7 @@ const App = {
         this.tourProgressBar = document.getElementById('tourProgressBar');
         this.tourNextBtn = document.getElementById('tourNextBtn');
         this.tourBackBtn = document.getElementById('tourBackBtn');
+        this.tourSkipBtn = document.getElementById('tourSkipBtn');
 
         // Avatar upload
         this.avatarEditBtn = document.getElementById('avatarEditBtn');
@@ -504,6 +577,21 @@ const App = {
             if (targetNav) targetNav.classList.add('active');
             this.showSection('intelligence');
         });
+
+        // v1.0.7 — Smart Dashboard: Quick Actions reuse existing
+        // navigation (showSection) and the existing trade modal
+        // (openTradeModal) — no duplicated logic.
+        if (this.dashWelcomeAddTradeBtn) this.dashWelcomeAddTradeBtn.addEventListener('click', () => this.openTradeModal());
+        if (this.qaAddTrade) this.qaAddTrade.addEventListener('click', () => this.openTradeModal());
+        const goTo = (section) => {
+            this.navItems.forEach(n => n.classList.remove('active'));
+            const targetNav = Array.from(this.navItems).find(n => n.dataset.section === section);
+            if (targetNav) targetNav.classList.add('active');
+            this.showSection(section);
+        };
+        if (this.qaOpenJournal) this.qaOpenJournal.addEventListener('click', () => goTo('journal'));
+        if (this.qaOpenGuardian) this.qaOpenGuardian.addEventListener('click', () => goTo('guardian'));
+        if (this.qaOpenAnalytics) this.qaOpenAnalytics.addEventListener('click', () => goTo('analytics'));
         if (this.aiInput) this.aiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.handleAIQuery();
         });
@@ -587,6 +675,14 @@ const App = {
         }
         if (this.tourNextBtn) this.tourNextBtn.addEventListener('click', () => this.tourNext());
         if (this.tourBackBtn) this.tourBackBtn.addEventListener('click', () => this.tourBack());
+        if (this.tourSkipBtn) this.tourSkipBtn.addEventListener('click', () => this.finishCoachTour());
+        // v1.0.7 — keyboard navigation for the tour, only while it's open.
+        document.addEventListener('keydown', (e) => {
+            if (!this.coachTourOverlay || !this.coachTourOverlay.classList.contains('active')) return;
+            if (e.key === 'Escape') { e.preventDefault(); this.finishCoachTour(); }
+            else if (e.key === 'Enter' || e.key === 'ArrowRight') { e.preventDefault(); this.tourNext(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); this.tourBack(); }
+        });
         if (this.avatarEditBtn) this.avatarEditBtn.addEventListener('click', () => this.avatarFileInput && this.avatarFileInput.click());
         if (this.avatarFileInput) this.avatarFileInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
         this.applyLanguage();
@@ -613,6 +709,8 @@ const App = {
         // applies instantly everywhere, not just to static labels.
         this.renderNotifications();
         this.renderDashboardExtras();
+        this.renderDashboardSmartWidgets();
+        this.renderDashboardGuardianCard();
         this.updatePageTitle();
         if (this.trades.length === 0) this.initEquityChart();
     },
@@ -1026,7 +1124,91 @@ const App = {
         if (this.journalBadge) this.journalBadge.textContent = total;
         
         this.initDashboardCharts();
+        this.renderDashboardSmartWidgets();
         this.saveState();
+    },
+
+    // ============================================================
+    // v1.0.7 — SMART DASHBOARD
+    // Reads only real stored state (this.trades, this.guardianRules /
+    // this.guardianSummary) — no Math.random, no demo data, no separate
+    // Guardian re-implementation. Every empty case renders an honest
+    // neutral state instead of a fabricated number.
+    // ============================================================
+    renderDashboardSmartWidgets() {
+        const en = this.currentLang === 'en';
+        const total = this.trades.length;
+
+        // Welcome hero — visible ONLY for a genuinely empty account.
+        if (this.dashWelcomeHero) this.dashWelcomeHero.style.display = total === 0 ? 'block' : 'none';
+        if (this.dashTodayOverview) this.dashTodayOverview.style.opacity = total === 0 ? '0.5' : '1';
+
+        // ----- Today Overview -----
+        const today = new Date().toISOString().slice(0, 10);
+        const todayTrades = this.trades.filter(t => t.date === today);
+        const todayPnl = todayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+        const todayWins = todayTrades.filter(t => t.status === 'win').length;
+
+        if (this.todayPnlDisplay) {
+            this.todayPnlDisplay.textContent = todayTrades.length === 0 ? this.t('no_data_short')
+                : (todayPnl >= 0 ? '+' : '') + todayPnl.toFixed(2) + ' $';
+        }
+        if (this.todayTradesDisplay) this.todayTradesDisplay.textContent = todayTrades.length;
+        if (this.todayWinRateDisplay) {
+            this.todayWinRateDisplay.textContent = todayTrades.length === 0 ? this.t('no_data_short')
+                : Math.round(todayWins / todayTrades.length * 100) + '%';
+        }
+        if (this.todayDisciplineDisplay) {
+            const s = this.guardianSummary || {};
+            this.todayDisciplineDisplay.textContent = (s.score === null || s.score === undefined) ? this.t('no_data_short') : s.score + '%';
+        }
+
+        // ----- Recent Trades -----
+        if (this.dashRecentTrades) {
+            if (total === 0) {
+                this.dashRecentTrades.innerHTML = `<div class="panel-empty-state" style="padding:16px 0;"><div class="panel-empty-title">${this.t('no_trades_yet_dash')}</div></div><button class="btn-secondary full-width" id="dashRecentAddTradeBtn">${this.t('add_first_trade')}</button>`;
+                const btn = document.getElementById('dashRecentAddTradeBtn');
+                if (btn) btn.addEventListener('click', () => this.openTradeModal());
+            } else {
+                const recent = this.trades.slice(0, 5);
+                let html = '';
+                recent.forEach(t => {
+                    const resultClass = t.status === 'win' ? 'green' : (t.status === 'loss' ? 'red' : '');
+                    html += `
+                        <div class="dash-recent-trade-row">
+                            <div class="dash-recent-trade-main">
+                                <span class="dash-recent-trade-asset">${t.asset}</span>
+                                <span class="dash-recent-trade-meta">${t.side} · ${t.date || ''}</span>
+                            </div>
+                            <span class="dash-recent-trade-result ${resultClass}">${t.result || '—'}</span>
+                        </div>`;
+                });
+                this.dashRecentTrades.innerHTML = html;
+            }
+        }
+    },
+
+    // Guardian Status card — reads this.guardianSummary, computed once
+    // inside updateGuardianStats(). No second evaluation pass here.
+    renderDashboardGuardianCard() {
+        if (!this.dashGuardianCard) return;
+        const en = this.currentLang === 'en';
+        const s = this.guardianSummary || { score: null, passed: 0, failed: 0, nodata: 0 };
+        if (this.trades.length === 0) {
+            this.dashGuardianCard.innerHTML = `<div class="panel-empty-state" style="padding:12px 0;"><div class="panel-empty-title">${this.t('guardian_nodata_yet')}</div></div>`;
+            return;
+        }
+        this.dashGuardianCard.innerHTML = `
+            <div class="dash-guardian-summary">
+                <div class="dash-guardian-score-row">
+                    <span class="score-num">${s.score === null ? '—' : s.score + '%'}</span>
+                </div>
+                <div class="dash-guardian-breakdown">
+                    <span class="green">✅ ${s.passed} ${this.t('guardian_passed')}</span>
+                    <span class="red">⚠️ ${s.failed} ${this.t('guardian_failed')}</span>
+                    <span style="color:var(--text-secondary);">— ${s.nodata} ${this.t('guardian_nodata')}</span>
+                </div>
+            </div>`;
     },
 
     initDashboardCharts() {
@@ -2325,7 +2507,11 @@ const App = {
             if (this.guardianRulesList) this.guardianRulesList.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
             if (this.guardianTimeline) this.guardianTimeline.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
             if (this.guardianRecommendations) this.guardianRecommendations.innerHTML = '';
+            // Shared summary object — the Smart Dashboard's Guardian Status card
+            // (v1.0.7) reads this instead of re-running rule evaluation itself.
+            this.guardianSummary = { score: null, passed: 0, failed: 0, nodata: this.guardianRules.length };
             this.updateNotifBadge();
+            this.renderDashboardGuardianCard();
             return;
         }
 
@@ -2446,10 +2632,16 @@ const App = {
         }
         if (this.guardianStreak) this.guardianStreak.textContent = streak + (en ? ' days' : ' дней');
 
+        // Shared summary object — reused by the Dashboard's Guardian Status
+        // card (v1.0.7) so it never re-implements rule evaluation itself.
+        const nodataCount = this.guardianRules.length - evaluated.length;
+        this.guardianSummary = { score, passed: passedCount, failed: failedCount, nodata: nodataCount };
+
         this.renderGuardianRules();
         this.renderGuardianTimeline();
         this.renderGuardianRecommendations();
         this.updateNotifBadge();
+        this.renderDashboardGuardianCard();
     },
 
     renderGuardianRules() {
