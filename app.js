@@ -191,19 +191,23 @@ const App = {
     // computed from real trades (see updateGuardianStats).
     initData() {
         this.filteredTrades = [...this.trades];
-        if (this.guardianRules.length === 0) this.initGuardianRuleDefinitions();
+        if (this.guardianRules.length !== 6) this.initGuardianRuleDefinitions();
         this.currentDate = new Date();
         this.selectedDate = new Date();
     },
 
     initGuardianRuleDefinitions() {
+        // Defaults are intentionally NOT "passed: true" — a rule has no
+        // business claiming compliance before it has ever been evaluated
+        // against real trade data. updateGuardianStats() sets the real
+        // state on every call; these are just the safe starting values.
         this.guardianRules = [
-            { id: 1, name: 'Риск на сделку ≤ 1%', passed: true, icon: '🛡' },
-            { id: 2, name: 'Не более 5 сделок в день', passed: true, icon: '📊' },
-            { id: 3, name: 'Stop Loss всегда установлен', passed: true, icon: '🎯' },
-            { id: 4, name: 'Дневной лимит не превышен', passed: true, icon: '📉' },
-            { id: 5, name: 'Нет торговли в эмоциях', passed: true, icon: '🧠' },
-            { id: 6, name: 'План сделки соблюдён', passed: true, icon: '📋' }
+            { id: 1, name: 'Риск на сделку ≤ 1%', passed: false, state: 'nodata', icon: '🛡' },
+            { id: 2, name: 'Не более 5 сделок в день', passed: false, state: 'nodata', icon: '📊' },
+            { id: 3, name: 'Stop Loss всегда установлен', passed: false, state: 'nodata', icon: '🎯' },
+            { id: 4, name: 'Дневной лимит не превышен', passed: false, state: 'nodata', icon: '📉' },
+            { id: 5, name: 'Нет торговли в эмоциях', passed: false, state: 'nodata', icon: '🧠' },
+            { id: 6, name: 'План сделки соблюдён', passed: false, state: 'nodata', icon: '📋' }
         ];
         this.guardianViolations = [];
         this.saveState();
@@ -2197,8 +2201,8 @@ const App = {
                         : `Guardian сейчас показывает ${s.violations.length} нарушени${s.violations.length === 1 ? 'е' : 'я'} — первое: "${s.violations[0].name}". Дисциплина — это не про "никогда не нарушать", а про быстро замечать и исправлять. Хотите открыть Guardian и разобрать их по порядку?`;
                 }
                 return en
-                    ? `Guardian shows all your tracked rules passing right now — that's a solid foundation. Discipline compounds: the goal isn't a perfect day, it's a long streak of "good enough" days.`
-                    : `Guardian сейчас показывает, что все отслеживаемые правила соблюдены — хорошая база. Дисциплина работает как сложный процент: цель не в идеальном дне, а в длинной серии "достаточно хороших" дней.`;
+                    ? `Guardian isn't flagging any violations right now — that's a solid foundation. Discipline compounds: the goal isn't a perfect day, it's a long streak of "good enough" days.`
+                    : `Guardian сейчас не фиксирует нарушений — хорошая база. Дисциплина работает как сложный процент: цель не в идеальном дне, а в длинной серии "достаточно хороших" дней.`;
             }
             case 'strategy': {
                 const strat = this.userData.strategy;
@@ -2309,11 +2313,15 @@ const App = {
             if (this.guardianDayStatus) this.guardianDayStatus.textContent = en ? 'No data' : 'Нет данных';
             if (this.guardianStreak) this.guardianStreak.textContent = en ? '0 days' : '0 дней';
             if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = '0';
-            // Explicitly clear BOTH the rule-status list and the history timeline.
-            // (Previously only guardianRulesList was cleared here — guardianTimeline
-            // was left untouched, so a trade added-then-deleted earlier in the same
-            // session would leave a stale "achievement" entry on screen forever,
-            // even though the counter correctly showed 0.)
+            // Rules themselves must also reset to a neutral "no data" state — not just
+            // the summary numbers — so a subsequent renderGuardianRules() call (e.g.
+            // triggered by a language switch) can never re-draw a stale "✅ Passed"
+            // rule card from before the trades were cleared. `passed: true` here means
+            // "not a proven violation" (mirroring the >0-trades branch's nodata
+            // handling below) — it does NOT mean "compliant"; renderGuardianRules()
+            // reads `state`, not `passed`, for the actual displayed label.
+            this.guardianRules.forEach(r => { r.state = 'nodata'; r.passed = true; });
+            if (this.guardianScoreBadge) { this.guardianScoreBadge.textContent = en ? 'No data' : 'Нет данных'; this.guardianScoreBadge.className = 'score-badge neutral'; }
             if (this.guardianRulesList) this.guardianRulesList.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
             if (this.guardianTimeline) this.guardianTimeline.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
             if (this.guardianRecommendations) this.guardianRecommendations.innerHTML = '';
@@ -2321,43 +2329,116 @@ const App = {
             return;
         }
 
-        let score = 0;
-        const today = new Date().toISOString().slice(0, 10);
-        const todayTrades = this.trades.filter(t => t.date === today);
-        const totalToday = todayTrades.length;
-        const lossesToday = todayTrades.filter(t => t.status === 'loss').length;
+        // ------------------------------------------------------------
+        // Rule evaluation — every rule below is graded against a specific
+        // real field stored on trades, using the user's OWN configured
+        // thresholds (risk %, daily loss limit) where available. A rule
+        // is only ever 'passed' or 'failed' when we actually have the
+        // data to prove it; otherwise it's 'nodata' — it is NEVER assumed
+        // passed just because nothing contradicts it.
+        //
+        // Evaluated over the most recent day that actually has trades
+        // (so the card reflects real trading activity, not an
+        // artificially empty "today" for someone who traded yesterday).
+        // ------------------------------------------------------------
+        const dayKeys = [...new Set(this.trades.map(t => t.date))].filter(Boolean).sort();
+        const latestDay = dayKeys[dayKeys.length - 1];
+        const latestDayTrades = this.trades.filter(t => t.date === latestDay);
+        const lossesLatestDay = latestDayTrades.filter(t => t.status === 'loss').length;
+        const negativeEmotions = ['greed', 'fear', 'revenge', 'anxious'];
 
-        this.guardianRules[0].passed = totalToday === 0 || lossesToday < 2; 
-        this.guardianRules[1].passed = totalToday <= 5;
-        this.guardianRules[2].passed = totalToday === 0 || (totalToday > 0);
-        this.guardianRules[3].passed = lossesToday < 3;
+        // 1. Risk per trade <= configured max (default 1%) — uses the real
+        //    riskPercent value entered on each trade.
+        const riskLimit = parseFloat(this.userData.risk) || 1;
+        const riskValues = this.trades.map(t => parseFloat(t.riskPercent)).filter(v => !isNaN(v));
+        if (riskValues.length === 0) {
+            this.guardianRules[0].state = 'nodata';
+        } else {
+            this.guardianRules[0].state = riskValues.every(v => v <= riskLimit) ? 'passed' : 'failed';
+        }
 
-        const passedCount = this.guardianRules.filter(r => r.passed).length;
-        score = Math.round((passedCount / this.guardianRules.length) * 100);
+        // 2. Max 5 trades on the most recent trading day.
+        this.guardianRules[1].state = latestDayTrades.length <= 5 ? 'passed' : 'failed';
 
-        let badgeText = en ? 'Excellent' : 'Отлично';
-        let badgeClass = '';
-        if (score >= 80) { badgeText = en ? 'Excellent' : 'Отлично'; badgeClass = ''; }
+        // 3. Stop Loss always set — the trade form has no Stop Loss field,
+        //    so this can never be verified from real data yet. Always 'nodata'
+        //    rather than a fabricated pass. (See VERSION.md.)
+        this.guardianRules[2].state = 'nodata';
+
+        // 4. Daily loss limit not exceeded — compares the real $ P&L lost on
+        //    the most recent trading day against the user's own configured
+        //    daily loss limit from onboarding/Settings.
+        const dailyLossLimit = parseFloat(this.userData.dailyLoss);
+        if (!dailyLossLimit) {
+            this.guardianRules[3].state = 'nodata';
+        } else {
+            const lossSumLatestDay = latestDayTrades.filter(t => t.pnl < 0).reduce((sum, t) => sum + Math.abs(t.pnl || 0), 0);
+            this.guardianRules[3].state = lossSumLatestDay <= dailyLossLimit ? 'passed' : 'failed';
+        }
+
+        // 5. No trading on negative emotions — uses the real emotionBefore
+        //    field recorded per trade.
+        const emotionValues = latestDayTrades.map(t => t.emotionBefore).filter(Boolean);
+        if (emotionValues.length === 0) {
+            this.guardianRules[4].state = 'nodata';
+        } else {
+            this.guardianRules[4].state = emotionValues.every(e => !negativeEmotions.includes(e)) ? 'passed' : 'failed';
+        }
+
+        // 6. Trade plan followed — uses whether a strategy/plan label was
+        //    actually recorded on each trade (a real, if weak, proxy —
+        //    there's no separate "did you follow your plan" field yet).
+        const strategyValues = latestDayTrades.map(t => t.strategy);
+        if (strategyValues.length === 0) {
+            this.guardianRules[5].state = 'nodata';
+        } else {
+            this.guardianRules[5].state = strategyValues.every(s => s && s.trim().length > 0) ? 'passed' : 'failed';
+        }
+
+        // Mirror `.passed` for the small number of places elsewhere that only
+        // care about "is this an active violation" — nodata is deliberately
+        // NOT a violation, since we have no proof either way.
+        this.guardianRules.forEach(r => { r.passed = r.state !== 'failed'; });
+
+        // Score is computed ONLY over rules we could actually evaluate.
+        // 'nodata' rules are excluded from both numerator and denominator —
+        // including them as "passed" would inflate the score with rules
+        // nobody actually verified.
+        const evaluated = this.guardianRules.filter(r => r.state !== 'nodata');
+        const passedCount = evaluated.filter(r => r.state === 'passed').length;
+        const score = evaluated.length > 0 ? Math.round((passedCount / evaluated.length) * 100) : null;
+
+        let badgeText, badgeClass;
+        if (score === null) { badgeText = en ? 'No data' : 'Нет данных'; badgeClass = 'neutral'; }
+        else if (score >= 80) { badgeText = en ? 'Excellent' : 'Отлично'; badgeClass = ''; }
         else if (score >= 50) { badgeText = en ? 'OK' : 'Нормально'; badgeClass = 'warning'; }
         else { badgeText = en ? 'Needs attention' : 'Требует внимания'; badgeClass = 'danger'; }
 
-        if (this.guardianScore) this.guardianScore.textContent = score + '%';
+        if (this.guardianScore) this.guardianScore.textContent = score === null ? '—' : score + '%';
         if (this.guardianScoreBadge) {
             this.guardianScoreBadge.textContent = badgeText;
             this.guardianScoreBadge.className = 'score-badge ' + badgeClass;
         }
 
+        const failedCount = evaluated.filter(r => r.state === 'failed').length;
         let statusText = en ? '✅ Discipline on track' : '✅ Дисциплина соблюдена';
-        if (totalToday === 0) statusText = en ? '📭 No trades today' : '📭 Нет сделок сегодня';
-        else if (lossesToday >= 3) statusText = en ? '⚠️ Watch your limits' : '⚠️ Обратите внимание на лимиты';
+        if (evaluated.length === 0) statusText = en ? '📋 Not enough data yet' : '📋 Недостаточно данных';
+        else if (failedCount > 0) statusText = en ? '⚠️ Watch your limits' : '⚠️ Обратите внимание на лимиты';
         if (this.guardianDayStatus) this.guardianDayStatus.textContent = statusText;
 
+        // Streak: consecutive most-recent days where every EVALUATED rule
+        // for that day passed (a day with only 'nodata' rules does not
+        // count toward — or break — the streak, since there's nothing to
+        // judge it on).
         let streak = 0;
-        const uniqueDays = [...new Set(this.trades.map(t => t.date))].sort().reverse();
+        const uniqueDays = [...dayKeys].reverse();
         for (let day of uniqueDays) {
             const dayTrades = this.trades.filter(t => t.date === day);
             const dayLosses = dayTrades.filter(t => t.status === 'loss').length;
-            if (dayLosses < 3) {
+            const dayLossSum = dayTrades.filter(t => t.pnl < 0).reduce((sum, t) => sum + Math.abs(t.pnl || 0), 0);
+            const dayHadBadEmotion = dayTrades.some(t => negativeEmotions.includes(t.emotionBefore));
+            const dayLimitOk = !dailyLossLimit || dayLossSum <= dailyLossLimit;
+            if (dayTrades.length <= 5 && dayLimitOk && !dayHadBadEmotion) {
                 streak++;
             } else {
                 break;
@@ -2376,8 +2457,11 @@ const App = {
         const en = this.currentLang === 'en';
         let html = '';
         this.guardianRules.forEach(rule => {
-            const statusClass = rule.passed ? 'passed' : 'failed';
-            const statusText = rule.passed ? (en ? '✅ Passed' : '✅ Соблюдено') : (en ? '⚠️ Violated' : '⚠️ Нарушение');
+            const state = rule.state || (rule.passed ? 'passed' : 'failed');
+            const statusClass = state === 'passed' ? 'passed' : (state === 'failed' ? 'failed' : 'nodata');
+            const statusText = state === 'passed' ? (en ? '✅ Passed' : '✅ Соблюдено')
+                : state === 'failed' ? (en ? '⚠️ Violated' : '⚠️ Нарушение')
+                : (en ? '— No data' : '— Нет данных');
             html += `
                 <div class="rule-item">
                     <span>${rule.icon} ${rule.name}</span>
