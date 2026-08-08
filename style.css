@@ -608,3 +608,84 @@ textarea.form-input { resize: vertical; font-family: var(--font-family); }
     .ai-suggestions { flex-wrap: nowrap; padding-bottom: 8px; }
     .ai-chip { font-size: 12px; padding: 4px 12px 4px 8px; }
 }
+/* ============================================================
+   v1.0.6 — LIGHT THEME
+   Overrides the same CSS variables the whole app already uses,
+   so no component-level styles need to change.
+   ============================================================ */
+:root[data-theme="light"] {
+    --bg-body: #f4f6fb;
+    --bg-card: #ffffff;
+    --bg-hover: #eef1f8;
+    --border-color: #dde2ec;
+    --text-primary: #10131a;
+    --text-secondary: #5b6472;
+}
+:root[data-theme="light"] .logo-icon,
+:root[data-theme="light"] .avatar,
+:root[data-theme="light"] .profile-avatar,
+:root[data-theme="light"] .ai-msg-avatar { color: #fff; }
+:root[data-theme="light"] .glass-panel { backdrop-filter: none; }
+
+/* ============================================================
+   v1.0.6 — ACCENT COLORS
+   The brand-purple variable drives buttons, active nav state,
+   progress bars, etc. across the whole stylesheet, so retargeting
+   it is enough to reskin the app.
+   ============================================================ */
+:root[data-accent="blue"]   { --brand-purple: #4f7cff; --brand-purple-dark: #2f57c9; --brand-purple-glow: rgba(79, 124, 255, 0.2); }
+:root[data-accent="green"]  { --brand-purple: #43c6a0; --brand-purple-dark: #2b9a7c; --brand-purple-glow: rgba(67, 198, 160, 0.2); }
+:root[data-accent="yellow"] { --brand-purple: #fbbf24; --brand-purple-dark: #c99a12; --brand-purple-glow: rgba(251, 191, 36, 0.2); }
+:root[data-accent="red"]    { --brand-purple: #ef4444; --brand-purple-dark: #b52d2d; --brand-purple-glow: rgba(239, 68, 68, 0.2); }
+
+/* ============================================================
+   v1.0.6 — EMPTY STATES
+   Used across Dashboard/Analytics/Performance/Guardian panels
+   instead of hardcoded fake numbers or charts.
+   ============================================================ */
+.panel-empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px 16px; color: var(--text-secondary); height: 100%; min-height: 120px; }
+.panel-empty-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.6; }
+.panel-empty-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+.panel-empty-desc { font-size: 12px; line-height: 1.5; max-width: 280px; }
+.panel-note { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+.bar-fill.positive { background: var(--brand-green); }
+.bar-fill.negative { background: var(--brand-red); }
+
+/* ============================================================
+   v1.0.6 — AI COACH PRODUCT TOUR (nav highlight)
+   ============================================================ */
+.nav-item.tour-highlight {
+    background: var(--bg-hover);
+    box-shadow: 0 0 0 2px var(--brand-purple), 0 0 16px var(--brand-purple-glow);
+    animation: tourPulse 1.6s ease-in-out infinite;
+}
+@keyframes tourPulse {
+    0%, 100% { box-shadow: 0 0 0 2px var(--brand-purple), 0 0 12px var(--brand-purple-glow); }
+    50% { box-shadow: 0 0 0 2px var(--brand-purple), 0 0 22px var(--brand-purple-glow); }
+}
+.tour-modal { max-width: 480px; }
+.tour-body { font-size: 14px; line-height: 1.7; color: var(--text-secondary); min-height: 140px; }
+.tour-body strong { color: var(--text-primary); }
+
+/* ============================================================
+   v1.0.6 — AVATAR UPLOAD
+   ============================================================ */
+.profile-avatar { background-size: cover; background-position: center; }
+.avatar { background-size: cover; background-position: center; }
+.avatar-edit-btn { position: absolute; bottom: -2px; left: -2px; width: 26px; height: 26px; border-radius: 50%; background: var(--brand-purple); color: #fff; border: 2px solid var(--bg-card); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.avatar-edit-btn:hover { filter: brightness(1.1); }
+
+/* ============================================================
+   v1.0.6 — ROADMAP (disabled nav placeholders for future modules)
+   Academy, Market Pulse, Strategy Library, Challenges, Prop Firm
+   Mode are intentionally NOT implemented yet — see VERSION.md.
+   ============================================================ */
+.nav-item.roadmap-item { opacity: 0.45; cursor: default; pointer-events: none; position: relative; }
+.roadmap-soon-badge { margin-left: auto; font-size: 9px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; background: var(--bg-hover); color: var(--text-secondary); padding: 2px 6px; border-radius: 20px; }
+
+/* ============================================================
+   v1.0.6 — AI Coach permanent disclaimer
+   ============================================================ */
+.ai-disclaimer-bar { font-size: 11px; line-height: 1.5; color: var(--text-secondary); background: var(--bg-hover); border-bottom: 1px solid var(--border-color); padding: 8px 16px; text-align: center; }
+.tour-disclaimer { display: block; font-size: 12px; color: var(--text-secondary); background: var(--bg-hover); border-radius: var(--radius-sm); padding: 10px 12px; border-left: 3px solid var(--brand-purple); }
+.timeline-item .tl-icon.neutral { background: var(--bg-hover); border-color: var(--border-color); color: var(--text-secondary); }

@@ -29,19 +29,52 @@ const App = {
     currentLang: 'ru',
     userData: {},
     onboardingDone: false,
+    accentPalette: ['purple', 'blue', 'green', 'yellow', 'red'],
 
     aiHistory: [],
 
     translations: {
         ru: {
-            nav_dashboard: 'Dashboard',
-            nav_journal: 'Journal',
-            nav_calendar: 'Calendar',
-            nav_analytics: 'Analytics',
-            nav_performance: 'Performance',
+            nav_dashboard: 'Дашборд',
+            nav_journal: 'Журнал',
+            nav_calendar: 'Календарь',
+            nav_analytics: 'Аналитика',
+            nav_performance: 'Показатели',
             nav_guardian: 'Guardian',
-            nav_intelligence: 'AI Assistant',
-            nav_settings: 'Settings'
+            nav_intelligence: 'AI Коуч',
+            nav_settings: 'Настройки',
+            nav_academy: 'Академия',
+            nav_strategy: 'Библиотека стратегий',
+            nav_marketpulse: 'Market Pulse',
+            online: 'AI подключен',
+            balance: 'Баланс',
+            balance_live: 'Актуальный баланс',
+            greeting: 'Добрый день',
+            greeting_morning: 'Доброе утро',
+            greeting_afternoon: 'Добрый день',
+            greeting_evening: 'Добрый вечер',
+            welcome: 'Добро пожаловать,',
+            equity_curve: 'Кривая доходности',
+            total_trades: 'Всего сделок',
+            win_rate: 'Win Rate',
+            avg_rr: 'Средний RR',
+            total_pnl: 'Общий P&L',
+            date: 'Дата', asset: 'Актив', side: 'Сторона', entry: 'Вход', exit: 'Выход', rr: 'RR', result: 'Результат', status: 'Статус',
+            empty_equity_title: 'Пока нет данных для кривой доходности',
+            empty_equity_desc: 'Добавьте первую сделку в Journal — и здесь появится динамика вашего баланса.',
+            empty_rdist_title: 'Нет сделок для распределения по R',
+            empty_besttime_title: 'Недостаточно истории торговли',
+            empty_besttime_desc: 'Как только у вас будет минимум 5 сделок, здесь появится анализ ваших самых результативных торговых сессий.',
+            besttime_desc: 'Показывает вашу среднюю доходность (R) по каждой торговой сессии, чтобы вы видели, когда торгуете эффективнее всего.',
+            empty_assets_title: 'Нет сделок по активам',
+            empty_notifications: 'Уведомлений пока нет.',
+            empty_analytics: 'Аналитика пока недоступна.',
+            empty_performance: 'Пока недостаточно данных для показателей.',
+            empty_guardian: 'Guardian начнёт отслеживать дисциплину после первой сделки.',
+            empty_journal: 'Сделок пока нет. Добавьте первую!',
+            empty_calendar_events: 'Событий на этот день нет.',
+            empty_calendar_trades: 'Сделок в этот день нет.',
+            ai_disclaimer: 'KriptoDanik AI не является финансовым советником, не даёт торговых сигналов и не предсказывает направление рынка. Он помогает вам соблюдать собственную торговую стратегию, правила и дисциплину.'
         },
         en: {
             nav_dashboard: 'Dashboard',
@@ -50,9 +83,47 @@ const App = {
             nav_analytics: 'Analytics',
             nav_performance: 'Performance',
             nav_guardian: 'Guardian',
-            nav_intelligence: 'AI Assistant',
-            nav_settings: 'Settings'
+            nav_intelligence: 'AI Coach',
+            nav_settings: 'Settings',
+            nav_academy: 'Academy',
+            nav_strategy: 'Strategy Library',
+            nav_marketpulse: 'Market Pulse',
+            online: 'AI Connected',
+            balance: 'Balance',
+            balance_live: 'Live balance',
+            greeting: 'Good day',
+            greeting_morning: 'Good Morning',
+            greeting_afternoon: 'Good Afternoon',
+            greeting_evening: 'Good Evening',
+            welcome: 'Welcome,',
+            equity_curve: 'Equity Curve',
+            total_trades: 'Total Trades',
+            win_rate: 'Win Rate',
+            avg_rr: 'Avg RR',
+            total_pnl: 'Total P&L',
+            date: 'Date', asset: 'Asset', side: 'Side', entry: 'Entry', exit: 'Exit', rr: 'RR', result: 'Result', status: 'Status',
+            empty_equity_title: 'No equity data yet',
+            empty_equity_desc: 'Add your first trade in the Journal and your balance history will show up here.',
+            empty_rdist_title: 'No trades to build an R-distribution yet',
+            empty_besttime_title: 'Not enough trading history',
+            empty_besttime_desc: 'Once you have at least 5 trades, this panel will show which trading session tends to work best for you.',
+            besttime_desc: 'Shows your average return (R) per trading session, so you can see when you trade most effectively.',
+            empty_assets_title: 'No trades by asset yet',
+            empty_notifications: 'No notifications yet.',
+            empty_analytics: 'No analytics available yet.',
+            empty_performance: 'Not enough trading history yet.',
+            empty_guardian: 'Guardian will start tracking your discipline after your first trade.',
+            empty_journal: 'No trades yet. Add your first one!',
+            empty_calendar_events: 'No events on this day.',
+            empty_calendar_trades: 'No trades on this day.',
+            ai_disclaimer: 'KriptoDanik AI is not a financial advisor, does not give trading signals, and does not predict market direction. It helps you follow your own trading strategy, rules, and discipline.'
         }
+    },
+
+    // Translation lookup helper — falls back to the Russian string, then the key itself.
+    t(key) {
+        const dict = this.translations[this.currentLang] || this.translations.ru;
+        return dict[key] !== undefined ? dict[key] : (this.translations.ru[key] !== undefined ? this.translations.ru[key] : key);
     },
 
     // ===== INIT =====
@@ -61,6 +132,8 @@ const App = {
         this.initData();
         this.cacheElements();
         this.bindEvents();
+        this.applyTheme();
+        this.applyAccent();
         this.renderAll();
         this.updateGreeting();
 
@@ -111,41 +184,19 @@ const App = {
     },
 
     // ===== DATA =====
+    // NOTE (v1.0.6): brand-new accounts must start completely empty. We never seed
+    // trades, events, or Guardian history — only the Guardian RULE DEFINITIONS
+    // (the fixed checklist of discipline rules) are initialized, because those are
+    // product configuration, not user activity. Their "passed" status is only ever
+    // computed from real trades (see updateGuardianStats).
     initData() {
         this.filteredTrades = [...this.trades];
-        if (this.trades.length === 0) this.addDemoData();
-        if (this.events.length === 0) this.initCalendarEvents();
-        if (this.guardianRules.length === 0) this.initGuardianData();
+        if (this.guardianRules.length === 0) this.initGuardianRuleDefinitions();
         this.currentDate = new Date();
         this.selectedDate = new Date();
     },
 
-    addDemoData() {
-        const now = new Date();
-        const formatDate = (d) => d.toISOString().slice(0, 10);
-        const demoTrades = [
-            { id: 1, date: formatDate(new Date(now.getTime() - 2 * 86400000)), asset: 'BTCUSDT', side: 'BUY', entry: 42300, exit: 43500, rr: 2.8, result: '+2.8R', status: 'win' },
-            { id: 2, date: formatDate(new Date(now.getTime() - 3 * 86400000)), asset: 'XAUUSD', side: 'SELL', entry: 1925, exit: 1910, rr: 3.0, result: '+3R', status: 'win' },
-            { id: 3, date: formatDate(new Date(now.getTime() - 4 * 86400000)), asset: 'EURUSD', side: 'BUY', entry: 1.0850, exit: 1.0820, rr: -1, result: '-1R', status: 'loss' },
-            { id: 4, date: formatDate(new Date(now.getTime() - 5 * 86400000)), asset: 'ETHUSDT', side: 'BUY', entry: 2800, exit: 2920, rr: 2.2, result: '+2.2R', status: 'win' }
-        ];
-        this.trades = demoTrades;
-        this.filteredTrades = [...this.trades];
-        this.saveState();
-    },
-
-    initCalendarEvents() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        this.events = [
-            { id: 1, date: new Date(year, month, 5), title: 'BTC Long Setup', type: 'trade' },
-            { id: 2, date: new Date(year, month, 12), title: 'Team Meeting', type: 'meeting' }
-        ];
-        this.saveState();
-    },
-
-    initGuardianData() {
+    initGuardianRuleDefinitions() {
         this.guardianRules = [
             { id: 1, name: 'Риск на сделку ≤ 1%', passed: true, icon: '🛡' },
             { id: 2, name: 'Не более 5 сделок в день', passed: true, icon: '📊' },
@@ -156,6 +207,17 @@ const App = {
         ];
         this.guardianViolations = [];
         this.saveState();
+    },
+
+    // ===== ACCOUNT BALANCE (dynamic, always derived from real trades) =====
+    getCurrentBalance() {
+        const start = parseFloat(this.userData.capital) || 0;
+        const pnlSum = this.trades.reduce((sum, t) => sum + (typeof t.pnl === 'number' && !isNaN(t.pnl) ? t.pnl : (parseFloat(t.pnl) || 0)), 0);
+        return start + pnlSum;
+    },
+
+    updateBalanceDisplay() {
+        if (this.balanceDisplay) this.balanceDisplay.textContent = '$ ' + this.getCurrentBalance().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
 
     // ===== CACHE =====
@@ -356,6 +418,21 @@ const App = {
         this.wizardNextBtn = document.getElementById('wizardNextBtn');
         this.resetTradingProfileBtn = document.getElementById('resetTradingProfileBtn');
 
+        // AI Coach product tour
+        this.coachTourOverlay = document.getElementById('coachTourOverlay');
+        this.tourTitle = document.getElementById('tourTitle');
+        this.tourBody = document.getElementById('tourBody');
+        this.tourStepLabel = document.getElementById('tourStepLabel');
+        this.tourProgressBar = document.getElementById('tourProgressBar');
+        this.tourNextBtn = document.getElementById('tourNextBtn');
+        this.tourBackBtn = document.getElementById('tourBackBtn');
+
+        // Avatar upload
+        this.avatarEditBtn = document.getElementById('avatarEditBtn');
+        this.avatarFileInput = document.getElementById('avatarFileInput');
+        this.headerAvatar = document.getElementById('headerAvatar');
+        this.settingsAvatar = document.getElementById('settingsAvatar');
+
         this.langButtons = document.querySelectorAll('.lang-selector button');
     },
 
@@ -453,17 +530,29 @@ const App = {
         if (this.saveTradingBtn) this.saveTradingBtn.addEventListener('click', () => this.saveSettings('trading'));
         if (this.saveAppearanceBtn) this.saveAppearanceBtn.addEventListener('click', () => this.saveSettings('appearance'));
 
-        this.accentOptions.forEach(opt => {
+        this.accentOptions.forEach((opt, i) => {
             opt.addEventListener('click', () => {
                 this.accentOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
+                this.userData.accent = this.accentPalette[i] || 'purple';
+                this.applyAccent();
+                this.saveState();
             });
         });
         this.themeOptions.forEach(opt => {
             opt.addEventListener('click', () => {
                 this.themeOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
+                this.userData.theme = opt.dataset.theme;
+                this.applyTheme();
+                this.saveState();
             });
+        });
+        if (this.settingsLang) this.settingsLang.addEventListener('change', () => {
+            this.currentLang = this.settingsLang.value;
+            this.applyLanguage();
+            this.saveState();
+            this.langButtons.forEach(b => b.classList.toggle('active', b.dataset.lang === this.currentLang));
         });
 
         // Data actions
@@ -492,6 +581,10 @@ const App = {
         if (this.resetTradingProfileBtn) {
             this.resetTradingProfileBtn.addEventListener('click', () => this.resetTradingProfile());
         }
+        if (this.tourNextBtn) this.tourNextBtn.addEventListener('click', () => this.tourNext());
+        if (this.tourBackBtn) this.tourBackBtn.addEventListener('click', () => this.tourBack());
+        if (this.avatarEditBtn) this.avatarEditBtn.addEventListener('click', () => this.avatarFileInput && this.avatarFileInput.click());
+        if (this.avatarFileInput) this.avatarFileInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
         this.applyLanguage();
 
         let resizeTimer = null;
@@ -505,13 +598,33 @@ const App = {
 
     // ===== LANGUAGE =====
     applyLanguage() {
+        document.documentElement.lang = this.currentLang;
         const t = this.translations[this.currentLang] || this.translations.ru;
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.dataset.key;
-            if (t[key] !== undefined && !el.closest('.dash-panel') && !el.closest('.journal-stats-modern')) {
-                el.textContent = t[key];
-            }
+            if (t[key] !== undefined) el.textContent = t[key];
         });
+        // Re-render the pieces of the UI whose text is generated dynamically in JS
+        // (empty states, notifications, dashboard extras) so a language switch
+        // applies instantly everywhere, not just to static labels.
+        this.renderNotifications();
+        this.renderDashboardExtras();
+        this.updatePageTitle();
+        if (this.trades.length === 0) this.initEquityChart();
+    },
+
+    // ===== THEME & ACCENT =====
+    applyTheme() {
+        const theme = this.userData.theme || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        this.themeOptions.forEach(o => o.classList.toggle('active', o.dataset.theme === theme));
+    },
+
+    applyAccent() {
+        const accent = this.userData.accent || 'purple';
+        document.documentElement.setAttribute('data-accent', accent);
+        const idx = this.accentPalette.indexOf(accent);
+        this.accentOptions.forEach((o, i) => o.classList.toggle('active', i === idx));
     },
 
     // ===== ONBOARDING WIZARD =====
@@ -599,11 +712,166 @@ const App = {
         const assets = Array.from(this.onboardingAssets).filter(cb => cb.checked).map(cb => cb.value);
         const strategy = this.onboardingStrategy.value.trim();
 
-        this.userData = { name, capital, risk, dailyTarget, dailyLoss, rr, session, markets, assets, strategy };
+        this.userData = { ...this.userData, name, capital, risk, dailyTarget, dailyLoss, rr, session, markets, assets, strategy };
         this.onboardingDone = true;
         if (this.onboardingOverlay) this.onboardingOverlay.classList.remove('active');
         this.applyUserData();
         this.saveState();
+        // Requirement: never drop a user straight onto the Dashboard after onboarding —
+        // greet them and walk them through the workspace first.
+        this.showCoachTour();
+    },
+
+    // ============================================================
+    // FIRST USER EXPERIENCE — AI Coach greeting + interactive product tour
+    // ============================================================
+    tourSteps: [
+        { key: 'intro' },
+        { key: 'dashboard', nav: 'dashboard' },
+        { key: 'journal', nav: 'journal' },
+        { key: 'calendar', nav: 'calendar' },
+        { key: 'academy', nav: 'academy' },
+        { key: 'strategy', nav: 'strategy' },
+        { key: 'marketpulse', nav: 'marketpulse' },
+        { key: 'analytics', nav: 'analytics' },
+        { key: 'performance', nav: 'performance' },
+        { key: 'guardian', nav: 'guardian' },
+        { key: 'intelligence', nav: 'intelligence' },
+        { key: 'settings', nav: 'settings' },
+        { key: 'final' }
+    ],
+
+    tourCopy: {
+        ru: {
+            intro: {
+                title: 'Знакомство с KriptoDanik AI',
+                body: 'Здравствуйте.<br><br>Меня зовут KriptoDanik AI.<br>Я ваш персональный AI Trading Coach.<br><br>Я никогда не скажу вам, когда покупать или продавать.<br>Я не предсказываю рынок.<br><br>Моя задача — помочь вам сохранять дисциплину, следовать <strong>вашей собственной</strong> торговой стратегии, анализировать прогресс и становиться лучше со временем.<br><br>Прежде чем начать, позвольте познакомить вас с вашим рабочим пространством.'
+            },
+            dashboard: { title: 'Dashboard', body: 'Здесь вы видите общую картину: текущий баланс, дневную цель, лимит убытка и риск на сделку. Вы будете открывать эту страницу каждый раз, когда садитесь торговать — чтобы свериться с планом на день.' },
+            journal: { title: 'Journal', body: 'Journal — это единый источник правды для всего приложения. Каждая сделка, которую вы здесь фиксируете, питает Dashboard, Analytics, Performance и Guardian. Записывайте сюда каждую сделку сразу после её закрытия.' },
+            calendar: { title: 'Calendar', body: 'Календарь показывает ваши сделки и события по дням. Используйте его, чтобы увидеть, в какие дни вы торговали, и планировать заметки, анализы или перерывы заранее.' },
+            academy: { title: 'Academy', body: 'Академия — это будущий раздел с обучающими материалами по трейдингу, риск-менеджменту и психологии. Раздел находится в разработке и появится в одном из следующих обновлений.' },
+            strategy: { title: 'Библиотека стратегий', body: 'Здесь в будущем вы сможете сохранять и оформлять свои торговые стратегии в структурированном виде, чтобы AI Coach мог сверять с ними ваши реальные сделки. Раздел пока в разработке.' },
+            marketpulse: { title: 'Market Pulse', body: 'Market Pulse станет разделом с рыночными новостями и контекстом — без сигналов и прогнозов, только фактическая информация для вашего собственного анализа. Раздел пока в разработке.' },
+            analytics: { title: 'Analytics', body: 'Здесь ваша статистика раскладывается по полочкам: Win Rate, Profit Factor, лучшие и худшие сделки, серии побед и поражений. Загляните сюда, когда захотите понять, что реально работает в вашей торговле.' },
+            performance: { title: 'Performance', body: 'Performance показывает динамику во времени — помесячно и по торговым сессиям. Полезно раз в неделю или в месяц, чтобы увидеть общий тренд, а не отдельную сделку.' },
+            guardian: { title: 'Guardian', body: 'Guardian следит за соблюдением ваших собственных правил риск-менеджмента и дисциплины и подсвечивает нарушения. Он начнёт работать, как только появятся первые сделки.' },
+            intelligence: { title: 'AI Coach', body: 'Это я. Спрашивайте меня о дисциплине, психологии, риск-менеджменте, вашей стратегии или о том, что видно в журнале. Я не даю торговых сигналов — я помогаю думать яснее.' },
+            settings: { title: 'Settings', body: 'В настройках вы можете изменить профиль, торговые параметры, тему оформления, язык и управлять своими данными — экспорт, импорт, полная очистка.' },
+            final: {
+                title: 'Приятного использования, KriptoDanik AI',
+                body: 'Приятного использования, KriptoDanik AI.<br><br><span class="tour-disclaimer">KriptoDanik AI не является финансовым советником, не даёт торговых сигналов и не предсказывает направление рынка. Он помогает вам соблюдать собственную торговую стратегию, правила и дисциплину.</span><br><br>Каждое торговое решение — ваше. Удачи.'
+            }
+        },
+        en: {
+            intro: {
+                title: 'Meet KriptoDanik AI',
+                body: 'Welcome.<br><br>My name is KriptoDanik AI.<br>I\'m your personal AI Trading Coach.<br><br>I will never tell you when to Buy or Sell.<br>I don\'t predict the market.<br><br>My purpose is to help you stay disciplined, follow <strong>your own</strong> trading strategy, analyze your progress and improve over time.<br><br>Before we begin, let me introduce your trading workspace.'
+            },
+            dashboard: { title: 'Dashboard', body: 'This is your at-a-glance view: current balance, daily profit goal, daily loss limit, and risk per trade. You\'ll open this every time you sit down to trade, to check in against your plan for the day.' },
+            journal: { title: 'Journal', body: 'The Journal is the single source of truth for the whole app. Every trade you log here feeds the Dashboard, Analytics, Performance, and Guardian. Log each trade right after you close it.' },
+            calendar: { title: 'Calendar', body: 'The Calendar shows your trades and events by day. Use it to see which days you traded, and to plan notes, reviews, or breaks ahead of time.' },
+            academy: { title: 'Academy', body: 'Academy is a future section with educational material on trading, risk management, and psychology. It\'s still in development and will arrive in a later update.' },
+            strategy: { title: 'Strategy Library', body: 'This will let you save and structure your own trading strategies, so the AI Coach can check your real trades against them. Still in development.' },
+            marketpulse: { title: 'Market Pulse', body: 'Market Pulse will bring market news and context — no signals, no predictions, just factual information for your own analysis. Still in development.' },
+            analytics: { title: 'Analytics', body: 'This breaks your stats down in detail: win rate, profit factor, best and worst trades, winning and losing streaks. Come here when you want to understand what\'s actually working in your trading.' },
+            performance: { title: 'Performance', body: 'Performance shows your trend over time — monthly and by trading session. Useful weekly or monthly, to see the bigger picture rather than a single trade.' },
+            guardian: { title: 'Guardian', body: 'Guardian watches whether you\'re sticking to your own risk-management and discipline rules, and flags violations. It starts working as soon as you log your first trades.' },
+            intelligence: { title: 'AI Coach', body: 'That\'s me. Ask me about discipline, psychology, risk management, your strategy, or what your journal shows. I don\'t give trading signals — I help you think more clearly.' },
+            settings: { title: 'Settings', body: 'In Settings you can edit your profile, trading parameters, appearance theme, language, and manage your data — export, import, or a full reset.' },
+            final: {
+                title: 'Enjoy using KriptoDanik AI',
+                body: 'Enjoy using KriptoDanik AI.<br><br><span class="tour-disclaimer">KriptoDanik AI is not a financial advisor, does not give trading signals, and does not predict market direction. It helps you follow your own trading strategy, rules, and discipline.</span><br><br>Every trading decision is yours. Good luck.'
+            }
+        }
+    },
+
+    showCoachTour() {
+        if (!this.coachTourOverlay) return;
+        this.tourStepIndex = 0;
+        this.goToTourStep(0);
+        this.coachTourOverlay.classList.add('active');
+    },
+
+    goToTourStep(index) {
+        this.tourStepIndex = index;
+        const step = this.tourSteps[index];
+        const copy = (this.tourCopy[this.currentLang] || this.tourCopy.ru)[step.key];
+        if (this.tourTitle) this.tourTitle.textContent = copy.title;
+        if (this.tourBody) this.tourBody.innerHTML = copy.body;
+        if (this.tourStepLabel) this.tourStepLabel.textContent = `${index + 1} / ${this.tourSteps.length}`;
+        if (this.tourProgressBar) this.tourProgressBar.style.width = ((index + 1) / this.tourSteps.length * 100) + '%';
+        if (this.tourNextBtn) this.tourNextBtn.textContent = index === this.tourSteps.length - 1
+            ? (this.currentLang === 'en' ? 'Start trading' : 'Начать торговать')
+            : (this.currentLang === 'en' ? 'Next' : 'Далее');
+        if (this.tourBackBtn) this.tourBackBtn.style.visibility = index === 0 ? 'hidden' : 'visible';
+
+        // Highlight the matching nav item, if this step corresponds to one.
+        this.navItems.forEach(n => n.classList.remove('tour-highlight'));
+        if (step.nav) {
+            const navBtn = Array.from(this.navItems).find(n => n.dataset.section === step.nav);
+            if (navBtn) navBtn.classList.add('tour-highlight');
+        }
+    },
+
+    tourNext() {
+        if (this.tourStepIndex < this.tourSteps.length - 1) {
+            this.goToTourStep(this.tourStepIndex + 1);
+        } else {
+            this.finishCoachTour();
+        }
+    },
+
+    tourBack() {
+        if (this.tourStepIndex > 0) this.goToTourStep(this.tourStepIndex - 1);
+    },
+
+    finishCoachTour() {
+        if (this.coachTourOverlay) this.coachTourOverlay.classList.remove('active');
+        this.navItems.forEach(n => n.classList.remove('tour-highlight'));
+        // Only now does the Dashboard actually open.
+        this.navItems.forEach(n => n.classList.remove('active'));
+        const dashNav = Array.from(this.navItems).find(n => n.dataset.section === 'dashboard');
+        if (dashNav) dashNav.classList.add('active');
+        this.showSection('dashboard');
+    },
+
+    // ===== AVATAR =====
+    handleAvatarUpload(e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { this.showToast(this.currentLang === 'en' ? 'Please choose an image file' : 'Пожалуйста, выберите файл изображения'); return; }
+        if (file.size > 2 * 1024 * 1024) { this.showToast(this.currentLang === 'en' ? 'Image must be under 2MB' : 'Изображение должно быть меньше 2МБ'); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            this.userData.avatar = ev.target.result;
+            this.applyAvatar();
+            this.saveState();
+            this.showToast(this.currentLang === 'en' ? 'Avatar updated' : 'Аватар обновлён');
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    },
+
+    getInitial() {
+        const name = (this.userData.name || '').trim();
+        return name ? name.charAt(0).toUpperCase() : 'T';
+    },
+
+    applyAvatar() {
+        const avatar = this.userData.avatar;
+        [this.headerAvatar, this.settingsAvatar].forEach(el => {
+            if (!el) return;
+            if (avatar) {
+                el.style.backgroundImage = `url(${avatar})`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.textContent = '';
+            } else {
+                el.style.backgroundImage = '';
+                el.textContent = this.getInitial();
+            }
+        });
     },
 
     resetTradingProfile() {
@@ -617,16 +885,27 @@ const App = {
 
     updateGreeting() {
         const hour = new Date().getHours();
-        let greeting = 'Good Evening';
-        if (hour < 12) greeting = 'Good Morning';
-        else if (hour < 18) greeting = 'Good Afternoon';
-        if (this.pageGreeting) this.pageGreeting.textContent = greeting;
+        let key = 'greeting_evening';
+        if (hour < 12) key = 'greeting_morning';
+        else if (hour < 18) key = 'greeting_afternoon';
+        if (this.pageGreeting) this.pageGreeting.textContent = this.t(key);
+        this.updatePageTitle();
+    },
+
+    // "Welcome, {UserName}" — keeps the <span id="userNameDisplay"> node intact
+    // while translating only the leading text, so the name never gets clobbered.
+    updatePageTitle() {
+        if (!this.pageTitle || !this.pageTitle.firstChild) return;
+        this.pageTitle.firstChild.textContent = this.t('welcome') + ' ';
     },
 
     applyUserData() {
         if (!this.userData || !this.onboardingDone) return;
-        if (this.balanceDisplay) this.balanceDisplay.textContent = '$ ' + this.userData.capital.toLocaleString();
-        if (this.userNameDisplay) this.userNameDisplay.textContent = this.userData.name || 'Danik';
+        this.updateBalanceDisplay();
+        if (this.userNameDisplay) this.userNameDisplay.textContent = this.userData.name || 'Трейдер';
+        this.applyAvatar();
+        this.applyTheme();
+        this.applyAccent();
         this.updateGreeting();
         this.renderTradingProfileCards();
         this.renderTodaysProgress();
@@ -649,6 +928,7 @@ const App = {
         this.updateDashboardStats();
         this.initEquityChart();
         this.initDashboardCharts();
+        this.renderDashboardExtras();
         this.updateGuardianStats();
         this.initGuardianChart();
         
@@ -766,25 +1046,196 @@ const App = {
             const labels = Object.keys(assetsMap);
             const data = Object.values(assetsMap);
             this.dashboardCharts.asset = new Chart(this.assetDonutChart, {
-                type: 'doughnut', data: { labels: labels, datasets: [{ data: data, backgroundColor: ['#7c5cfc', '#fbbf24', '#43c6a0', '#ef4444'], borderColor: '#13161c', borderWidth: 2 }] },
+                type: 'doughnut', data: { labels: labels, datasets: [{ data: data.length ? data : [1], backgroundColor: ['#7c5cfc', '#fbbf24', '#43c6a0', '#ef4444', '#f97316'], borderColor: '#13161c', borderWidth: 2 }] },
                 options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { display: false } } }
             });
         }
     },
 
+    // ============================================================
+    // DASHBOARD — R-distribution, Best Trading Time, Asset list, AI box
+    // These panels used to ship as static fake HTML. They now render
+    // entirely from real trade data and show honest empty states.
+    // ============================================================
+    renderDashboardExtras() {
+        this.renderRDistribution();
+        this.renderBestTradingTime();
+        this.renderAssetList();
+        this.renderDashAIInsight();
+    },
+
+    renderRDistribution() {
+        const container = document.getElementById('rDistributionBody');
+        if (!container) return;
+        if (this.trades.length === 0) {
+            container.innerHTML = '';
+            this.renderEmptyState(container, this.t('empty_rdist_title'));
+            return;
+        }
+        const buckets = [
+            { label: '> 3R', min: 3, max: Infinity },
+            { label: '2R – 3R', min: 2, max: 3 },
+            { label: '1R – 2R', min: 1, max: 2 },
+            { label: '0R – 1R', min: 0, max: 1 },
+            { label: '< 0R', min: -Infinity, max: 0 }
+        ];
+        const rrValues = this.trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
+        const total = rrValues.length || 1;
+        const counts = buckets.map(b => rrValues.filter(v => v >= b.min && v < b.max).length);
+        const maxCount = Math.max(...counts, 1);
+        let html = '';
+        buckets.forEach((b, i) => {
+            const count = counts[i];
+            const pct = Math.round(count / total * 100);
+            const widthPct = Math.round(count / maxCount * 100);
+            html += `<div class="bar-row"><span class="bar-label">${b.label}</span><div class="bar-track"><div class="bar-fill" style="width:${widthPct}%;"></div></div><span class="bar-val">${count} (${pct}%)</span></div>`;
+        });
+        container.innerHTML = html;
+    },
+
+    // "Best Trading Time" is computed per trading SESSION (London/NY/Asian/Sydney),
+    // since that's the timing data we actually collect per trade — not a fabricated
+    // hour-by-hour heatmap we have no real data to back up.
+    renderBestTradingTime() {
+        const container = document.getElementById('bestTimeBody');
+        if (!container) return;
+        const MIN_TRADES = 5;
+        if (this.trades.length < MIN_TRADES) {
+            container.innerHTML = '';
+            this.renderEmptyState(container, this.t('empty_besttime_title'), this.t('empty_besttime_desc'));
+            return;
+        }
+        const sessionLabels = { london: 'London', ny: 'New York', asia: 'Asian', sydney: 'Sydney' };
+        const totals = {};
+        this.trades.forEach(t => {
+            const key = t.session && sessionLabels[t.session] ? t.session : null;
+            if (!key) return;
+            if (!totals[key]) totals[key] = { rr: 0, count: 0 };
+            totals[key].rr += parseFloat(t.rr) || 0;
+            totals[key].count++;
+        });
+        const rows = Object.keys(totals).map(k => ({ label: sessionLabels[k], avgRR: totals[k].rr / totals[k].count, count: totals[k].count }));
+        if (rows.length === 0) {
+            this.renderEmptyState(container, this.t('empty_besttime_title'), this.t('empty_besttime_desc'));
+            return;
+        }
+        rows.sort((a, b) => b.avgRR - a.avgRR);
+        const maxAbs = Math.max(...rows.map(r => Math.abs(r.avgRR)), 0.1);
+        let html = `<p class="panel-note">${this.t('besttime_desc')}</p>`;
+        rows.forEach(r => {
+            const widthPct = Math.max(6, Math.round(Math.abs(r.avgRR) / maxAbs * 100));
+            const cls = r.avgRR >= 0 ? 'positive' : 'negative';
+            html += `<div class="bar-row"><span class="bar-label">${r.label}</span><div class="bar-track"><div class="bar-fill ${cls}" style="width:${widthPct}%;"></div></div><span class="bar-val">${(r.avgRR >= 0 ? '+' : '')}${r.avgRR.toFixed(1)}R · ${r.count}</span></div>`;
+        });
+        container.innerHTML = html;
+    },
+
+    renderAssetList() {
+        const container = document.getElementById('assetListBody');
+        if (!container) return;
+        if (this.trades.length === 0) {
+            container.innerHTML = '';
+            this.renderEmptyState(container, this.t('empty_assets_title'));
+            return;
+        }
+        const assetsMap = {};
+        this.trades.forEach(t => { assetsMap[t.asset] = (assetsMap[t.asset] || 0) + 1; });
+        const total = this.trades.length;
+        const colors = ['#7c5cfc', '#fbbf24', '#43c6a0', '#ef4444', '#f97316'];
+        const entries = Object.entries(assetsMap).sort((a, b) => b[1] - a[1]);
+        let html = '';
+        entries.forEach(([asset, count], i) => {
+            const pct = Math.round(count / total * 100);
+            html += `<div><span class="dot" style="background:${colors[i % colors.length]};"></span> ${asset} <span class="asset-val">${count} (${pct}%)</span></div>`;
+        });
+        container.innerHTML = html;
+    },
+
+    // Dashboard AI box: a short, honest, data-grounded snippet — never a
+    // fabricated warning. It only ever references real Guardian violations
+    // or real trade counts, and never predicts the market or gives signals.
+    renderDashAIInsight() {
+        const msgEl = document.getElementById('dashAIMsg');
+        const subEl = document.getElementById('dashAIMsgSub');
+        if (!msgEl || !subEl) return;
+        if (this.trades.length === 0) {
+            msgEl.textContent = this.currentLang === 'en'
+                ? 'Log your first trade in the Journal and I\'ll start tracking your discipline.'
+                : 'Добавьте первую сделку в Journal — и я начну отслеживать вашу дисциплину.';
+            subEl.textContent = this.currentLang === 'en'
+                ? 'I coach — I never predict the market or send buy/sell signals.'
+                : 'Я коуч — я не предсказываю рынок и не даю сигналы Buy/Sell.';
+            return;
+        }
+        const violations = (this.guardianRules || []).filter(r => !r.passed);
+        const total = this.trades.length;
+        const wins = this.trades.filter(t => t.status === 'win').length;
+        const winRate = Math.round(wins / total * 100);
+        if (violations.length > 0) {
+            msgEl.textContent = this.currentLang === 'en'
+                ? `Guardian flagged ${violations.length} rule${violations.length === 1 ? '' : 's'} today: ${violations[0].name}.`
+                : `Guardian сегодня отметил нарушений: ${violations.length} (${violations[0].name}).`;
+            subEl.textContent = this.currentLang === 'en' ? 'Open Guardian for the full breakdown.' : 'Откройте Guardian для подробностей.';
+        } else {
+            msgEl.textContent = this.currentLang === 'en'
+                ? `You have ${total} logged trades with a ${winRate}% win rate so far.`
+                : `У вас ${total} сделок в журнале, Win Rate ${winRate}%.`;
+            subEl.textContent = this.currentLang === 'en' ? 'Ask me anything about your journal, discipline, or strategy.' : 'Спросите меня о журнале, дисциплине или стратегии.';
+        }
+    },
+
     initEquityChart() {
         const canvas = document.getElementById('equityChart');
+        const wrapper = document.getElementById('equityChartWrapper');
         if (!canvas) return;
-        if (this.equityChartInstance) this.equityChartInstance.destroy();
-        const data = [82000, 88000, 95000, 102000, 112000, 118000, 125000];
+        if (this.equityChartInstance) { this.equityChartInstance.destroy(); this.equityChartInstance = null; }
+
+        if (this.trades.length === 0) {
+            canvas.style.display = 'none';
+            this.renderEmptyState(wrapper, this.t('empty_equity_title'), this.t('empty_equity_desc'));
+            return;
+        }
+        canvas.style.display = '';
+        this.clearEmptyState(wrapper);
+
+        // Real cumulative balance, ordered chronologically, starting from the user's declared capital.
+        const sorted = [...this.trades].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.id - b.id));
+        let running = parseFloat(this.userData.capital) || 0;
+        const labels = ['Старт'];
+        const data = [running];
+        sorted.forEach(t => {
+            running += (parseFloat(t.pnl) || 0);
+            labels.push(t.date || '');
+            data.push(running);
+        });
+
         const ctx = canvas.getContext('2d');
         const gradient = ctx.createLinearGradient(0, 0, 0, 180);
         gradient.addColorStop(0, 'rgba(124, 92, 252, 0.3)');
         gradient.addColorStop(1, 'rgba(124, 92, 252, 0)');
         this.equityChartInstance = new Chart(canvas, {
-            type: 'line', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Equity', data, borderColor: '#7c5cfc', backgroundColor: gradient, borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#7c5cfc', pointBorderColor: '#fff', pointBorderWidth: 2, tension: 0.4, fill: true }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
+            type: 'line', data: { labels: labels, datasets: [{ label: 'Equity', data, borderColor: '#7c5cfc', backgroundColor: gradient, borderWidth: 3, pointRadius: 3, pointBackgroundColor: '#7c5cfc', pointBorderColor: '#fff', pointBorderWidth: 1, tension: 0.35, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0', maxTicksLimit: 8 } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0' } } } }
         });
+    },
+
+    // ===== Reusable empty-state helper =====
+    // Every panel that used to ship with fake numbers now renders a real
+    // "not enough data yet" message here instead, using a small overlay
+    // that sits on top of the panel without destroying its DOM structure.
+    renderEmptyState(container, title, desc) {
+        if (!container) return;
+        this.clearEmptyState(container);
+        const el = document.createElement('div');
+        el.className = 'panel-empty-state';
+        el.innerHTML = `<div class="panel-empty-icon">📭</div><div class="panel-empty-title">${title}</div>${desc ? `<div class="panel-empty-desc">${desc}</div>` : ''}`;
+        container.appendChild(el);
+    },
+
+    clearEmptyState(container) {
+        if (!container) return;
+        const existing = container.querySelector('.panel-empty-state');
+        if (existing) existing.remove();
     },
 
     // ============================================================
@@ -812,7 +1263,7 @@ const App = {
         const pageData = this.filteredTrades.slice(start, end);
 
         if (pageData.length === 0) {
-            this.journalBody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px 0;color:var(--text-secondary);">Пока нет сделок. Начните добавлять!</td></tr>`;
+            this.journalBody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:48px 0;color:var(--text-secondary);">${this.t('empty_journal')}</td></tr>`;
             return;
         }
 
@@ -876,12 +1327,16 @@ const App = {
         this.renderJournal();
         this.updateJournalStats();
         this.updateDashboardStats();
+        this.updateBalanceDisplay();
         this.renderTodaysProgress();
+        this.initEquityChart();
+        this.renderDashboardExtras();
         this.updateAnalytics();
         this.updateGuardianStats();
         this.initGuardianChart();
         this.renderCalendar();
         this.updateCalendarBadge();
+        this.updateNotifBadge();
         if (this.perfEquityChart) { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
         this.saveState();
     },
@@ -1119,32 +1574,36 @@ const App = {
 
     getNotifications() {
         const notifications = [];
+        const en = this.currentLang === 'en';
         const today = new Date().toISOString().slice(0, 10);
         const todayTrades = this.trades.filter(t => t.date === today);
         const lossesToday = todayTrades.filter(t => t.status === 'loss').length;
 
         (this.guardianRules || []).filter(r => !r.passed).forEach(r => {
-            notifications.push({ icon: '⚠️', title: 'Нарушение правила Guardian', desc: r.name, tag: 'warning' });
+            notifications.push({ icon: '⚠️', title: en ? 'Guardian rule violation' : 'Нарушение правила Guardian', desc: r.name, tag: 'warning' });
         });
 
         if (lossesToday >= 3) {
-            notifications.push({ icon: '🛑', title: 'Дневной лимит убытков', desc: `${lossesToday} убыточных сделок сегодня`, tag: 'warning' });
+            notifications.push({ icon: '🛑', title: en ? 'Daily loss limit' : 'Дневной лимит убытков', desc: en ? `${lossesToday} losing trades today` : `${lossesToday} убыточных сделок сегодня`, tag: 'warning' });
         }
 
         const todayEvents = this.getEventsForDate(new Date());
         if (todayEvents.length > 0) {
-            notifications.push({ icon: '📅', title: `События сегодня (${todayEvents.length})`, desc: todayEvents.map(e => e.title).join(', '), tag: 'info' });
+            notifications.push({ icon: '📅', title: en ? `Events today (${todayEvents.length})` : `События сегодня (${todayEvents.length})`, desc: todayEvents.map(e => e.title).join(', '), tag: 'info' });
         }
 
-        if (notifications.length === 0) {
-            notifications.push({ icon: '✅', title: 'Всё под контролем', desc: 'Нарушений и событий на сегодня не найдено', tag: 'success' });
-        }
+        // No synthetic "all good" notification — an empty list means an
+        // empty list. The UI renders the real "No notifications yet" state.
         return notifications;
     },
 
     renderNotifications() {
         if (!this.notifResults) return;
         const notifications = this.getNotifications();
+        if (notifications.length === 0) {
+            this.notifResults.innerHTML = `<div class="header-popover-item non-interactive"><span class="header-popover-item-body"><span class="header-popover-item-desc">${this.t('empty_notifications')}</span></span></div>`;
+            return;
+        }
         let html = '';
         notifications.forEach(n => {
             html += `
@@ -1243,7 +1702,7 @@ const App = {
         if (this.dayTradesCount) this.dayTradesCount.textContent = dayTrades.length + ' сделок';
 
         if (dayTrades.length === 0) {
-            this.dayTradesList.innerHTML = `<div class="no-events">Нет сделок в этот день</div>`;
+            this.dayTradesList.innerHTML = `<div class="no-events">${this.t('empty_calendar_trades')}</div>`;
             return;
         }
         const statusLabels = { win: 'Win', loss: 'Loss', breakeven: 'BE' };
@@ -1279,7 +1738,7 @@ const App = {
         this.eventsCount.textContent = eventsForDate.length + ' событий';
 
         if (eventsForDate.length === 0) {
-            this.eventsList.innerHTML = `<div class="no-events">Нет событий на этот день</div>`;
+            this.eventsList.innerHTML = `<div class="no-events">${this.t('empty_calendar_events')}</div>`;
             return;
         }
         let html = '';
@@ -1346,6 +1805,13 @@ const App = {
 
     updateAnalyticsStats() {
         const total = this.trades.length;
+        const banner = document.getElementById('analyticsEmptyBanner');
+        const mainContent = document.getElementById('analyticsMainContent');
+        if (banner) {
+            banner.style.display = total === 0 ? 'flex' : 'none';
+            if (total === 0) banner.innerHTML = `<div class="panel-empty-icon">📭</div><div class="panel-empty-title">${this.t('empty_analytics')}</div>`;
+        }
+        if (mainContent) mainContent.style.opacity = total === 0 ? '0.35' : '1';
         if (total === 0) {
             const elements = [this.aTotalPnl, this.aWinRate, this.aProfitFactor, this.aAvgRR, this.aTotalTrades, this.aWinningTrades, this.aLosingTrades, this.aAvgWin, this.aAvgLoss, this.aBestDay, this.aWorstDay, this.aBestTrade, this.aWorstTrade, this.aMaxWinStreak, this.aMaxLossStreak];
             elements.forEach(el => { if(el) el.textContent = '—'; });
@@ -1461,6 +1927,13 @@ const App = {
     // ============================================================
     updatePerformanceStats() {
         const total = this.trades.length;
+        const banner = document.getElementById('performanceEmptyBanner');
+        const mainContent = document.getElementById('performanceMainContent');
+        if (banner) {
+            banner.style.display = total === 0 ? 'flex' : 'none';
+            if (total === 0) banner.innerHTML = `<div class="panel-empty-icon">📭</div><div class="panel-empty-title">${this.t('empty_performance')}</div>`;
+        }
+        if (mainContent) mainContent.style.opacity = total === 0 ? '0.35' : '1';
         const rrValues = this.trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
         const totalReturn = rrValues.reduce((a, b) => a + b, 0);
 
@@ -1525,12 +1998,14 @@ const App = {
     initPerfSessionsChart() {
         if (!this.perfSessionsChart) return;
         if (this.performanceCharts.sessions) this.performanceCharts.sessions.destroy();
-        const sessionRanges = { Asian: [0, 8], London: [8, 13], 'New York': [13, 21], Sydney: [21, 24] };
-        const sessionTotals = { Asian: 0, London: 0, 'New York': 0, Sydney: 0 };
+        // Uses the real `session` field recorded on each trade (London/NY/Asian/Sydney)
+        // rather than deriving an hour from a date-only string, which had no reliable
+        // time-of-day information to begin with.
+        const sessionLabels = { london: 'London', ny: 'New York', asia: 'Asian', sydney: 'Sydney' };
+        const sessionTotals = { London: 0, 'New York': 0, Asian: 0, Sydney: 0 };
         this.trades.forEach(t => {
-            const hour = new Date(t.date).getHours() || 0;
-            const session = Object.keys(sessionRanges).find(s => hour >= sessionRanges[s][0] && hour < sessionRanges[s][1]) || 'London';
-            sessionTotals[session] += parseFloat(t.rr) || 0;
+            const label = sessionLabels[t.session];
+            if (label) sessionTotals[label] += parseFloat(t.rr) || 0;
         });
         const labels = Object.keys(sessionTotals);
         const data = Object.values(sessionTotals);
@@ -1552,27 +2027,32 @@ const App = {
     renderAIWelcome() {
         if (!this.aiMessages) return;
         const name = this.userData.name || 'Трейдер';
+        const en = this.currentLang === 'en';
         const today = new Date().toISOString().slice(0, 10);
         const todayTrades = this.trades.filter(t => t.date === today);
         const totalToday = todayTrades.length;
         const winsToday = todayTrades.filter(t => t.status === 'win').length;
         const wrToday = totalToday > 0 ? Math.round((winsToday / totalToday) * 100) : 0;
         const lastTrade = this.trades.length > 0 ? this.trades[0].result : '—';
+        const violations = (this.guardianRules || []).filter(r => !r.passed).length;
+        const disciplineLabel = this.trades.length === 0 ? (en ? 'No data yet' : 'Пока нет данных')
+            : (violations === 0 ? (en ? 'Good' : 'Хорошая') : (en ? `${violations} flagged` : `${violations} нарушений`));
+        const disciplineColor = this.trades.length === 0 ? 'var(--text-secondary)' : (violations === 0 ? 'var(--brand-green)' : 'var(--brand-red)');
 
         let html = `
             <div class="ai-msg-wrapper ai">
-                <div class="ai-msg-avatar">KD</div>
+                <div class="ai-msg-avatar">AI</div>
                 <div class="ai-msg-bubble">
                     <div class="ai-welcome-card">
-                        <h2>Добро пожаловать обратно, <strong>${name}</strong> 👋</h2>
-                        <p style="color:var(--text-secondary); font-size:14px;">Ваш персональный AI-коуч готов помочь.</p>
+                        <h2>${en ? 'Welcome' : 'Добро пожаловать'}, <strong>${name}</strong> 👋</h2>
+                        <p style="color:var(--text-secondary); font-size:14px;">${en ? 'Your personal AI Trading Coach is ready.' : 'Ваш персональный AI-коуч готов помочь.'}</p>
                         <div class="stats-grid">
-                            <div class="stat-line"><span>📊 Сделок сегодня</span><span>${totalToday}</span></div>
-                            <div class="stat-line"><span>🎯 Win Rate</span><span class="highlight">${wrToday}%</span></div>
-                            <div class="stat-line"><span>⚡ Дисциплина</span><span style="color:var(--brand-green);">Хорошая</span></div>
-                            <div class="stat-line"><span>🚀 Последняя сделка</span><span class="highlight">${lastTrade}</span></div>
+                            <div class="stat-line"><span>📊 ${en ? 'Trades today' : 'Сделок сегодня'}</span><span>${totalToday}</span></div>
+                            <div class="stat-line"><span>🎯 Win Rate</span><span class="highlight">${totalToday > 0 ? wrToday + '%' : '—'}</span></div>
+                            <div class="stat-line"><span>⚡ ${en ? 'Discipline' : 'Дисциплина'}</span><span style="color:${disciplineColor};">${disciplineLabel}</span></div>
+                            <div class="stat-line"><span>🚀 ${en ? 'Last trade' : 'Последняя сделка'}</span><span class="highlight">${lastTrade}</span></div>
                         </div>
-                        <p style="color:var(--text-secondary); font-size:13px; margin-top:12px;">Выберите действие ниже или задайте вопрос.</p>
+                        <p style="color:var(--text-secondary); font-size:13px; margin-top:12px;">${en ? 'Pick a prompt below or ask me anything.' : 'Выберите действие ниже или задайте вопрос.'}</p>
                     </div>
                 </div>
             </div>
@@ -1586,7 +2066,7 @@ const App = {
         let html = '';
         this.aiHistory.forEach(msg => {
             const cls = msg.role === 'user' ? 'user' : 'ai';
-            const avatar = msg.role === 'user' ? 'Вы' : 'KD';
+            const avatar = msg.role === 'user' ? (this.currentLang === 'en' ? 'You' : 'Вы') : 'AI';
             html += `
                 <div class="ai-msg-wrapper ${cls}">
                     <div class="ai-msg-avatar">${avatar}</div>
@@ -1598,6 +2078,158 @@ const App = {
         this.scrollToBottom();
     },
 
+    // ============================================================
+    // AI COACH — response engine
+    // ------------------------------------------------------------
+    // No external LLM call is wired up yet (this is a static front-end
+    // app with no backend), so this is a topic-aware, rule-based coach:
+    // it detects intent from keywords, then always grounds its answer
+    // in the user's REAL journal data (win rate, RR, Guardian rule
+    // status, sessions, streaks) rather than a fixed pool of unrelated
+    // canned sentences. It never generates Buy/Sell signals or market
+    // predictions — every branch below is either a coaching question,
+    // a stats readout, or general risk/psychology education.
+    //
+    // To upgrade this to a real LLM-backed coach later: swap
+    // `this.generateCoachReply(question)` below for an async call to
+    // your inference endpoint, passing the same `stats` object as
+    // context so responses stay grounded in the user's real journal.
+    // ============================================================
+    getCoachStats() {
+        const total = this.trades.length;
+        const wins = this.trades.filter(t => t.status === 'win').length;
+        const losses = this.trades.filter(t => t.status === 'loss').length;
+        const winRate = total > 0 ? Math.round(wins / total * 100) : null;
+        const rrValues = this.trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
+        const avgRR = rrValues.length ? (rrValues.reduce((a, b) => a + b, 0) / rrValues.length) : null;
+        let curLoss = 0, maxLossStreak = 0, curWin = 0, maxWinStreak = 0;
+        this.trades.forEach(t => {
+            if (t.status === 'loss') { curLoss++; curWin = 0; maxLossStreak = Math.max(maxLossStreak, curLoss); }
+            else if (t.status === 'win') { curWin++; curLoss = 0; maxWinStreak = Math.max(maxWinStreak, curWin); }
+            else { curWin = 0; curLoss = 0; }
+        });
+        // current (most recent) streak, using the natural array order (newest first, per submitTradeForm unshift)
+        let recentStreak = 0, recentType = null;
+        for (const t of this.trades) {
+            if (t.status !== 'win' && t.status !== 'loss') break;
+            if (recentType === null) { recentType = t.status; recentStreak = 1; }
+            else if (t.status === recentType) recentStreak++;
+            else break;
+        }
+        const violations = (this.guardianRules || []).filter(r => !r.passed);
+        const sessionLabels = { london: 'London', ny: 'New York', asia: 'Asian', sydney: 'Sydney' };
+        const bestSession = (() => {
+            const totals = {};
+            this.trades.forEach(t => {
+                if (!t.session) return;
+                if (!totals[t.session]) totals[t.session] = { rr: 0, count: 0 };
+                totals[t.session].rr += parseFloat(t.rr) || 0;
+                totals[t.session].count++;
+            });
+            const entries = Object.entries(totals);
+            if (!entries.length) return null;
+            entries.sort((a, b) => (b[1].rr / b[1].count) - (a[1].rr / a[1].count));
+            return { label: sessionLabels[entries[0][0]] || entries[0][0], avgRR: entries[0][1].rr / entries[0][1].count };
+        })();
+        return { total, wins, losses, winRate, avgRR, maxWinStreak, maxLossStreak, recentStreak, recentType, violations, bestSession };
+    },
+
+    // Very small keyword-based intent classifier. Order matters — first match wins.
+    classifyCoachIntent(question) {
+        const q = question.toLowerCase();
+        const has = (words) => words.some(w => q.includes(w));
+        if (has(['sell', 'buy', 'продавать', 'покупать', 'сигнал', 'signal', 'куда пойдет', 'вырастет', 'упадет', 'прогноз', 'predict'])) return 'signal_request';
+        if (has(['ошиб', 'mistake', 'error'])) return 'mistakes';
+        if (has(['психолог', 'psycholog', 'эмоц', 'emotion', 'страх', 'fear', 'жадност', 'greed'])) return 'psychology';
+        if (has(['риск', 'risk', '管理'])) return 'risk';
+        if (has(['дисциплин', 'disciplin'])) return 'discipline';
+        if (has(['стратег', 'strateg'])) return 'strategy';
+        if (has(['журнал', 'journal', 'сегодня', 'today', 'проанализ', 'analy'])) return 'journal_review';
+        if (has(['сессия', 'session', 'время', 'best time', 'лучшее время'])) return 'session';
+        if (has(['статист', 'stat', 'win rate', 'winrate', 'рекоменд', 'recommend'])) return 'stats';
+        return 'general';
+    },
+
+    generateCoachReply(question) {
+        const en = this.currentLang === 'en';
+        const s = this.getCoachStats();
+        const intent = this.classifyCoachIntent(question);
+        const name = this.userData.name || (en ? 'trader' : 'трейдер');
+
+        if (intent === 'signal_request') {
+            return en
+                ? "I don't give Buy/Sell signals and I don't predict where the market is going — that's outside what I do. What I <em>can</em> help with: does the setup you're looking at match the rules in your own strategy? Walk me through your entry criteria and I'll help you check it against your plan."
+                : "Я не даю сигналы Buy/Sell и не предсказываю движение рынка — это не моя задача. Но я могу помочь с другим: подходит ли сетап, который вы рассматриваете, под правила вашей собственной стратегии? Опишите критерии входа — разберём вместе, соответствует ли он вашему плану.";
+        }
+
+        if (s.total === 0) {
+            return en
+                ? `You haven't logged any trades yet, ${name}, so I don't have anything real to analyze. Once you add a few trades in the Journal, I can talk through your win rate, RR, and discipline patterns with actual numbers instead of guesses.`
+                : `Пока в журнале нет сделок, ${name}, поэтому мне не с чем работать по-настоящему. Добавьте несколько сделок в Journal — и я смогу говорить о вашем Win Rate, RR и дисциплине на основе реальных цифр, а не догадок.`;
+        }
+
+        switch (intent) {
+            case 'mistakes': {
+                if (s.maxLossStreak >= 3) {
+                    return en
+                        ? `Looking at your journal, your longest losing streak is ${s.maxLossStreak} trades in a row. That's usually where discipline slips — revenge sizing, skipping the plan, or forcing a setup. Check your notes on those trades: were the entries actually valid, or did you break your own rules to get in?`
+                        : `По вашему журналу самая длинная серия убытков — ${s.maxLossStreak} сделок подряд. Обычно именно в такие моменты дисциплина проседает — увеличение риска "на отыгрыш", пропуск плана, вход без сетапа. Посмотрите заметки по этим сделкам: вход действительно был по правилам, или вы их нарушили?`;
+                }
+                return en
+                    ? `Your loss streaks are short so far (max ${s.maxLossStreak}), which is a good sign for discipline. If you want to find real mistakes, open the Journal and filter by "Loss" — check whether your emotion-before field says calm on those, or something else.`
+                    : `Серии убытков у вас пока короткие (максимум ${s.maxLossStreak} подряд) — это хороший знак для дисциплины. Чтобы найти реальные ошибки, откройте Journal и отфильтруйте по "Убыток" — посмотрите, что вы отмечали в поле эмоций перед этими сделками.`;
+            }
+            case 'psychology': {
+                return en
+                    ? `Psychology shows up in your data more than people expect. Right now you're on a ${s.recentStreak > 0 ? s.recentStreak + '-trade ' + (s.recentType === 'win' ? 'winning' : 'losing') + ' streak' : 'mixed run'}. ${s.recentType === 'loss' && s.recentStreak >= 2 ? 'After a losing streak, the biggest risk is forcing the next trade to "get it back." Consider taking a short break before your next entry.' : s.recentType === 'win' && s.recentStreak >= 3 ? 'After a winning streak, overconfidence tends to creep in — watch your position sizing on the next trade.' : 'Log how you feel before and after each trade in the Journal so we can spot patterns over time.'}`
+                    : `Психология заметнее в данных, чем кажется. Сейчас у вас ${s.recentStreak > 0 ? s.recentStreak + ' сделк' + (s.recentStreak === 1 ? 'а' : 'и') + ' подряд в ' + (s.recentType === 'win' ? 'плюс' : 'минус') : 'смешанная динамика'}. ${s.recentType === 'loss' && s.recentStreak >= 2 ? 'После серии убытков главный риск — форсировать следующую сделку, чтобы "отыграться". Возможно, стоит сделать паузу перед следующим входом.' : s.recentType === 'win' && s.recentStreak >= 3 ? 'После серии побед часто подкрадывается излишняя уверенность — проверьте размер позиции на следующей сделке.' : 'Отмечайте своё состояние до и после каждой сделки в Journal — так мы сможем отследить закономерности со временем.'}`;
+            }
+            case 'risk': {
+                const risk = this.userData.risk;
+                return en
+                    ? `Your declared risk per trade is ${risk ? risk + '%' : 'not set yet'}. The core rule most disciplined traders follow: never risk more on one idea than you're willing to lose on ${risk ? Math.round(100 / risk) : '~20-50'} trades in a row going wrong. If you've been sizing up after losses to "catch up," that's the fastest way to blow through a daily loss limit — Guardian is there to flag exactly that.`
+                    : `Ваш заявленный риск на сделку — ${risk ? risk + '%' : 'ещё не задан'}. Базовое правило дисциплинированных трейдеров: никогда не рисковать на одной идее больше, чем вы готовы потерять на ${risk ? Math.round(100 / risk) : '~20-50'} подряд неудачных сделках. Если вы увеличивали размер после убытков, чтобы "отыграться" — это самый быстрый способ пробить дневной лимит убытка. Именно это отслеживает Guardian.`;
+            }
+            case 'discipline': {
+                if (s.violations.length > 0) {
+                    return en
+                        ? `Guardian currently shows ${s.violations.length} rule${s.violations.length === 1 ? '' : 's'} not being met — top one: "${s.violations[0].name}". Discipline isn't about never breaking a rule, it's about noticing fast and correcting course. Want to open Guardian and go through them one by one?`
+                        : `Guardian сейчас показывает ${s.violations.length} нарушени${s.violations.length === 1 ? 'е' : 'я'} — первое: "${s.violations[0].name}". Дисциплина — это не про "никогда не нарушать", а про быстро замечать и исправлять. Хотите открыть Guardian и разобрать их по порядку?`;
+                }
+                return en
+                    ? `Guardian shows all your tracked rules passing right now — that's a solid foundation. Discipline compounds: the goal isn't a perfect day, it's a long streak of "good enough" days.`
+                    : `Guardian сейчас показывает, что все отслеживаемые правила соблюдены — хорошая база. Дисциплина работает как сложный процент: цель не в идеальном дне, а в длинной серии "достаточно хороших" дней.`;
+            }
+            case 'strategy': {
+                const strat = this.userData.strategy;
+                return en
+                    ? (strat
+                        ? `Here's the strategy you described during onboarding: "${strat.slice(0, 220)}${strat.length > 220 ? '…' : ''}". I can't tell you if a specific trade will work, but I can help you check whether your logged trades actually follow it — want to review your last few Journal entries against these criteria?`
+                        : `You haven't described your strategy yet — add it in Settings → Trading Profile, or during onboarding. Once it's written down, I can help you check whether your real trades are actually following it.`)
+                    : (strat
+                        ? `Вот стратегия, которую вы описали при онбординге: «${strat.slice(0, 220)}${strat.length > 220 ? '…' : ''}». Я не скажу, сработает ли конкретная сделка, но помогу проверить, действительно ли ваши записанные сделки следуют этой стратегии — разберём последние записи в Journal?`
+                        : `Вы ещё не описали свою стратегию — добавьте её в Settings → Торговый профиль. Как только она будет зафиксирована, я смогу помочь проверить, действительно ли ваши реальные сделки ей соответствуют.`);
+            }
+            case 'session': {
+                if (!s.bestSession) {
+                    return en ? "I don't have enough session data yet — log the session for each trade and I'll be able to compare them." : "Пока недостаточно данных по сессиям — указывайте сессию в каждой сделке, и я смогу их сравнить.";
+                }
+                return en
+                    ? `Based on your journal, your ${s.bestSession.label} session trades average ${(s.bestSession.avgRR >= 0 ? '+' : '')}${s.bestSession.avgRR.toFixed(1)}R — your best so far. That doesn't guarantee anything going forward, but it's worth noticing if that's also where you feel most prepared.`
+                    : `По вашему журналу лучше всего пока идёт сессия ${s.bestSession.label} — средний результат ${(s.bestSession.avgRR >= 0 ? '+' : '')}${s.bestSession.avgRR.toFixed(1)}R. Это не гарантия на будущее, но стоит обратить внимание, совпадает ли это с сессией, где вы чувствуете себя увереннее всего.`;
+            }
+            case 'journal_review':
+            case 'stats':
+            default: {
+                const wrText = s.winRate !== null ? s.winRate + '%' : '—';
+                const rrText = s.avgRR !== null ? (s.avgRR >= 0 ? '+' : '') + s.avgRR.toFixed(1) + 'R' : '—';
+                return en
+                    ? `Here's where you stand: ${s.total} logged trades, ${wrText} win rate, average ${rrText} per trade. ${s.violations.length > 0 ? `Guardian is flagging ${s.violations.length} rule${s.violations.length === 1 ? '' : 's'} right now.` : 'Guardian shows no active rule violations.'} Ask me about your risk management, psychology, or strategy and I'll dig into the specifics.`
+                    : `Вот ваша текущая картина: ${s.total} сделок в журнале, Win Rate ${wrText}, средний результат ${rrText} на сделку. ${s.violations.length > 0 ? `Guardian сейчас отмечает ${s.violations.length} нарушени${s.violations.length === 1 ? 'е' : 'я'}.` : 'Guardian не фиксирует активных нарушений.'} Спросите меня про риск-менеджмент, психологию или стратегию — разберём подробнее.`;
+            }
+        }
+    },
+
     handleAIQuery() {
         const question = this.aiInput?.value?.trim();
         if (!question) return;
@@ -1605,23 +2237,17 @@ const App = {
         this.aiInput.value = '';
         this.showTypingIndicator();
 
-        const responses = [
-            "Отличный вопрос! Давайте разберем. Ваш последний месяц показывает хорошую тенденцию, особенно в активах BTC и XAU. Рекомендую обратить внимание на объемы на H4 таймфрейме. Дисциплина на высоте — продолжайте в том же духе! 📈",
-            "Я проанализировал вашу статистику. Средняя прибыль сделки составляет 2.1R, что выше среднего показателя по рынку. Однако ваша серия убытков в начале месяца могла быть связана с нарушением риск-менеджмента. Держите 1% на сделку! 🛡️",
-            "Ваш лучший день — это 15 августа, с прибылью +6.2R. Отличная работа! Анализ показывает, что в этот день вы придерживались плана и не переторговывали. Психология — ключ к успеху. 🧠",
-            "Ошибки? Давайте посмотрим. Ваша главная ошибка — это вход в рынок без четкого подтверждения (retest) на младших таймфреймах. Это приводило к ложным пробоям. Исправляя это, вы повысите Win Rate до 70%. 💡"
-        ];
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        const reply = this.generateCoachReply(question);
 
         setTimeout(() => {
             this.hideTypingIndicator();
-            this.appendMessage('ai', randomResponse);
-        }, 1200 + Math.random() * 600);
+            this.appendMessage('ai', reply);
+        }, 700 + Math.random() * 500);
     },
 
     appendMessage(role, content) {
         const cls = role === 'user' ? 'user' : 'ai';
-        const avatar = role === 'user' ? 'Вы' : 'KD';
+        const avatar = role === 'user' ? (this.currentLang === 'en' ? 'You' : 'Вы') : 'AI';
         this.aiHistory.push({ role, content });
         this.saveState();
         this.hideTypingIndicator();
@@ -1641,7 +2267,7 @@ const App = {
         indicator.className = 'ai-typing-indicator';
         indicator.id = 'aiTypingIndicator';
         indicator.innerHTML = `
-            <div class="ai-msg-avatar">KD</div>
+            <div class="ai-msg-avatar">AI</div>
             <div class="ai-typing-dots">
                 <span></span><span></span><span></span>
             </div>
@@ -1676,12 +2302,21 @@ const App = {
     // GUARDIAN
     // ============================================================
     updateGuardianStats() {
+        const en = this.currentLang === 'en';
         const total = this.trades.length;
         if (total === 0) {
             if (this.guardianScore) this.guardianScore.textContent = '—';
-            if (this.guardianDayStatus) this.guardianDayStatus.textContent = 'Нет данных';
-            if (this.guardianStreak) this.guardianStreak.textContent = '0 дней';
+            if (this.guardianDayStatus) this.guardianDayStatus.textContent = en ? 'No data' : 'Нет данных';
+            if (this.guardianStreak) this.guardianStreak.textContent = en ? '0 days' : '0 дней';
             if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = '0';
+            // Explicitly clear BOTH the rule-status list and the history timeline.
+            // (Previously only guardianRulesList was cleared here — guardianTimeline
+            // was left untouched, so a trade added-then-deleted earlier in the same
+            // session would leave a stale "achievement" entry on screen forever,
+            // even though the counter correctly showed 0.)
+            if (this.guardianRulesList) this.guardianRulesList.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
+            if (this.guardianTimeline) this.guardianTimeline.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
+            if (this.guardianRecommendations) this.guardianRecommendations.innerHTML = '';
             this.updateNotifBadge();
             return;
         }
@@ -1700,11 +2335,11 @@ const App = {
         const passedCount = this.guardianRules.filter(r => r.passed).length;
         score = Math.round((passedCount / this.guardianRules.length) * 100);
 
-        let badgeText = 'Отлично';
+        let badgeText = en ? 'Excellent' : 'Отлично';
         let badgeClass = '';
-        if (score >= 80) { badgeText = 'Отлично'; badgeClass = ''; }
-        else if (score >= 50) { badgeText = 'Нормально'; badgeClass = 'warning'; }
-        else { badgeText = 'Требует внимания'; badgeClass = 'danger'; }
+        if (score >= 80) { badgeText = en ? 'Excellent' : 'Отлично'; badgeClass = ''; }
+        else if (score >= 50) { badgeText = en ? 'OK' : 'Нормально'; badgeClass = 'warning'; }
+        else { badgeText = en ? 'Needs attention' : 'Требует внимания'; badgeClass = 'danger'; }
 
         if (this.guardianScore) this.guardianScore.textContent = score + '%';
         if (this.guardianScoreBadge) {
@@ -1712,9 +2347,9 @@ const App = {
             this.guardianScoreBadge.className = 'score-badge ' + badgeClass;
         }
 
-        let statusText = '✅ Дисциплина соблюдена';
-        if (totalToday === 0) statusText = '📭 Нет сделок сегодня';
-        else if (lossesToday >= 3) statusText = '⚠️ Обратите внимание на лимиты';
+        let statusText = en ? '✅ Discipline on track' : '✅ Дисциплина соблюдена';
+        if (totalToday === 0) statusText = en ? '📭 No trades today' : '📭 Нет сделок сегодня';
+        else if (lossesToday >= 3) statusText = en ? '⚠️ Watch your limits' : '⚠️ Обратите внимание на лимиты';
         if (this.guardianDayStatus) this.guardianDayStatus.textContent = statusText;
 
         let streak = 0;
@@ -1728,7 +2363,7 @@ const App = {
                 break;
             }
         }
-        if (this.guardianStreak) this.guardianStreak.textContent = streak + ' дней';
+        if (this.guardianStreak) this.guardianStreak.textContent = streak + (en ? ' days' : ' дней');
 
         this.renderGuardianRules();
         this.renderGuardianTimeline();
@@ -1738,10 +2373,11 @@ const App = {
 
     renderGuardianRules() {
         if (!this.guardianRulesList) return;
+        const en = this.currentLang === 'en';
         let html = '';
         this.guardianRules.forEach(rule => {
             const statusClass = rule.passed ? 'passed' : 'failed';
-            const statusText = rule.passed ? '✅ Соблюдено' : '⚠️ Нарушение';
+            const statusText = rule.passed ? (en ? '✅ Passed' : '✅ Соблюдено') : (en ? '⚠️ Violated' : '⚠️ Нарушение');
             html += `
                 <div class="rule-item">
                     <span>${rule.icon} ${rule.name}</span>
@@ -1754,32 +2390,31 @@ const App = {
 
     renderGuardianTimeline() {
         if (!this.guardianTimeline) return;
+        const en = this.currentLang === 'en';
         const total = this.trades.length;
         if (total === 0) {
-            this.guardianTimeline.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">Начните торговать, чтобы увидеть историю</div>`;
+            this.guardianTimeline.innerHTML = `<div class="timeline-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${this.t('empty_guardian')}</div>`;
             if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = '0';
             return;
         }
 
-        const events = [];
-        const sortedTrades = [...this.trades].reverse();
-        sortedTrades.slice(0, 10).forEach((t, index) => {
-            if (t.status === 'win' && index % 3 === 0) {
-                events.push({ type: 'achievement', title: '🏆 Дисциплинированная сделка', desc: `Сделка по ${t.asset} завершена с соблюдением риск-менеджмента.` });
-            } else if (t.status === 'loss' && index % 2 === 0) {
-                events.push({ type: 'warning', title: '⚠️ Анализ убытка', desc: `Убыточная сделка по ${t.asset}. Проверьте точки входа.` });
+        // Every timeline entry is derived directly from a real logged trade —
+        // no synthetic padding events, no fabricated "streak" achievements.
+        const sortedTrades = [...this.trades].reverse().slice(0, 10);
+        const events = sortedTrades.map(t => {
+            if (t.status === 'win') {
+                return { type: 'achievement', title: en ? '🏆 Disciplined trade' : '🏆 Дисциплинированная сделка', desc: en ? `${t.asset} closed on ${t.date}, result ${t.result || ''}.` : `Сделка по ${t.asset} закрыта ${t.date}, результат ${t.result || ''}.` };
+            } else if (t.status === 'loss') {
+                return { type: 'warning', title: en ? '⚠️ Loss to review' : '⚠️ Убыток на разбор', desc: en ? `${t.asset} closed on ${t.date} at a loss. Review the entry against your plan.` : `Сделка по ${t.asset} закрыта ${t.date} в минус. Проверьте вход относительно плана.` };
             }
+            return { type: 'neutral', title: en ? '📋 Trade logged' : '📋 Сделка записана', desc: `${t.asset} — ${t.date}` };
         });
-
-        if (events.length < 3) {
-            events.push({ type: 'achievement', title: '🏆 Новая серия дисциплины', desc: 'Зафиксировано 5 дней без нарушений правил.' });
-        }
 
         if (this.guardianHistoryCount) this.guardianHistoryCount.textContent = events.length;
 
         let html = '';
         events.slice(0, 8).forEach(e => {
-            const icon = e.type === 'achievement' ? '🏆' : '⚠️';
+            const icon = e.type === 'achievement' ? '🏆' : (e.type === 'warning' ? '⚠️' : '📋');
             html += `
                 <div class="timeline-item">
                     <div class="tl-icon ${e.type}">${icon}</div>
@@ -1795,20 +2430,44 @@ const App = {
 
     renderGuardianRecommendations() {
         if (!this.guardianRecommendations) return;
+        const en = this.currentLang === 'en';
         const total = this.trades.length;
-        if (total < 3) {
-            this.guardianRecommendations.innerHTML = `<div class="rec-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">Достаточно данных для рекомендаций</div>`;
+        const MIN_TRADES = 3;
+        if (total < MIN_TRADES) {
+            const label = en
+                ? `Not enough data for recommendations yet (${total}/${MIN_TRADES} trades logged).`
+                : `Недостаточно данных для рекомендаций (${total}/${MIN_TRADES} сделок в журнале).`;
+            this.guardianRecommendations.innerHTML = `<div class="rec-empty" style="color:var(--text-secondary); text-align:center; padding:20px 0;">${label}</div>`;
             return;
         }
-        const recommendations = [
-            { icon: '📊', text: '<strong>Рекомендация:</strong> Фокусируйтесь на одной стратегии. Частая смена подходов снижает стабильность.' },
-            { icon: '🧠', text: '<strong>Совет наставника:</strong> Если серия убытков достигла 3 сделок — сделайте паузу на 30 минут. Это помогает перезагрузить психологию.' },
-            { icon: '📈', text: '<strong>Анализ:</strong> Ваша статистика показывает высокую эффективность в первой половине дня. Попробуйте сместить активность.' },
-            { icon: '🛡', text: '<strong>Дисциплина:</strong> Продолжайте соблюдать риск 1%. Это ваш фундамент для долгосрочного роста.' }
-        ];
-        const shuffled = recommendations.sort(() => Math.random() - 0.5).slice(0, 2);
+
+        // Data-driven recommendations first (grounded in the user's real journal),
+        // topped up with general coaching guidance only if there's room left.
+        const s = this.getCoachStats();
+        const recs = [];
+        if (s.violations.length > 0) {
+            recs.push({ icon: '🛡', text: en
+                ? `<strong>Guardian:</strong> ${s.violations.length} rule${s.violations.length === 1 ? ' is' : 's are'} currently flagged — start with "${s.violations[0].name}".`
+                : `<strong>Guardian:</strong> сейчас отмечено нарушений: ${s.violations.length} — начните с «${s.violations[0].name}».` });
+        }
+        if (s.maxLossStreak >= 3) {
+            recs.push({ icon: '🧠', text: en
+                ? `<strong>Coach tip:</strong> your longest losing streak is ${s.maxLossStreak} trades. Consider a short break after 2-3 losses in a row to reset before the next entry.`
+                : `<strong>Совет коуча:</strong> ваша самая длинная серия убытков — ${s.maxLossStreak} сделок. После 2-3 убытков подряд полезно сделать паузу перед следующим входом.` });
+        }
+        if (s.bestSession) {
+            recs.push({ icon: '📈', text: en
+                ? `<strong>Pattern:</strong> your ${s.bestSession.label} session trades average ${(s.bestSession.avgRR >= 0 ? '+' : '')}${s.bestSession.avgRR.toFixed(1)}R so far — your strongest session in the journal.`
+                : `<strong>Закономерность:</strong> сессия ${s.bestSession.label} пока даёт средний результат ${(s.bestSession.avgRR >= 0 ? '+' : '')}${s.bestSession.avgRR.toFixed(1)}R — ваша сильнейшая сессия по журналу.` });
+        }
+        if (recs.length === 0 || recs.length < 2) {
+            recs.push({ icon: '📋', text: en
+                ? '<strong>Keep logging:</strong> the more trades in your journal, the more specific these recommendations get.'
+                : '<strong>Продолжайте вести журнал:</strong> чем больше сделок в журнале, тем точнее становятся рекомендации.' });
+        }
+
         let html = '';
-        shuffled.forEach(rec => {
+        recs.slice(0, 2).forEach(rec => {
             html += `
                 <div class="rec-card">
                     <span class="rec-icon">${rec.icon}</span> ${rec.text}
@@ -1821,7 +2480,22 @@ const App = {
     initGuardianChart() {
         const canvas = this.guardianDisciplineChart;
         if (!canvas) return;
-        if (this.guardianCharts.discipline) this.guardianCharts.discipline.destroy();
+        if (this.guardianCharts.discipline) { this.guardianCharts.discipline.destroy(); this.guardianCharts.discipline = null; }
+
+        const wrapper = canvas.closest('.chart-container') || canvas.parentElement;
+
+        // A brand-new (or fully cleared) account has no trades on ANY day,
+        // so there is nothing real to plot. Previously this chart defaulted
+        // every day with no trades to a score of 100, which fabricated a
+        // full 7-day "perfect discipline" line for users who had never
+        // placed a single trade. Now it shows a genuine empty state instead.
+        if (this.trades.length === 0) {
+            canvas.style.display = 'none';
+            this.renderEmptyState(wrapper, this.t('empty_guardian'));
+            return;
+        }
+        canvas.style.display = '';
+        this.clearEmptyState(wrapper);
 
         const days = [];
         const data = [];
@@ -1831,7 +2505,10 @@ const App = {
             const dateStr = d.toISOString().slice(0, 10);
             days.push(dateStr.slice(5, 10));
             const dayTrades = this.trades.filter(t => t.date === dateStr);
-            let score = 100;
+            // Days with no real trades are plotted as `null` (a gap in the
+            // line) rather than a fabricated 100 — only days with at least
+            // one real trade get a real discipline score.
+            let score = null;
             if (dayTrades.length > 0) {
                 const losses = dayTrades.filter(t => t.status === 'loss').length;
                 score = Math.max(0, 100 - (losses * 15));
@@ -1840,7 +2517,7 @@ const App = {
         }
 
         this.guardianCharts.discipline = new Chart(canvas, {
-            type: 'line', data: { labels: days, datasets: [{ label: 'Дисциплина (%)', data: data, borderColor: '#7c5cfc', backgroundColor: 'rgba(124, 92, 252, 0.1)', borderWidth: 2, pointRadius: 4, pointBackgroundColor: data.map(v => v >= 80 ? '#43c6a0' : v >= 50 ? '#fbbf24' : '#ef4444'), tension: 0.4, fill: true }] },
+            type: 'line', data: { labels: days, datasets: [{ label: 'Дисциплина (%)', data: data, borderColor: '#7c5cfc', backgroundColor: 'rgba(124, 92, 252, 0.1)', borderWidth: 2, spanGaps: false, pointRadius: data.map(v => v === null ? 0 : 4), pointBackgroundColor: data.map(v => v === null ? 'transparent' : (v >= 80 ? '#43c6a0' : v >= 50 ? '#fbbf24' : '#ef4444')), tension: 0.4, fill: true }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: '#8892a0' } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#8892a0', min: 0, max: 100 } } } }
         });
     },
@@ -1906,8 +2583,7 @@ const App = {
                 this.settingsSession?.value || "ny";
 
             if (this.balanceDisplay) {
-                this.balanceDisplay.textContent =
-                    "$ " + Number(this.userData.capital || 0).toLocaleString();
+                this.updateBalanceDisplay();
             }
 
         }
@@ -1923,12 +2599,18 @@ const App = {
             if (lang !== this.currentLang) {
                 this.currentLang = lang;
                 this.applyLanguage();
+                this.langButtons.forEach(b => b.classList.toggle('active', b.dataset.lang === this.currentLang));
             }
 
             this.userData.currency = currency;
+            this.userData.dateFormat = this.settingsDateFormat?.value || 'DD.MM.YYYY';
 
+            // Theme/accent are already applied instantly when clicked — this just
+            // confirms the current DOM state is what gets persisted.
             this.userData.theme =
                 document.querySelector(".theme-option.active")?.dataset.theme || "dark";
+            const activeAccentIdx = Array.from(this.accentOptions).findIndex(o => o.classList.contains('active'));
+            this.userData.accent = this.accentPalette[activeAccentIdx] || this.userData.accent || 'purple';
 
         }
 
@@ -2006,9 +2688,12 @@ const App = {
         this.events = []; this.aiHistory = [];
         this.guardianViolations = [];
         this.renderJournal(); this.updateJournalStats();
-        this.updateDashboardStats(); this.updateAnalytics();
+        this.updateDashboardStats(); this.updateBalanceDisplay();
+        this.initEquityChart(); this.renderDashboardExtras();
+        this.updateAnalytics();
         this.updateGuardianStats(); this.initGuardianChart();
         this.renderCalendar(); this.updateCalendarBadge();
+        this.renderNotifications(); this.updateNotifBadge();
         this.renderAIWelcome();
         this.saveState();
         this.showToast('Все данные очищены.');
@@ -2043,7 +2728,10 @@ const App = {
         this.initGuardianChart();
         this.initEquityChart();
         this.initDashboardCharts();
+        this.renderDashboardExtras();
         this.updateDashboardStats();
+        this.updateBalanceDisplay();
+        this.renderNotifications();
         this.updateNotifBadge();
     }
 };

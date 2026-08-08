@@ -64,11 +64,30 @@
                     </button>
                 </nav>
 
+                <div class="nav-group-label">Скоро</div>
+                <nav>
+                    <button class="nav-item roadmap-item" data-section="academy" data-roadmap="true" tabindex="-1">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+                        <span data-key="nav_academy">Academy</span>
+                        <span class="roadmap-soon-badge">Soon</span>
+                    </button>
+                    <button class="nav-item roadmap-item" data-section="strategy" data-roadmap="true" tabindex="-1">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        <span data-key="nav_strategy">Strategy Library</span>
+                        <span class="roadmap-soon-badge">Soon</span>
+                    </button>
+                    <button class="nav-item roadmap-item" data-section="marketpulse" data-roadmap="true" tabindex="-1">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+                        <span data-key="nav_marketpulse">Market Pulse</span>
+                        <span class="roadmap-soon-badge">Soon</span>
+                    </button>
+                </nav>
+
                 <div class="nav-group-label">Прочее</div>
                 <nav>
                     <button class="nav-item" data-section="intelligence">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span data-key="nav_intelligence">AI Assistant</span>
+                        <span data-key="nav_intelligence">AI Coach</span>
                     </button>
                     <button class="nav-item" data-section="settings">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -98,7 +117,7 @@
             <header>
                 <div>
                     <p class="greeting" id="pageGreeting" data-key="greeting">Good Evening</p>
-                    <h1 id="pageTitle" data-key="welcome">Welcome back, <span id="userNameDisplay">Danik</span></h1>
+                    <h1 id="pageTitle">Welcome, <span id="userNameDisplay">Trader</span></h1>
                 </div>
                 <div class="header-actions">
                     <div class="header-popover-wrapper" id="searchWrapper">
@@ -128,7 +147,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="avatar">KD</div>
+                    <div class="avatar" id="headerAvatar">T</div>
                 </div>
             </header>
 
@@ -207,6 +226,29 @@
                     <div class="onboarding-footer wizard-footer" style="margin-top:20px;">
                         <button class="btn-secondary" id="wizardBackBtn" style="visibility:hidden;">Назад</button>
                         <button class="btn-primary" id="wizardNextBtn">Далее</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            AI COACH PRODUCT TOUR (first-user experience, v1.0.6)
+            ============================================================ -->
+            <div id="coachTourOverlay" class="onboarding-overlay">
+                <div class="onboarding-modal glass-panel tour-modal">
+                    <div class="wizard-progress"><div class="wizard-progress-bar" id="tourProgressBar" style="width:10%;"></div></div>
+                    <div class="wizard-step-label" id="tourStepLabel">1 / 10</div>
+                    <div class="onboarding-header">
+                        <h3 id="tourTitle">Знакомство с KriptoDanik AI</h3>
+                    </div>
+                    <div class="onboarding-body">
+                        <div class="ai-msg-wrapper ai" style="margin-bottom:0;">
+                            <div class="ai-msg-avatar">AI</div>
+                            <div class="ai-msg-bubble tour-body" id="tourBody">...</div>
+                        </div>
+                    </div>
+                    <div class="onboarding-footer wizard-footer" style="margin-top:20px;">
+                        <button class="btn-secondary" id="tourBackBtn" style="visibility:hidden;">Назад</button>
+                        <button class="btn-primary" id="tourNextBtn">Далее</button>
                     </div>
                 </div>
             </div>
@@ -362,7 +404,7 @@
                         <div class="dash-card-body">
                             <span class="dash-label" data-key="balance">Balance</span>
                             <h2 class="dash-amount" id="balanceDisplay">$0.00</h2>
-                            <span class="dash-sub">Demo / Real</span>
+                            <span class="dash-sub" data-key="balance_live">Live balance</span>
                         </div>
                     </div>
                     <div class="dash-card glass-panel">
@@ -420,22 +462,22 @@
                                 </div>
                             </div>
                             <div class="stats-grid-2x2">
-                                <div><span class="stat-label">Всего сделок</span><span class="stat-val" id="totalTradesDisplay">28</span></div>
-                                <div><span class="stat-label">Прибыльные</span><span class="stat-val green" id="winTradesDisplay">18 (64%)</span></div>
-                                <div><span class="stat-label">Убыточные</span><span class="stat-val red" id="lossTradesDisplay">10 (36%)</span></div>
+                                <div><span class="stat-label">Всего сделок</span><span class="stat-val" id="totalTradesDisplay">0</span></div>
+                                <div><span class="stat-label">Прибыльные</span><span class="stat-val green" id="winTradesDisplay">0 (0%)</span></div>
+                                <div><span class="stat-label">Убыточные</span><span class="stat-val red" id="lossTradesDisplay">0 (0%)</span></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="dash-panel glass-panel ai-box">
                         <div class="dash-panel-head" style="border-bottom:none; margin-bottom:0;">
-                            <h3>AI Ассистент</h3>
-                            <div class="ai-avatar-small">KD</div>
+                            <h3 data-key="nav_intelligence">AI Coach</h3>
+                            <div class="ai-avatar-small">AI</div>
                         </div>
                         <div class="ai-content">
-                            <p class="ai-msg">Ты нарушил свой риск-менеджмент 2 раза за последнюю неделю.</p>
-                            <p class="ai-msg sub">Рекомендую пересмотреть модель после 3-х убыточных сделок подряд.</p>
-                            <button class="btn-primary full-width" id="dashAskBtn">Анализировать мои сделки</button>
+                            <p class="ai-msg" id="dashAIMsg">—</p>
+                            <p class="ai-msg sub" id="dashAIMsgSub">—</p>
+                            <button class="btn-primary full-width" id="dashAskBtn">Спросить AI Коуча</button>
                         </div>
                     </div>
                 </div>
@@ -455,25 +497,12 @@
                     </div>
                     <div class="dash-panel glass-panel">
                         <div class="dash-panel-head"><h3>Распределение по R</h3></div>
-                        <div class="bar-chart">
-                            <div class="bar-row"><span class="bar-label">&gt; 3R</span><div class="bar-track"><div class="bar-fill" style="width:20%;"></div></div><span class="bar-val">2 (7%)</span></div>
-                            <div class="bar-row"><span class="bar-label">2R - 3R</span><div class="bar-track"><div class="bar-fill" style="width:50%;"></div></div><span class="bar-val">5 (18%)</span></div>
-                            <div class="bar-row"><span class="bar-label">1R - 2R</span><div class="bar-track"><div class="bar-fill" style="width:80%;"></div></div><span class="bar-val">12 (43%)</span></div>
-                            <div class="bar-row"><span class="bar-label">0R - 1R</span><div class="bar-track"><div class="bar-fill" style="width:40%;"></div></div><span class="bar-val">6 (21%)</span></div>
-                            <div class="bar-row"><span class="bar-label">&lt; 0R</span><div class="bar-track"><div class="bar-fill" style="width:30%;"></div></div><span class="bar-val">3 (11%)</span></div>
-                        </div>
+                        <div class="bar-chart" id="rDistributionBody"></div>
                     </div>
 
                     <div class="dash-panel glass-panel">
                         <div class="dash-panel-head"><h3>Лучшее время для торговли</h3></div>
-                        <div class="heatmap-grid">
-                            <div class="heat-cell l1"></div><div class="heat-cell l2"></div><div class="heat-cell l3"></div><div class="heat-cell l4"></div><div class="heat-cell l5"></div><div class="heat-cell l2"></div><div class="heat-cell l1"></div><div class="heat-cell l0"></div>
-                            <div class="heat-cell l2"></div><div class="heat-cell l3"></div><div class="heat-cell l4"></div><div class="heat-cell l5"></div><div class="heat-cell l4"></div><div class="heat-cell l3"></div><div class="heat-cell l2"></div><div class="heat-cell l1"></div>
-                            <div class="heat-cell l3"></div><div class="heat-cell l4"></div><div class="heat-cell l5"></div><div class="heat-cell l5"></div><div class="heat-cell l4"></div><div class="heat-cell l3"></div><div class="heat-cell l2"></div><div class="heat-cell l1"></div>
-                            <div class="heat-cell l1"></div><div class="heat-cell l2"></div><div class="heat-cell l3"></div><div class="heat-cell l5"></div><div class="heat-cell l5"></div><div class="heat-cell l4"></div><div class="heat-cell l3"></div><div class="heat-cell l2"></div>
-                            <div class="heat-cell l0"></div><div class="heat-cell l1"></div><div class="heat-cell l2"></div><div class="heat-cell l3"></div><div class="heat-cell l4"></div><div class="heat-cell l5"></div><div class="heat-cell l4"></div><div class="heat-cell l3"></div>
-                        </div>
-                        <div class="heat-legend"><span>Плохо</span><span>Хорошо</span></div>
+                        <div class="bar-chart" id="bestTimeBody"></div>
                     </div>
 
                     <div class="dash-panel glass-panel">
@@ -482,12 +511,7 @@
                             <div class="donut-small-wrapper">
                                 <canvas id="assetDonutChart"></canvas>
                             </div>
-                            <div class="asset-list">
-                                <div><span class="dot" style="background:var(--brand-purple);"></span> BTCUSDT <span class="asset-val">12 (43%)</span></div>
-                                <div><span class="dot" style="background:#fbbf24;"></span> ETHUSDT <span class="asset-val">8 (29%)</span></div>
-                                <div><span class="dot" style="background:#43c6a0;"></span> XAUUSD <span class="asset-val">5 (18%)</span></div>
-                                <div><span class="dot" style="background:#ef4444;"></span> EURUSD <span class="asset-val">3 (10%)</span></div>
-                            </div>
+                            <div class="asset-list" id="assetListBody"></div>
                         </div>
                     </div>
                 </div>
@@ -618,7 +642,8 @@
             ANALYTICS (ЭТАП 5)
             ============================================================ -->
             <div id="section-analytics" class="section-content">
-                <div class="analytics-row-top">
+                <div class="panel-empty-state" id="analyticsEmptyBanner" style="display:none;"></div>
+                <div class="analytics-row-top" id="analyticsMainContent">
                     <div class="analytics-kpi-card glass-panel">
                         <div class="kpi-icon" style="background:rgba(124, 92, 252, 0.15);color:var(--brand-purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg></div>
                         <div><span class="kpi-label">Total P&L</span><span class="kpi-value" id="aTotalPnl">+0.0R</span></div>
@@ -687,7 +712,8 @@
             PERFORMANCE
             ============================================================ -->
             <div id="section-performance" class="section-content">
-                <div class="analytics-row-top">
+                <div class="panel-empty-state" id="performanceEmptyBanner" style="display:none;"></div>
+                <div class="analytics-row-top" id="performanceMainContent">
                     <div class="analytics-kpi-card glass-panel">
                         <div class="kpi-icon" style="background:rgba(124, 92, 252, 0.15);color:var(--brand-purple);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
                         <div><span class="kpi-label">Общая доходность</span><span class="kpi-value" id="perfTotalReturn">+0.0R</span></div>
@@ -730,6 +756,7 @@
             ============================================================ -->
             <div id="section-intelligence" class="section-content">
                 <div class="ai-workspace glass-panel">
+                    <div class="ai-disclaimer-bar" data-key="ai_disclaimer">KriptoDanik AI не является финансовым советником, не даёт торговых сигналов и не предсказывает направление рынка. Он помогает вам соблюдать собственную торговую стратегию, правила и дисциплину.</div>
                     <div class="ai-chat-area" id="aiChatArea">
                         <div class="ai-messages" id="aiMessages"></div>
                     </div>
@@ -844,8 +871,10 @@
                             <div class="settings-grid">
                                 <div class="settings-profile-card glass-panel">
                                     <div class="profile-avatar-wrapper">
-                                        <div class="profile-avatar">KD</div>
+                                        <div class="profile-avatar" id="settingsAvatar">T</div>
                                         <div class="avatar-badge">Pro</div>
+                                        <button class="avatar-edit-btn" id="avatarEditBtn" title="Изменить фото">✎</button>
+                                        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" />
                                     </div>
                                     <div class="profile-info-list">
                                         <div class="info-row"><span>Никнейм</span><span id="settingsUsername">Загрузка...</span></div>
