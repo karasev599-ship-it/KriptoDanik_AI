@@ -742,3 +742,59 @@ textarea.form-input { resize: vertical; font-family: var(--font-family); }
 .dash-recent-trade-asset { font-weight: 600; color: var(--text-primary); }
 .dash-recent-trade-meta { color: var(--text-secondary); font-size: 12px; }
 .dash-recent-trade-result { font-weight: 700; }
+
+/* ============================================================
+   v1.0.8 — ACADEMY
+   Reuses existing card language (.glass-panel, --overlay-N,
+   --brand-purple, --radius-card) — no new visual system.
+   ============================================================ */
+.academy-header { margin-bottom: 20px; }
+.academy-header h2 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.academy-header-sub { color: var(--text-secondary); font-size: 14px; max-width: 560px; }
+
+.academy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.academy-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 20px; display: flex; flex-direction: column; gap: 10px; transition: 0.2s; }
+.academy-card:hover { border-color: var(--brand-purple); }
+.academy-card-icon { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--overlay-3); color: var(--brand-purple); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.academy-card h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.academy-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; flex: 1; }
+.academy-card-meta { display: flex; gap: 8px; font-size: 11px; color: var(--text-secondary); }
+.academy-card-meta span { background: var(--overlay-2); padding: 2px 8px; border-radius: 20px; }
+.academy-card .btn-secondary { margin-top: 4px; width: 100%; }
+
+.academy-lesson { max-width: 720px; padding: 28px; }
+.academy-lesson h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+.academy-lesson .lesson-intro { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+.academy-lesson section { margin-bottom: 22px; }
+.academy-lesson h5 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--brand-purple); margin-bottom: 8px; font-weight: 700; }
+.academy-lesson p, .academy-lesson li { font-size: 14px; line-height: 1.7; color: var(--text-primary); }
+.academy-lesson ul { padding-left: 20px; margin-top: 6px; }
+.lesson-formula { background: var(--overlay-2); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 14px 16px; font-family: 'SF Mono', Consolas, monospace; font-size: 13px; margin: 10px 0; overflow-x: auto; }
+.lesson-example { background: var(--overlay-1); border-left: 3px solid var(--brand-purple); border-radius: var(--radius-sm); padding: 12px 16px; margin: 10px 0; font-size: 13px; }
+.lesson-example strong { color: var(--brand-purple); }
+.lesson-warning { background: rgba(239, 68, 68, 0.08); border-left: 3px solid var(--brand-red); border-radius: var(--radius-sm); padding: 12px 16px; margin: 10px 0; font-size: 13px; color: var(--text-primary); }
+.lesson-mistakes li { color: var(--brand-red); }
+.lesson-mistakes li::marker { color: var(--brand-red); }
+.lesson-note { font-size: 12px; color: var(--text-secondary); font-style: italic; margin-top: 8px; }
+.ask-coach-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 8px 14px; border-radius: var(--radius-sm); background: var(--overlay-3); color: var(--brand-purple); font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+.ask-coach-link:hover { background: var(--overlay-5); }
+
+/* Position Size Calculator */
+.psc-calculator { background: var(--overlay-1); border: 1px solid var(--border-color); border-radius: var(--radius-card); padding: 20px; margin: 16px 0; }
+.psc-calculator h5 { margin-bottom: 14px; }
+.psc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.psc-field label { display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.psc-direction { display: flex; gap: 8px; margin-bottom: 14px; }
+.psc-direction button { flex: 1; padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); cursor: pointer; font-weight: 600; font-size: 13px; }
+.psc-direction button.active { border-color: var(--brand-purple); color: var(--brand-purple); background: var(--overlay-3); }
+.psc-results { border-top: 1px solid var(--border-color); padding-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.psc-result-item .psc-result-label { font-size: 11px; color: var(--text-secondary); }
+.psc-result-item .psc-result-value { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.psc-error { color: var(--brand-red); font-size: 13px; margin-top: 10px; padding: 10px; background: rgba(239, 68, 68, 0.08); border-radius: var(--radius-sm); }
+.psc-disclaimer { font-size: 11px; color: var(--text-secondary); margin-top: 12px; line-height: 1.5; }
+
+@media (max-width: 640px) {
+    .academy-grid { grid-template-columns: 1fr; }
+    .academy-lesson { padding: 18px; }
+    .psc-grid, .psc-results { grid-template-columns: 1fr 1fr; }
+}

@@ -67,15 +67,14 @@
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
                         <span data-key="nav_guardian">Guardian</span>
                     </button>
+                    <button class="nav-item" data-section="academy">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+                        <span data-key="nav_academy">Academy</span>
+                    </button>
                 </nav>
 
                 <div class="nav-group-label">Скоро</div>
                 <nav>
-                    <button class="nav-item roadmap-item" data-section="academy" data-roadmap="true" tabindex="-1">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
-                        <span data-key="nav_academy">Academy</span>
-                        <span class="roadmap-soon-badge">Soon</span>
-                    </button>
                     <button class="nav-item roadmap-item" data-section="strategy" data-roadmap="true" tabindex="-1">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                         <span data-key="nav_strategy">Strategy Library</span>
@@ -904,6 +903,26 @@
                             <div class="guardian-recommendations" id="guardianRecommendations"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- ============================================================
+            ACADEMY (v1.0.8)
+            All content is rendered from academyLessons (JS, RU/EN) — this
+            markup only provides the two view containers (grid + lesson).
+            ============================================================ -->
+            <div id="section-academy" class="section-content">
+                <div id="academyGridView">
+                    <div class="academy-header">
+                        <h2 data-key="academy_header_title">Learn the system. Trade with a plan.</h2>
+                        <p class="academy-header-sub" data-key="academy_header_sub">Short, practical lessons on risk, position size, leverage, and liquidation — plus a real calculator.</p>
+                    </div>
+                    <div class="academy-grid" id="academyGrid"></div>
+                </div>
+
+                <div id="academyLessonView" style="display:none;">
+                    <button class="btn-secondary" id="academyBackBtn" style="margin-bottom:16px;">← <span data-key="academy_back">Back to Academy</span></button>
+                    <div class="academy-lesson glass-panel" id="academyLessonBody"></div>
                 </div>
             </div>
 

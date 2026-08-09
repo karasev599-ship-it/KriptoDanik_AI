@@ -103,7 +103,12 @@ const App = {
             dash_welcome_cta: 'Начните с записи первой сделки.',
             coach_snapshot: 'AI Coach',
             coach_snapshot_empty: 'Добавьте первую сделку, чтобы получить персональные рекомендации.',
-            tour_skip: 'Пропустить тур'
+            tour_skip: 'Пропустить тур',
+
+            // ===== v1.0.8 — Academy =====
+            academy_header_title: 'Изучите систему. Торгуйте по плану.',
+            academy_header_sub: 'Короткие практические уроки про риск, размер позиции, плечо и ликвидацию — плюс настоящий калькулятор.',
+            academy_back: 'Назад в Академию'
         },
         en: {
             nav_dashboard: 'Dashboard',
@@ -173,7 +178,12 @@ const App = {
             dash_welcome_cta: 'Start by recording your first trade.',
             coach_snapshot: 'AI Coach',
             coach_snapshot_empty: 'Add your first trade to receive personalized insights.',
-            tour_skip: 'Skip tour'
+            tour_skip: 'Skip tour',
+
+            // ===== v1.0.8 — Academy =====
+            academy_header_title: 'Learn the system. Trade with a plan.',
+            academy_header_sub: 'Short, practical lessons on risk, position size, leverage, and liquidation — plus a real calculator.',
+            academy_back: 'Back to Academy'
         }
     },
 
@@ -198,6 +208,17 @@ const App = {
             this.showOnboarding();
         } else {
             this.applyUserData();
+            // v1.0.9 — Returning User UX: a returning user (onboarding already
+            // done) previously landed on a blank content area, because no
+            // section is marked `.active` by default in the HTML — showSection()
+            // is the only thing that ever sets it, and nothing called it here.
+            // Reuses the existing showSection()/nav-active logic exactly as the
+            // "Open Journal"/"Open Guardian" quick actions already do — no new
+            // navigation system, no new state.
+            this.navItems.forEach(n => n.classList.remove('active'));
+            const dashNav = Array.from(this.navItems).find(n => n.dataset.section === 'dashboard');
+            if (dashNav) dashNav.classList.add('active');
+            this.showSection('dashboard');
         }
         console.log('KriptoDanik AI Release Candidate initialized.');
     },
@@ -291,6 +312,7 @@ const App = {
             calendar: document.getElementById('section-calendar'),
             performance: document.getElementById('section-performance'),
             guardian: document.getElementById('section-guardian'),
+            academy: document.getElementById('section-academy'),
             intelligence: document.getElementById('section-intelligence'),
             settings: document.getElementById('section-settings')
         };
@@ -428,6 +450,13 @@ const App = {
         this.qaOpenJournal = document.getElementById('qaOpenJournal');
         this.qaOpenGuardian = document.getElementById('qaOpenGuardian');
         this.qaOpenAnalytics = document.getElementById('qaOpenAnalytics');
+
+        // v1.0.8 — Academy
+        this.academyGridView = document.getElementById('academyGridView');
+        this.academyLessonView = document.getElementById('academyLessonView');
+        this.academyGrid = document.getElementById('academyGrid');
+        this.academyLessonBody = document.getElementById('academyLessonBody');
+        this.academyBackBtn = document.getElementById('academyBackBtn');
         this.clearChatBtn = document.getElementById('clearChatBtn');
         this.aiSuggestions = document.getElementById('aiSuggestions');
 
@@ -592,6 +621,7 @@ const App = {
         if (this.qaOpenJournal) this.qaOpenJournal.addEventListener('click', () => goTo('journal'));
         if (this.qaOpenGuardian) this.qaOpenGuardian.addEventListener('click', () => goTo('guardian'));
         if (this.qaOpenAnalytics) this.qaOpenAnalytics.addEventListener('click', () => goTo('analytics'));
+        if (this.academyBackBtn) this.academyBackBtn.addEventListener('click', () => this.showAcademyGrid());
         if (this.aiInput) this.aiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.handleAIQuery();
         });
@@ -713,6 +743,15 @@ const App = {
         this.renderDashboardGuardianCard();
         this.updatePageTitle();
         if (this.trades.length === 0) this.initEquityChart();
+        // v1.0.8 — Academy content is generated in JS per language, so it
+        // needs an explicit re-render on language switch too.
+        if (this.sections && this.sections.academy && this.sections.academy.classList.contains('active')) {
+            if (this.currentLessonId && this.academyLessonView && this.academyLessonView.style.display !== 'none') {
+                this.openAcademyLesson(this.currentLessonId);
+            } else {
+                this.renderAcademyGrid();
+            }
+        }
     },
 
     // ===== THEME & ACCENT =====
@@ -852,7 +891,7 @@ const App = {
             dashboard: { title: 'Dashboard', body: 'Здесь вы видите общую картину: текущий баланс, дневную цель, лимит убытка и риск на сделку. Вы будете открывать эту страницу каждый раз, когда садитесь торговать — чтобы свериться с планом на день.' },
             journal: { title: 'Journal', body: 'Journal — это единый источник правды для всего приложения. Каждая сделка, которую вы здесь фиксируете, питает Dashboard, Analytics, Performance и Guardian. Записывайте сюда каждую сделку сразу после её закрытия.' },
             calendar: { title: 'Calendar', body: 'Календарь показывает ваши сделки и события по дням. Используйте его, чтобы увидеть, в какие дни вы торговали, и планировать заметки, анализы или перерывы заранее.' },
-            academy: { title: 'Academy', body: 'Академия — это будущий раздел с обучающими материалами по трейдингу, риск-менеджменту и психологии. Раздел находится в разработке и появится в одном из следующих обновлений.' },
+            academy: { title: 'Academy', body: 'Академия — обучающий раздел про риск-менеджмент, размер позиции, плечо и ликвидацию, с практическим калькулятором позиции. Материалы объясняют концепции — Guardian отдельно проверяет ваши реальные сделки.' },
             strategy: { title: 'Библиотека стратегий', body: 'Здесь в будущем вы сможете сохранять и оформлять свои торговые стратегии в структурированном виде, чтобы AI Coach мог сверять с ними ваши реальные сделки. Раздел пока в разработке.' },
             marketpulse: { title: 'Market Pulse', body: 'Market Pulse станет разделом с рыночными новостями и контекстом — без сигналов и прогнозов, только фактическая информация для вашего собственного анализа. Раздел пока в разработке.' },
             analytics: { title: 'Analytics', body: 'Здесь ваша статистика раскладывается по полочкам: Win Rate, Profit Factor, лучшие и худшие сделки, серии побед и поражений. Загляните сюда, когда захотите понять, что реально работает в вашей торговле.' },
@@ -873,7 +912,7 @@ const App = {
             dashboard: { title: 'Dashboard', body: 'This is your at-a-glance view: current balance, daily profit goal, daily loss limit, and risk per trade. You\'ll open this every time you sit down to trade, to check in against your plan for the day.' },
             journal: { title: 'Journal', body: 'The Journal is the single source of truth for the whole app. Every trade you log here feeds the Dashboard, Analytics, Performance, and Guardian. Log each trade right after you close it.' },
             calendar: { title: 'Calendar', body: 'The Calendar shows your trades and events by day. Use it to see which days you traded, and to plan notes, reviews, or breaks ahead of time.' },
-            academy: { title: 'Academy', body: 'Academy is a future section with educational material on trading, risk management, and psychology. It\'s still in development and will arrive in a later update.' },
+            academy: { title: 'Academy', body: 'Academy is an educational section covering risk management, position size, leverage, and liquidation, with a practical position-size calculator. It teaches the concepts — Guardian separately checks your real trades.' },
             strategy: { title: 'Strategy Library', body: 'This will let you save and structure your own trading strategies, so the AI Coach can check your real trades against them. Still in development.' },
             marketpulse: { title: 'Market Pulse', body: 'Market Pulse will bring market news and context — no signals, no predictions, just factual information for your own analysis. Still in development.' },
             analytics: { title: 'Analytics', body: 'This breaks your stats down in detail: win rate, profit factor, best and worst trades, winning and losing streaks. Come here when you want to understand what\'s actually working in your trading.' },
@@ -1104,6 +1143,7 @@ const App = {
         if (section === 'calendar') { this.renderCalendar(); this.updateCalendarBadge(); }
         if (section === 'analytics') { this.updateAnalytics(); }
         if (section === 'guardian') { this.updateGuardianStats(); this.initGuardianChart(); }
+        if (section === 'academy') { this.renderAcademyGrid(); }
         if (section === 'performance') { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
         if (section === 'dashboard') { this.initDashboardCharts(); this.updateDashboardStats(); }
         this.applyLanguage();
@@ -2327,6 +2367,8 @@ const App = {
         if (has(['sell', 'buy', 'продавать', 'покупать', 'сигнал', 'signal', 'куда пойдет', 'вырастет', 'упадет', 'прогноз', 'predict'])) return 'signal_request';
         if (has(['ошиб', 'mistake', 'error'])) return 'mistakes';
         if (has(['психолог', 'psycholog', 'эмоц', 'emotion', 'страх', 'fear', 'жадност', 'greed'])) return 'psychology';
+        if (has(['плечо', 'leverage', 'маржа', 'margin', 'ликвидац', 'liquidat'])) return 'leverage';
+        if (has(['размер позиции', 'position size', 'лот', 'notional', 'номинал'])) return 'position_size';
         if (has(['риск', 'risk', '管理'])) return 'risk';
         if (has(['дисциплин', 'disciplin'])) return 'discipline';
         if (has(['стратег', 'strateg'])) return 'strategy';
@@ -2369,6 +2411,18 @@ const App = {
                 return en
                     ? `Psychology shows up in your data more than people expect. Right now you're on a ${s.recentStreak > 0 ? s.recentStreak + '-trade ' + (s.recentType === 'win' ? 'winning' : 'losing') + ' streak' : 'mixed run'}. ${s.recentType === 'loss' && s.recentStreak >= 2 ? 'After a losing streak, the biggest risk is forcing the next trade to "get it back." Consider taking a short break before your next entry.' : s.recentType === 'win' && s.recentStreak >= 3 ? 'After a winning streak, overconfidence tends to creep in — watch your position sizing on the next trade.' : 'Log how you feel before and after each trade in the Journal so we can spot patterns over time.'}`
                     : `Психология заметнее в данных, чем кажется. Сейчас у вас ${s.recentStreak > 0 ? s.recentStreak + ' сделк' + (s.recentStreak === 1 ? 'а' : 'и') + ' подряд в ' + (s.recentType === 'win' ? 'плюс' : 'минус') : 'смешанная динамика'}. ${s.recentType === 'loss' && s.recentStreak >= 2 ? 'После серии убытков главный риск — форсировать следующую сделку, чтобы "отыграться". Возможно, стоит сделать паузу перед следующим входом.' : s.recentType === 'win' && s.recentStreak >= 3 ? 'После серии побед часто подкрадывается излишняя уверенность — проверьте размер позиции на следующей сделке.' : 'Отмечайте своё состояние до и после каждой сделки в Journal — так мы сможем отследить закономерности со временем.'}`;
+            }
+            case 'position_size': {
+                const capital = this.userData.capital;
+                const risk = this.userData.risk;
+                return en
+                    ? `Position size should come FROM your risk, not the other way around: Max risk ($) = Capital × Risk %, then Position size = Max risk ÷ Stop distance.${(capital && risk) ? ` With your configured capital ($${capital}) and risk (${risk}%), your max planned loss per trade is about $${(capital * risk / 100).toFixed(2)} — before fees, slippage, or funding.` : ' Set your capital and risk % in Settings and I can use your real numbers here.'} There's a full worked example and a live calculator in Academy → Position Size.`
+                    : `Размер позиции должен вытекать ИЗ вашего риска, а не наоборот: Максимальный риск ($) = Капитал × Риск %, затем Размер позиции = Максимальный риск ÷ Расстояние до стопа.${(capital && risk) ? ` С вашими текущими настройками (капитал $${capital}, риск ${risk}%) максимальный запланированный убыток на сделку — около $${(capital * risk / 100).toFixed(2)}, до учёта комиссий, проскальзывания и funding.` : ' Укажите капитал и риск % в Настройках — тогда я смогу использовать ваши реальные цифры.'} Полный разбор с примером и живым калькулятором есть в Академии → Размер позиции.`;
+            }
+            case 'leverage': {
+                return en
+                    ? `Leverage changes your margin requirement, not your allowed risk. If your risk per trade is set to 1% of capital, that stays true whether you use 2x or 20x leverage — leverage just lets you control the same notional position with less margin locked up. The real danger is using extra leverage to open a BIGGER position than your risk rules allow, which brings liquidation closer. Academy → Leverage has the full breakdown with a worked example.`
+                    : `Плечо меняет требование к марже, а не ваш допустимый риск. Если риск на сделку настроен на 1% капитала, это остаётся верным и при плече 2x, и при 20x — плечо просто позволяет контролировать ту же номинальную позицию, заморозив меньше маржи. Реальная опасность — использовать дополнительное плечо, чтобы открыть БОЛЬШУЮ позицию сверх ваших правил риска, что приближает ликвидацию. Полный разбор с примером — в Академии → Плечо.`;
             }
             case 'risk': {
                 const risk = this.userData.risk;
@@ -2994,6 +3048,380 @@ const App = {
     // ============================================================
     // RENDER ALL
     // ============================================================
+    // ============================================================
+    // v1.0.8 — ACADEMY
+    // Purely educational content + a standalone calculator. Never reads
+    // or writes this.trades/this.userData for its lesson content — the
+    // only place real user data appears is the calculator, and only
+    // because the user typed it into the calculator's own inputs, which
+    // are never saved to the account and never mixed into Guardian/
+    // Dashboard/Analytics. Guardian logic itself is not duplicated here;
+    // lessons only describe concepts and link out to the real sections.
+    // ============================================================
+    academyLessons: {
+        position_size: {
+            icon: '📐', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 4,
+            title: { ru: 'Размер позиции', en: 'Position Size' },
+            desc: {
+                ru: 'Как рассчитать размер позиции исходя из капитала, риска и Stop Loss.',
+                en: 'Learn how to calculate the right position size from your capital, risk and Stop Loss.'
+            },
+            intro: {
+                ru: 'В крипте нет единого «лота», как на форексе. Разные биржи используют разный минимальный шаг контракта. Поэтому трейдеры обычно думают в терминах размера позиции, количества актива и номинальной стоимости позиции — а не «лотов».',
+                en: 'Crypto has no single universal "lot" the way forex does — every exchange has its own minimum contract step. Traders instead think in terms of position size, quantity of the asset, and notional position value — not "lots".'
+            },
+            body: {
+                ru: `<p><strong>Размер позиции</strong> — это количество актива, которое вы покупаете или продаёте (например, 0.02 BTC).</p>
+                     <p><strong>Номинальная стоимость (notional)</strong> — это размер позиции в долларах: количество × цена входа.</p>
+                     <p>Размер позиции должен подбираться так, чтобы срабатывание Stop Loss примерно соответствовало вашему запланированному риску в долларах — а не наоборот.</p>`,
+                en: `<p><strong>Position size</strong> is the quantity of the asset you buy or sell (e.g. 0.02 BTC).</p>
+                     <p><strong>Notional value</strong> is that position size in dollars: quantity × entry price.</p>
+                     <p>Position size should be chosen so that hitting your Stop Loss roughly matches your planned dollar risk — not the other way around.</p>`
+            },
+            formula: { ru: 'Размер позиции = Максимальный риск ($) ÷ Расстояние до стопа ($ за единицу актива)', en: 'Position Size = Max Risk ($) ÷ Stop Distance ($ per unit of asset)' },
+            example: {
+                ru: 'ОБРАЗОВАТЕЛЬНЫЙ ПРИМЕР (не ваши реальные данные): Капитал $1,000, риск 1% → максимальный риск $10. Вход $50,000, Stop Loss $49,500 → расстояние до стопа $500. Размер позиции = $10 ÷ $500 = 0.02 BTC. Номинал ≈ $1,000.',
+                en: 'EDUCATIONAL EXAMPLE (not your real data): Capital $1,000, risk 1% → max risk $10. Entry $50,000, Stop Loss $49,500 → stop distance $500. Position size = $10 ÷ $500 = 0.02 BTC. Notional ≈ $1,000.'
+            },
+            mistakes: {
+                ru: ['Выбирать размер позиции «на глаз», а не по расчёту', 'Путать размер позиции с номинальной стоимостью', 'Игнорировать расстояние до стопа при расчёте размера'],
+                en: ['Picking position size by feel instead of calculating it', 'Confusing position size with notional value', 'Ignoring stop distance when sizing the position']
+            },
+            warning: {
+                ru: 'Это образовательный пример, а не расчёт по вашему счёту. Используйте калькулятор ниже для собственных чисел.',
+                en: 'This is an educational example, not a calculation against your account. Use the calculator below for your own numbers.'
+            },
+            hasCalculator: true,
+            askCoach: { ru: 'Как рассчитать размер позиции для моей сделки?', en: 'How do I calculate position size for my trade?' }
+        },
+        risk_per_trade: {
+            icon: '🎯', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
+            title: { ru: 'Риск на сделку', en: 'Risk Per Trade' },
+            desc: {
+                ru: 'Сколько вы можете позволить себе потерять до входа в сделку.',
+                en: 'Understand how much you can afford to lose before entering a trade.'
+            },
+            intro: {
+                ru: 'Риск на сделку — это доля капитала, которой вы готовы рискнуть в одной сделке, если сработает Stop Loss.',
+                en: 'Risk per trade is the share of your capital you are willing to risk on a single trade if the Stop Loss is hit.'
+            },
+            body: {
+                ru: `<p>Цепочка расчёта: <strong>Капитал → Риск % → Максимальный убыток ($) → Расстояние до стопа → Размер позиции</strong>.</p>
+                     <p>Сначала решите, сколько процентов капитала вы готовы потерять — обычно 0.5–2%. Затем считайте размер позиции от этой суммы, а не наоборот.</p>`,
+                en: `<p>The chain is: <strong>Capital → Risk % → Maximum loss ($) → Stop distance → Position size</strong>.</p>
+                     <p>Decide your risk percentage first — typically 0.5–2% — then size the position from that dollar amount, never the other way around.</p>`
+            },
+            formula: { ru: 'Максимальный убыток ($) = Капитал × Риск %', en: 'Maximum Loss ($) = Capital × Risk %' },
+            example: {
+                ru: 'ОБРАЗОВАТЕЛЬНЫЙ ПРИМЕР: Капитал $1,000, риск 1% → максимальный запланированный убыток $10. Реальное исполнение может отличаться из-за комиссий, проскальзывания, funding, спреда и цены исполнения — расчёт не может быть абсолютно точным.',
+                en: 'EDUCATIONAL EXAMPLE: Capital $1,000, risk 1% → maximum planned loss $10. Real execution can differ due to fees, slippage, funding, spread, and execution price — the calculation can never be perfectly exact.'
+            },
+            mistakes: {
+                ru: ['Рисковать разным % на разных сделках без причины', 'Увеличивать риск после серии убытков, пытаясь отыграться', 'Забывать про комиссии и funding при оценке реального риска'],
+                en: ['Risking a different % on different trades with no reason', 'Increasing risk after a losing streak to "catch up"', 'Forgetting fees and funding when estimating real risk']
+            },
+            warning: { ru: 'Guardian проверяет реальный riskPercent по вашим сделкам — но только если вы его указываете при добавлении сделки.', en: 'Guardian checks your real riskPercent field on trades — but only if you fill it in when logging a trade.' },
+            askCoach: { ru: 'Как определить правильный риск на сделку?', en: 'How do I determine the right risk per trade?' }
+        },
+        stop_loss: {
+            icon: '🛑', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
+            title: { ru: 'Stop Loss', en: 'Stop Loss' },
+            desc: { ru: 'Зачем нужен Stop Loss и как он определяет размер позиции.', en: 'Why a Stop Loss matters and how it drives position size.' },
+            intro: { ru: 'Stop Loss — это цена, при которой вы закрываете сделку с убытком, чтобы ограничить дальнейшие потери.', en: 'A Stop Loss is the price at which you close a losing trade to limit further losses.' },
+            body: {
+                ru: `<p>Расстояние от входа до Stop Loss (в $ или %) — ключевая переменная в расчёте размера позиции: чем дальше стоп, тем меньше должна быть позиция при том же риске в долларах.</p>
+                     <p>Stop Loss ставится ДО входа в сделку, на основе логики сетапа — а не после, «на глаз».</p>`,
+                en: `<p>The distance from entry to Stop Loss (in $ or %) is the key variable in position sizing: the wider the stop, the smaller the position needs to be for the same dollar risk.</p>
+                     <p>Stop Loss is set BEFORE entering the trade, based on the setup's logic — not adjusted afterward by feel.</p>`
+            },
+            formula: { ru: 'Расстояние до стопа % = (Вход − Stop Loss) ÷ Вход × 100', en: 'Stop Distance % = (Entry − Stop Loss) ÷ Entry × 100' },
+            example: { ru: 'ОБРАЗОВАТЕЛЬНЫЙ ПРИМЕР: Вход $50,000, Stop Loss $49,500 → расстояние $500, то есть 1% от цены входа.', en: 'EDUCATIONAL EXAMPLE: Entry $50,000, Stop Loss $49,500 → distance $500, i.e. 1% of entry price.' },
+            mistakes: { ru: ['Двигать стоп дальше после того, как цена пошла против вас', 'Не ставить стоп вообще', 'Ставить стоп слишком близко без учёта волатильности актива'], en: ['Moving the stop further away after price goes against you', 'Not setting a stop at all', 'Setting a stop too tight relative to the asset\'s volatility'] },
+            warning: { ru: 'В приложении пока нет отдельного поля Stop Loss на сделке — Guardian не может проверить, действительно ли стоп был выставлен.', en: 'The app does not yet have a dedicated Stop Loss field on trades — Guardian cannot verify whether a stop was actually set.' },
+            askCoach: { ru: 'Как правильно ставить Stop Loss?', en: 'How should I set my Stop Loss?' }
+        },
+        leverage: {
+            icon: '⚖️', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 5,
+            title: { ru: 'Плечо (Leverage)', en: 'Leverage' },
+            desc: { ru: 'Экспозиция, маржа и почему большее плечо не значит больший допустимый риск.', en: 'Understand exposure, margin and why higher leverage does not mean higher allowed risk.' },
+            intro: { ru: 'Плечо позволяет контролировать более крупную номинальную позицию, используя меньше маржи (залога).', en: 'Leverage lets you control a larger notional position while using less margin (collateral).' },
+            body: {
+                ru: `<p>Плечо НЕ создаёт прибыль само по себе — оно увеличивает экспозицию. Позиция на $1,000 остаётся позицией на $1,000, независимо от плеча.</p>
+                     <p><strong>Более высокое плечо не означает, что можно рисковать бо́льшим процентом капитала.</strong> Если у вас $1,000 капитала и риск 1%, максимальный риск остаётся ≈$10 — переход с плеча 2x на 10x не превращает допустимый риск в $100.</p>
+                     <p>Плечо влияет на маржу, но риск по-прежнему определяется размером позиции и Stop Loss.</p>`,
+                en: `<p>Leverage does NOT create profit by itself — it magnifies exposure. A $1,000 position stays a $1,000 position, whatever the leverage.</p>
+                     <p><strong>Higher leverage does not mean you can risk a higher percentage of capital.</strong> With $1,000 capital and 1% risk, your max risk stays ≈$10 — going from 2x to 10x leverage does not turn the allowed risk into $100.</p>
+                     <p>Leverage changes your margin requirement, but risk is still driven by position size and Stop Loss.</p>`
+            },
+            formula: { ru: 'Примерная маржа = Номинал ÷ Плечо', en: 'Approx. Margin = Notional ÷ Leverage' },
+            example: { ru: 'ОБРАЗОВАТЕЛЬНЫЙ ПРИМЕР: Позиция на $1,000 номинала с плечом 5x требует примерно $200 маржи (до комиссий и других требований биржи). Сама позиция остаётся ≈$1,000.', en: 'EDUCATIONAL EXAMPLE: A $1,000 notional position with 5x leverage requires approximately $200 margin (before fees and other exchange requirements). The position itself stays ≈$1,000.' },
+            mistakes: { ru: ['Считать, что высокое плечо = высокая допустимая прибыль/риск', 'Увеличивать размер позиции просто потому что доступно больше плеча', 'Игнорировать, что плечо приближает ликвидацию при плохом размере позиции'], en: ['Assuming high leverage = higher allowed profit/risk', 'Increasing position size just because more leverage is available', 'Ignoring that leverage brings liquidation closer if the position is poorly sized'] },
+            warning: { ru: 'Плечо увеличивает экспозицию и может приблизить ликвидацию при плохо рассчитанном размере позиции.', en: 'Leverage magnifies exposure and can make liquidation easier to reach if the position is poorly sized.' },
+            askCoach: { ru: 'Объясни, как плечо влияет на мой риск', en: 'Explain how leverage affects my risk' }
+        },
+        isolated_cross: {
+            icon: '🔀', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'Изолированная и кросс-маржа', en: 'Isolated vs Cross Margin' },
+            desc: { ru: 'В чём разница между изолированной и кросс-маржой.', en: 'The difference between isolated and cross margin modes.' },
+            intro: { ru: 'Большинство бирж дают выбор между изолированной и кросс-маржой для позиций с плечом.', en: 'Most exchanges let you choose between isolated and cross margin for leveraged positions.' },
+            body: {
+                ru: `<p><strong>Изолированная маржа (Isolated):</strong> маржа позиции отделена от остального счёта; убытки, как правило, ограничены выделенной на эту позицию маржой (с учётом механики биржи); риск легче удерживать под контролем.</p>
+                     <p><strong>Кросс-маржа (Cross):</strong> доступный баланс счёта может использоваться совместно между позициями; это может дать больше запаса до ликвидации, но также может подвергнуть риску бо́льшую часть счёта.</p>`,
+                en: `<p><strong>Isolated margin:</strong> the position's margin is kept separate from the rest of the account; losses are generally limited to the margin allocated to that position, subject to exchange mechanics; easier to contain risk.</p>
+                     <p><strong>Cross margin:</strong> available account/margin balance may be shared across positions; this can provide more room before liquidation, but can also expose more of the account to losses.</p>`
+            },
+            example: { ru: 'Это общие принципы, а не гарантия поведения конкретной биржи.', en: 'These are general principles, not a guarantee of any specific exchange\'s behavior.' },
+            mistakes: { ru: ['Выбирать кросс-маржу не понимая, что весь баланс под риском', 'Считать изолированную маржу «безопасной» без учёта реального размера позиции'], en: ['Choosing cross margin without realizing the whole balance is at risk', 'Assuming isolated margin is "safe" regardless of actual position size'] },
+            warning: { ru: 'Точная механика маржи и ликвидации зависит от биржи, типа контракта, комиссий, поддерживающей маржи и других специфичных правил платформы.', en: 'Exact margin and liquidation mechanics depend on the exchange, contract type, fees, maintenance margin, and other platform-specific rules.' },
+            askCoach: { ru: 'В чём разница между изолированной и кросс-маржой для меня?', en: 'What\'s the difference between isolated and cross margin for me?' }
+        },
+        liquidation: {
+            icon: '⚠️', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'Ликвидация', en: 'Liquidation' },
+            desc: { ru: 'Что такое ликвидация и от чего она зависит.', en: 'What liquidation is and what it depends on.' },
+            intro: { ru: 'Ликвидация происходит, когда маржи позиции становится недостаточно для её поддержания по правилам биржи.', en: 'Liquidation happens when the position\'s margin becomes insufficient to maintain the position under the exchange\'s rules.' },
+            body: {
+                ru: `<p>Цена ликвидации зависит от нескольких факторов вместе: плечо, размер маржи, поддерживающая маржа (maintenance margin) и размер позиции.</p>
+                     <p>Чем выше плечо при том же размере позиции — тем меньше запас до ликвидации, потому что маржи выделено меньше.</p>`,
+                en: `<p>The liquidation price depends on several factors together: leverage, margin amount, maintenance margin, and position size.</p>
+                     <p>Higher leverage on the same position size means less room before liquidation, because less margin is allocated.</p>`
+            },
+            example: { ru: 'Мы намеренно не приводим здесь «универсальную формулу» цены ликвидации — она различается между биржами и типами контрактов.', en: 'We deliberately do not give a "universal formula" for liquidation price here — it varies between exchanges and contract types.' },
+            mistakes: { ru: ['Считать, что цена ликвидации одинаковая на всех биржах', 'Использовать максимальное доступное плечо без расчёта', 'Не учитывать поддерживающую маржу'], en: ['Assuming liquidation price is the same across all exchanges', 'Using the maximum available leverage without calculating anything', 'Ignoring maintenance margin'] },
+            warning: { ru: 'Точный расчёт цены ликвидации зависит от конкретной биржи и контракта — уточняйте его на самой бирже.', en: 'The exact liquidation price calculation depends on the specific exchange and contract — check it directly on the exchange.' },
+            askCoach: { ru: 'Объясни простыми словами, что такое ликвидация', en: 'Explain liquidation to me in simple terms' }
+        },
+        risk_management: {
+            icon: '🛡', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 5,
+            title: { ru: 'Риск-менеджмент', en: 'Risk Management' },
+            desc: { ru: 'Комплексный взгляд на управление риском в трейдинге.', en: 'A broader look at managing risk across your trading.' },
+            intro: { ru: 'Риск-менеджмент — это не одно правило, а система: риск на сделку, дневной лимит убытка, максимальная экспозиция, размер позиции, Stop Loss, соотношение риск/прибыль и торговая психология.', en: 'Risk management isn\'t one rule — it\'s a system: risk per trade, daily loss limit, maximum exposure, position sizing, Stop Loss, risk/reward, and trading psychology.' },
+            body: {
+                ru: `<ul>
+                        <li>Риск на сделку — фиксированный % капитала на идею.</li>
+                        <li>Дневной лимит убытка — точка, где вы останавливаетесь на сегодня.</li>
+                        <li>Максимальная экспозиция — сколько открыто одновременно.</li>
+                        <li>Risk/Reward — потенциальная прибыль относительно риска.</li>
+                        <li>Избегание revenge-трейдинга после убытков.</li>
+                        <li>Осторожность с избыточным плечом.</li>
+                        <li>Избегание перегрузки коррелирующими позициями (например, несколько альткоинов, движущихся как BTC).</li>
+                     </ul>`,
+                en: `<ul>
+                        <li>Risk per trade — a fixed % of capital per idea.</li>
+                        <li>Daily loss limit — the point where you stop for the day.</li>
+                        <li>Maximum exposure — how much is open at once.</li>
+                        <li>Risk/Reward — potential gain relative to risk.</li>
+                        <li>Avoiding revenge trading after losses.</li>
+                        <li>Being cautious with excessive leverage.</li>
+                        <li>Avoiding overexposure to correlated positions (e.g. several altcoins that move like BTC).</li>
+                     </ul>`
+            },
+            example: { ru: 'Academy объясняет, ЧТО стоит делать. Guardian проверяет, ДЕЙСТВИТЕЛЬНО ЛИ вы это сделали — по вашим реальным сохранённым сделкам, там, где для этого достаточно данных.', en: 'Academy explains WHAT you should do. Guardian checks whether you ACTUALLY did it — using your real stored trades, wherever there is enough data to check.' },
+            mistakes: { ru: ['Полагаться только на один элемент риск-менеджмента (например, только Stop Loss)', 'Игнорировать корреляцию между открытыми позициями', 'Продолжать торговать после дневного лимита убытка'], en: ['Relying on only one element of risk management (e.g. only a Stop Loss)', 'Ignoring correlation between open positions', 'Continuing to trade past the daily loss limit'] },
+            warning: { ru: 'Откройте Guardian, чтобы увидеть, что из этого реально подтверждается вашими сделками.', en: 'Open Guardian to see what this actually looks like in your own trades.' },
+            askCoach: { ru: 'Как выстроить свой риск-менеджмент?', en: 'How should I structure my risk management?' },
+            linkGuardian: true
+        }
+    },
+
+    academyOrder: ['position_size', 'risk_per_trade', 'stop_loss', 'leverage', 'isolated_cross', 'liquidation', 'risk_management'],
+
+    renderAcademyGrid() {
+        if (!this.academyGrid) return;
+        this.showAcademyGrid();
+        const en = this.currentLang === 'en';
+        let html = '';
+        this.academyOrder.forEach(id => {
+            const l = this.academyLessons[id];
+            html += `
+                <div class="academy-card">
+                    <div class="academy-card-icon">${l.icon}</div>
+                    <h4>${l.title[en ? 'en' : 'ru']}</h4>
+                    <p>${l.desc[en ? 'en' : 'ru']}</p>
+                    <div class="academy-card-meta">
+                        <span>${l.difficulty[en ? 'en' : 'ru']}</span>
+                        <span>${l.minutes} ${en ? 'min read' : 'мин чтения'}</span>
+                    </div>
+                    <button class="btn-secondary" data-lesson="${id}">${en ? 'Open lesson' : 'Открыть урок'}</button>
+                </div>`;
+        });
+        this.academyGrid.innerHTML = html;
+        this.academyGrid.querySelectorAll('[data-lesson]').forEach(btn => {
+            btn.addEventListener('click', () => this.openAcademyLesson(btn.dataset.lesson));
+        });
+    },
+
+    showAcademyGrid() {
+        if (this.academyGridView) this.academyGridView.style.display = 'block';
+        if (this.academyLessonView) this.academyLessonView.style.display = 'none';
+    },
+
+    openAcademyLesson(id) {
+        const lesson = this.academyLessons[id];
+        if (!lesson || !this.academyLessonBody) return;
+        this.currentLessonId = id;
+        const en = this.currentLang === 'en';
+        const lang = en ? 'en' : 'ru';
+
+        let html = `
+            <h2>${lesson.title[lang]}</h2>
+            <p class="lesson-intro">${lesson.intro[lang]}</p>
+            <section>${lesson.body[lang]}</section>`;
+
+        if (lesson.formula) {
+            html += `<section><h5>${en ? 'Formula' : 'Формула'}</h5><div class="lesson-formula">${lesson.formula[lang]}</div></section>`;
+        }
+        if (lesson.hasCalculator) {
+            html += this.renderPositionCalculatorMarkup(lang);
+        }
+        if (lesson.example) {
+            html += `<section><h5>${en ? 'Practical example' : 'Практический пример'}</h5><div class="lesson-example">${lesson.example[lang]}</div></section>`;
+        }
+        if (lesson.mistakes) {
+            html += `<section><h5>${en ? 'Common mistakes' : 'Частые ошибки'}</h5><ul class="lesson-mistakes">${lesson.mistakes[lang].map(m => `<li>${m}</li>`).join('')}</ul></section>`;
+        }
+        if (lesson.warning) {
+            html += `<section><h5>${en ? 'Important' : 'Важно'}</h5><div class="lesson-warning">${lesson.warning[lang]}</div></section>`;
+        }
+        if (lesson.linkGuardian) {
+            html += `<button class="ask-coach-link" id="lessonOpenGuardianBtn" style="margin-right:8px;">🛡 ${en ? 'Open Guardian' : 'Открыть Guardian'}</button>`;
+        }
+        if (lesson.askCoach) {
+            html += `<button class="ask-coach-link" id="lessonAskCoachBtn">💬 ${en ? 'Ask AI Coach about this' : 'Спросить AI Коуча об этом'}</button>`;
+        }
+
+        this.academyLessonBody.innerHTML = html;
+        if (this.academyGridView) this.academyGridView.style.display = 'none';
+        if (this.academyLessonView) this.academyLessonView.style.display = 'block';
+
+        if (lesson.hasCalculator) this.bindPositionCalculator();
+
+        const askBtn = document.getElementById('lessonAskCoachBtn');
+        if (askBtn) askBtn.addEventListener('click', () => this.askCoachFromAcademy(lesson.askCoach[lang]));
+        const guardBtn = document.getElementById('lessonOpenGuardianBtn');
+        if (guardBtn) guardBtn.addEventListener('click', () => {
+            this.navItems.forEach(n => n.classList.remove('active'));
+            const targetNav = Array.from(this.navItems).find(n => n.dataset.section === 'guardian');
+            if (targetNav) targetNav.classList.add('active');
+            this.showSection('guardian');
+        });
+    },
+
+    // Reuses the EXISTING AI Coach engine (handleAIQuery/generateCoachReply)
+    // — Academy just navigates to the AI Coach section and submits a
+    // pre-filled question through the same input the user would type into.
+    askCoachFromAcademy(question) {
+        this.navItems.forEach(n => n.classList.remove('active'));
+        const targetNav = Array.from(this.navItems).find(n => n.dataset.section === 'intelligence');
+        if (targetNav) targetNav.classList.add('active');
+        this.showSection('intelligence');
+        if (this.aiInput) {
+            this.aiInput.value = question;
+            this.handleAIQuery();
+        }
+    },
+
+    // ----- Position Size Calculator -----
+    // Standalone: reads only its own form inputs, never this.trades or
+    // this.userData. Nothing here is saved to the account.
+    renderPositionCalculatorMarkup(lang) {
+        const en = lang === 'en';
+        return `
+            <div class="psc-calculator">
+                <h5>${en ? 'Position Size Calculator' : 'Калькулятор размера позиции'}</h5>
+                <div class="psc-direction">
+                    <button type="button" class="active" data-dir="long" id="pscDirLong">LONG</button>
+                    <button type="button" data-dir="short" id="pscDirShort">SHORT</button>
+                </div>
+                <div class="psc-grid">
+                    <div class="psc-field"><label>${en ? 'Account Capital ($)' : 'Капитал счёта ($)'}</label><input type="number" class="form-input" id="pscCapital" value="1000" min="0" step="any"></div>
+                    <div class="psc-field"><label>${en ? 'Risk (%)' : 'Риск (%)'}</label><input type="number" class="form-input" id="pscRisk" value="1" min="0" step="any"></div>
+                    <div class="psc-field"><label>${en ? 'Entry Price ($)' : 'Цена входа ($)'}</label><input type="number" class="form-input" id="pscEntry" value="50000" min="0" step="any"></div>
+                    <div class="psc-field"><label>${en ? 'Stop Loss Price ($)' : 'Цена Stop Loss ($)'}</label><input type="number" class="form-input" id="pscStop" value="49500" min="0" step="any"></div>
+                    <div class="psc-field"><label>${en ? 'Leverage (optional)' : 'Плечо (опционально)'}</label><input type="number" class="form-input" id="pscLeverage" placeholder="${en ? 'e.g. 5' : 'напр. 5'}" min="0" step="any"></div>
+                </div>
+                <div id="pscError"></div>
+                <div class="psc-results" id="pscResults" style="display:none;">
+                    <div class="psc-result-item"><div class="psc-result-label">${en ? 'Maximum Risk' : 'Максимальный риск'}</div><div class="psc-result-value" id="pscMaxRisk">—</div></div>
+                    <div class="psc-result-item"><div class="psc-result-label">${en ? 'Stop Distance' : 'Расстояние до стопа'}</div><div class="psc-result-value" id="pscStopDist">—</div></div>
+                    <div class="psc-result-item"><div class="psc-result-label">${en ? 'Suggested Position Size' : 'Размер позиции'}</div><div class="psc-result-value" id="pscPosSize">—</div></div>
+                    <div class="psc-result-item"><div class="psc-result-label">${en ? 'Approx. Notional' : 'Примерный номинал'}</div><div class="psc-result-value" id="pscNotional">—</div></div>
+                    <div class="psc-result-item" id="pscMarginWrap" style="display:none;"><div class="psc-result-label">${en ? 'Approx. Margin' : 'Примерная маржа'}</div><div class="psc-result-value" id="pscMargin">—</div></div>
+                </div>
+                <p class="lesson-note" id="pscRiskNote" style="display:none;">${en ? 'Risk remains based on position size and Stop Loss — not simply on leverage.' : 'Риск по-прежнему определяется размером позиции и Stop Loss — а не просто плечом.'}</p>
+                <p class="psc-disclaimer">${en ? 'Calculation is an estimate. Actual execution may differ due to fees, slippage, funding, spread, exchange rules and contract specifications.' : 'Расчёт является оценкой. Реальное исполнение может отличаться из-за комиссий, проскальзывания, funding, спреда, правил биржи и спецификации контракта.'}</p>
+            </div>`;
+    },
+
+    bindPositionCalculator() {
+        this.pscDirection = 'long';
+        const ids = ['pscCapital', 'pscRisk', 'pscEntry', 'pscStop', 'pscLeverage'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => this.calcPositionSize());
+        });
+        const dirLong = document.getElementById('pscDirLong');
+        const dirShort = document.getElementById('pscDirShort');
+        if (dirLong) dirLong.addEventListener('click', () => { this.pscDirection = 'long'; dirLong.classList.add('active'); dirShort.classList.remove('active'); this.calcPositionSize(); });
+        if (dirShort) dirShort.addEventListener('click', () => { this.pscDirection = 'short'; dirShort.classList.add('active'); dirLong.classList.remove('active'); this.calcPositionSize(); });
+        this.calcPositionSize();
+    },
+
+    calcPositionSize() {
+        const en = this.currentLang === 'en';
+        const errEl = document.getElementById('pscError');
+        const resultsEl = document.getElementById('pscResults');
+        if (!errEl || !resultsEl) return;
+
+        const capital = parseFloat(document.getElementById('pscCapital')?.value);
+        const riskPct = parseFloat(document.getElementById('pscRisk')?.value);
+        const entry = parseFloat(document.getElementById('pscEntry')?.value);
+        const stop = parseFloat(document.getElementById('pscStop')?.value);
+        const leverageRaw = document.getElementById('pscLeverage')?.value;
+        const leverage = leverageRaw ? parseFloat(leverageRaw) : null;
+        const dir = this.pscDirection || 'long';
+
+        const showError = (msg) => {
+            errEl.innerHTML = `<div class="psc-error">${msg}</div>`;
+            resultsEl.style.display = 'none';
+            const note = document.getElementById('pscRiskNote'); if (note) note.style.display = 'none';
+        };
+
+        if ([capital, riskPct, entry, stop].some(v => isNaN(v))) { showError(en ? 'Please fill in all required fields with valid numbers.' : 'Заполните все обязательные поля корректными числами.'); return; }
+        if (capital <= 0) { showError(en ? 'Capital must be greater than 0.' : 'Капитал должен быть больше 0.'); return; }
+        if (riskPct <= 0) { showError(en ? 'Risk % must be greater than 0.' : 'Риск % должен быть больше 0.'); return; }
+        if (entry <= 0 || stop <= 0) { showError(en ? 'Prices must be greater than 0.' : 'Цены должны быть больше 0.'); return; }
+        if (entry === stop) { showError(en ? 'Stop Loss cannot equal Entry price.' : 'Stop Loss не может быть равен цене входа.'); return; }
+        if (dir === 'long' && stop >= entry) { showError(en ? 'For LONG, Stop Loss should be below Entry.' : 'Для LONG Stop Loss должен быть ниже цены входа.'); return; }
+        if (dir === 'short' && stop <= entry) { showError(en ? 'For SHORT, Stop Loss should be above Entry.' : 'Для SHORT Stop Loss должен быть выше цены входа.'); return; }
+        if (leverageRaw && (isNaN(leverage) || leverage <= 0)) { showError(en ? 'Leverage must be a positive number.' : 'Плечо должно быть положительным числом.'); return; }
+
+        errEl.innerHTML = '';
+        const maxRisk = capital * (riskPct / 100);
+        const stopDistance = Math.abs(entry - stop);
+        const stopDistancePct = (stopDistance / entry) * 100;
+        const positionSize = maxRisk / stopDistance; // quantity of asset
+        const notional = positionSize * entry;
+
+        document.getElementById('pscMaxRisk').textContent = '$' + maxRisk.toFixed(2);
+        document.getElementById('pscStopDist').textContent = stopDistancePct.toFixed(2) + '%';
+        document.getElementById('pscPosSize').textContent = positionSize.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+        document.getElementById('pscNotional').textContent = '$' + notional.toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+        const marginWrap = document.getElementById('pscMarginWrap');
+        const noteEl = document.getElementById('pscRiskNote');
+        if (leverage) {
+            const margin = notional / leverage;
+            document.getElementById('pscMargin').textContent = '$' + margin.toLocaleString(undefined, { maximumFractionDigits: 2 });
+            marginWrap.style.display = 'block';
+            if (noteEl) noteEl.style.display = 'block';
+        } else {
+            marginWrap.style.display = 'none';
+            if (noteEl) noteEl.style.display = 'none';
+        }
+        resultsEl.style.display = 'grid';
+    },
+
     renderAll() {
         this.renderJournal();
         this.updateJournalStats();
