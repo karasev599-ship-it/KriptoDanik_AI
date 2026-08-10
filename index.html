@@ -25,6 +25,7 @@
         <!-- ============================================================
         SIDEBAR
         ============================================================ -->
+        <div class="mobile-nav-scrim" id="mobileNavScrim"></div>
         <aside class="sidebar">
             <div class="sidebar-top">
                 <div class="logo">
@@ -119,6 +120,9 @@
 
             <!-- Header -->
             <header>
+                <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open navigation" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
                 <div>
                     <p class="greeting" id="pageGreeting" data-key="greeting">Good Evening</p>
                     <h1 id="pageTitle">Welcome, <span id="userNameDisplay">Trader</span></h1>
@@ -448,7 +452,7 @@
                 v1.0.7 — SMART DASHBOARD: brand-new-account welcome hero
                 Shown only when there are zero trades; hidden otherwise.
                 ============================================================ -->
-                <div class="dash-panel glass-panel" id="dashWelcomeHero" style="display:none; text-align:center; padding:32px 20px;">
+                <div class="dash-panel glass-panel" id="dashWelcomeHero" style="display:none; text-align:center; padding:32px 20px; margin-bottom:20px;">
                     <h2 data-key="dash_welcome_title" style="margin-bottom:6px;">Welcome to KriptoDanik AI</h2>
                     <p style="color:var(--text-secondary); margin-bottom:4px;" data-key="dash_welcome_no_data">No trading data yet</p>
                     <p style="color:var(--text-secondary); margin-bottom:16px;" data-key="dash_welcome_cta">Start by recording your first trade.</p>
@@ -456,7 +460,7 @@
                 </div>
 
                 <!-- v1.0.7 — TODAY OVERVIEW -->
-                <div class="dash-panel-head" style="margin-top:4px; margin-bottom:8px; border-bottom:none;">
+                <div class="dash-panel-head">
                     <h3 data-key="today_overview">Today</h3>
                 </div>
                 <div class="dash-row-4" id="dashTodayOverview">

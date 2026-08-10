@@ -540,6 +540,11 @@ const App = {
         this.settingsAvatar = document.getElementById('settingsAvatar');
 
         this.langButtons = document.querySelectorAll('.lang-selector button');
+
+        // v1.0.9.1 — mobile/iPad-portrait nav toggle
+        this.mobileNavToggle = document.getElementById('mobileNavToggle');
+        this.mobileNavScrim = document.getElementById('mobileNavScrim');
+        this.sidebarEl = document.querySelector('.sidebar');
     },
 
     // ===== BIND EVENTS =====
@@ -550,8 +555,15 @@ const App = {
                 item.classList.add('active');
                 const section = item.dataset.section;
                 this.showSection(section);
+                this.closeMobileNav();
             });
         });
+
+        // v1.0.9.1 — mobile/iPad-portrait nav toggle (sidebar becomes a
+        // slide-in overlay below 768px instead of disappearing with no
+        // way to reopen it).
+        if (this.mobileNavToggle) this.mobileNavToggle.addEventListener('click', () => this.toggleMobileNav());
+        if (this.mobileNavScrim) this.mobileNavScrim.addEventListener('click', () => this.closeMobileNav());
 
         // Search
         if (this.searchBtn) this.searchBtn.addEventListener('click', (e) => {
@@ -617,6 +629,7 @@ const App = {
             const targetNav = Array.from(this.navItems).find(n => n.dataset.section === section);
             if (targetNav) targetNav.classList.add('active');
             this.showSection(section);
+            this.closeMobileNav();
         };
         if (this.qaOpenJournal) this.qaOpenJournal.addEventListener('click', () => goTo('journal'));
         if (this.qaOpenGuardian) this.qaOpenGuardian.addEventListener('click', () => goTo('guardian'));
@@ -752,6 +765,18 @@ const App = {
                 this.renderAcademyGrid();
             }
         }
+    },
+
+    // v1.0.9.1 — mobile/iPad-portrait nav toggle
+    toggleMobileNav() {
+        if (!this.sidebarEl) return;
+        const isOpen = this.sidebarEl.classList.toggle('mobile-open');
+        if (this.mobileNavScrim) this.mobileNavScrim.classList.toggle('active', isOpen);
+    },
+
+    closeMobileNav() {
+        if (this.sidebarEl) this.sidebarEl.classList.remove('mobile-open');
+        if (this.mobileNavScrim) this.mobileNavScrim.classList.remove('active');
     },
 
     // ===== THEME & ACCENT =====
