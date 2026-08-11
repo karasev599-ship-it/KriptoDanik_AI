@@ -90,6 +90,10 @@
 
                 <div class="nav-group-label">Прочее</div>
                 <nav>
+                    <button class="nav-item" data-section="scanner">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+                        <span data-key="nav_scanner">AI Scanner</span>
+                    </button>
                     <button class="nav-item" data-section="intelligence">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
                         <span data-key="nav_intelligence">AI Coach</span>
@@ -911,6 +915,89 @@
             </div>
 
             <!-- ============================================================
+            AI SCANNER (v1.1.0)
+            IMPORTANT — honesty note for future maintainers: this build has
+            no vision-AI backend wired up (static vanilla JS app, no
+            server, no API key). Every field on the review screen starts
+            as "Not detected" and is filled in by the user reading their
+            own chart — this is the exact "cannot be reliably detected"
+            path the product spec itself defines, not a placeholder for
+            something secretly faked. Confirming hands off to the SAME
+            existing Add Trade modal/validation/save path — no second
+            trade-storage system.
+            ============================================================ -->
+            <div id="section-scanner" class="section-content">
+                <div id="scannerUploadView">
+                    <div class="academy-header">
+                        <h2 data-key="scanner_title">AI Scanner</h2>
+                        <p class="academy-header-sub" data-key="scanner_sub">Upload a chart screenshot to start a structured trade review — attach it to your Journal entry.</p>
+                    </div>
+                    <div class="scanner-honesty-note" data-key="scanner_honesty_note">This build doesn't have a connected vision-AI model yet, so nothing is auto-detected from your screenshot. You'll get a structured review form to fill in yourself, with the screenshot attached to the trade for later reference.</div>
+                    <div class="scanner-dropzone glass-panel" id="scannerDropzone">
+                        <input type="file" id="scannerFileInput" accept="image/*" style="display:none;" />
+                        <div class="scanner-dropzone-icon">📊</div>
+                        <p class="scanner-dropzone-title" data-key="scanner_upload_title">Upload a chart screenshot</p>
+                        <p class="scanner-dropzone-sub" data-key="scanner_upload_sub">PNG or JPG, up to 5MB</p>
+                        <button class="btn-primary" id="scannerUploadBtn" data-key="scanner_choose_file">Choose file</button>
+                    </div>
+                </div>
+
+                <div id="scannerReviewView" style="display:none;">
+                    <button class="btn-secondary" id="scannerBackBtn" style="margin-bottom:16px;">← <span data-key="scanner_start_over">Start over</span></button>
+                    <div class="scanner-review glass-panel">
+                        <div class="scanner-review-grid">
+                            <div class="scanner-screenshot-preview">
+                                <img id="scannerPreviewImg" alt="Chart screenshot" />
+                            </div>
+                            <div class="scanner-review-form">
+                                <h3 data-key="scanner_result_title">Scan Result</h3>
+                                <p class="lesson-note" id="scannerConfidenceNote"></p>
+
+                                <div class="scanner-field-row">
+                                    <div class="psc-field"><label data-key="scanner_asset">Asset</label><input type="text" class="form-input" id="scannerAsset" placeholder="BTCUSDT" /></div>
+                                    <div class="psc-field"><label data-key="scanner_direction">Direction</label>
+                                        <div class="psc-direction">
+                                            <button type="button" class="active" data-dir="long" id="scannerDirLong">LONG</button>
+                                            <button type="button" data-dir="short" id="scannerDirShort">SHORT</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="scanner-field-row">
+                                    <div class="psc-field"><label data-key="scanner_timeframe">Timeframe</label><input type="text" class="form-input" id="scannerTimeframe" placeholder="5M" /></div>
+                                    <div class="psc-field"><label data-key="scanner_entry">Entry</label><input type="number" class="form-input" id="scannerEntry" step="any" /></div>
+                                </div>
+                                <div class="scanner-field-row">
+                                    <div class="psc-field"><label data-key="scanner_stoploss">Stop Loss</label><input type="number" class="form-input" id="scannerStopLoss" step="any" /></div>
+                                    <div class="psc-field"><label data-key="scanner_takeprofit">Take Profit</label><input type="number" class="form-input" id="scannerTakeProfit" step="any" /></div>
+                                </div>
+                                <div class="psc-field"><label data-key="scanner_setup">Setup / notes</label><textarea class="form-input" id="scannerSetup" rows="2"></textarea></div>
+
+                                <h5 style="margin-top:16px;" data-key="scanner_structures_title">Detected Structures</h5>
+                                <p class="lesson-note" data-key="scanner_structures_note">Nothing is auto-detected — check any structures you identify on this chart yourself.</p>
+                                <div class="scanner-structures-grid" id="scannerStructuresGrid"></div>
+
+                                <p class="psc-disclaimer" data-key="scanner_disclaimer">This is not a guaranteed signal or a promise of profit — only a structured way to log what you see on your own chart. Confidence reflects manual review, not an automated probability.</p>
+
+                                <div class="scanner-actions">
+                                    <button class="btn-secondary" id="scannerCancelBtn" data-key="scanner_cancel">Cancel</button>
+                                    <button class="btn-primary" id="scannerConfirmBtn" data-key="scanner_confirm">Confirm → Add to Journal</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lightweight screenshot lightbox — used by both the Scanner
+                 review preview and the Journal's "view screenshot" action. -->
+            <div id="screenshotLightbox" class="onboarding-overlay">
+                <div class="lightbox-inner">
+                    <button class="lightbox-close" id="lightboxCloseBtn">×</button>
+                    <img id="lightboxImg" alt="Trade screenshot" />
+                </div>
+            </div>
+
+            <!-- ============================================================
             ACADEMY (v1.0.8)
             All content is rendered from academyLessons (JS, RU/EN) — this
             markup only provides the two view containers (grid + lesson).
@@ -922,6 +1009,12 @@
                         <p class="academy-header-sub" data-key="academy_header_sub">Short, practical lessons on risk, position size, leverage, and liquidation — plus a real calculator.</p>
                     </div>
                     <div class="academy-grid" id="academyGrid"></div>
+
+                    <div class="academy-header" style="margin-top:28px;">
+                        <h2 data-key="academy_ms_title">Market Structure &amp; Smart Money Concepts</h2>
+                        <p class="academy-header-sub" data-key="academy_ms_sub">How to read the chart itself — gaps, order blocks, liquidity, breaks of structure, and more.</p>
+                    </div>
+                    <div class="academy-grid" id="academyGridMS"></div>
                 </div>
 
                 <div id="academyLessonView" style="display:none;">

@@ -108,7 +108,34 @@ const App = {
             // ===== v1.0.8 — Academy =====
             academy_header_title: 'Изучите систему. Торгуйте по плану.',
             academy_header_sub: 'Короткие практические уроки про риск, размер позиции, плечо и ликвидацию — плюс настоящий калькулятор.',
-            academy_back: 'Назад в Академию'
+            academy_back: 'Назад в Академию',
+            nav_scanner: 'AI Scanner',
+            scanner_title: 'AI Scanner',
+            scanner_sub: 'Загрузите скриншот графика, чтобы начать структурированный разбор сделки — прикрепите его к записи в Journal.',
+            scanner_honesty_note: 'В этой сборке пока нет подключённой модели компьютерного зрения, поэтому ничего не определяется автоматически по скриншоту. Вы получите структурированную форму для самостоятельного заполнения, а скриншот прикрепится к сделке для дальнейшего просмотра.',
+            scanner_upload_title: 'Загрузите скриншот графика',
+            scanner_upload_sub: 'PNG или JPG, до 5МБ',
+            scanner_choose_file: 'Выбрать файл',
+            scanner_start_over: 'Начать заново',
+            scanner_result_title: 'Результат сканирования',
+            scanner_asset: 'Актив',
+            scanner_direction: 'Направление',
+            scanner_timeframe: 'Таймфрейм',
+            scanner_entry: 'Вход',
+            scanner_stoploss: 'Stop Loss',
+            scanner_takeprofit: 'Take Profit',
+            scanner_setup: 'Сетап / заметки',
+            scanner_structures_title: 'Обнаруженные структуры',
+            scanner_structures_note: 'Ничего не определяется автоматически — отметьте структуры, которые вы сами видите на графике.',
+            scanner_disclaimer: 'Это не гарантированный сигнал и не обещание прибыли — только структурированный способ зафиксировать то, что вы видите на своём графике. Confidence отражает ручной разбор, а не автоматическую вероятность.',
+            scanner_cancel: 'Отмена',
+            scanner_confirm: 'Подтвердить → В Journal',
+            scanner_not_detected: 'Не определено — требуется подтверждение',
+            scanner_confidence_label: 'Confidence: N/A (ручной разбор, без модели компьютерного зрения)',
+            scanner_view_screenshot: 'Открыть скриншот',
+            scanner_learn_more: 'Подробнее',
+            academy_ms_title: 'Структура рынка и Smart Money',
+            academy_ms_sub: 'Как читать сам график — гэпы, ордер-блоки, ликвидность, пробои структуры и другое.'
         },
         en: {
             nav_dashboard: 'Dashboard',
@@ -183,7 +210,34 @@ const App = {
             // ===== v1.0.8 — Academy =====
             academy_header_title: 'Learn the system. Trade with a plan.',
             academy_header_sub: 'Short, practical lessons on risk, position size, leverage, and liquidation — plus a real calculator.',
-            academy_back: 'Back to Academy'
+            academy_back: 'Back to Academy',
+            nav_scanner: 'AI Scanner',
+            scanner_title: 'AI Scanner',
+            scanner_sub: 'Upload a chart screenshot to start a structured trade review — attach it to your Journal entry.',
+            scanner_honesty_note: 'This build doesn\'t have a connected vision-AI model yet, so nothing is auto-detected from your screenshot. You\'ll get a structured review form to fill in yourself, with the screenshot attached to the trade for later reference.',
+            scanner_upload_title: 'Upload a chart screenshot',
+            scanner_upload_sub: 'PNG or JPG, up to 5MB',
+            scanner_choose_file: 'Choose file',
+            scanner_start_over: 'Start over',
+            scanner_result_title: 'Scan Result',
+            scanner_asset: 'Asset',
+            scanner_direction: 'Direction',
+            scanner_timeframe: 'Timeframe',
+            scanner_entry: 'Entry',
+            scanner_stoploss: 'Stop Loss',
+            scanner_takeprofit: 'Take Profit',
+            scanner_setup: 'Setup / notes',
+            scanner_structures_title: 'Detected Structures',
+            scanner_structures_note: 'Nothing is auto-detected — check any structures you identify on this chart yourself.',
+            scanner_disclaimer: 'This is not a guaranteed signal or a promise of profit — only a structured way to log what you see on your own chart. Confidence reflects manual review, not an automated probability.',
+            scanner_cancel: 'Cancel',
+            scanner_confirm: 'Confirm → Add to Journal',
+            scanner_not_detected: 'Not detected — needs confirmation',
+            scanner_confidence_label: 'Confidence: N/A (manual review, no vision-AI model connected)',
+            scanner_view_screenshot: 'View screenshot',
+            scanner_learn_more: 'Learn more',
+            academy_ms_title: 'Market Structure & Smart Money Concepts',
+            academy_ms_sub: 'How to read the chart itself — gaps, order blocks, liquidity, breaks of structure, and more.'
         }
     },
 
@@ -313,6 +367,7 @@ const App = {
             performance: document.getElementById('section-performance'),
             guardian: document.getElementById('section-guardian'),
             academy: document.getElementById('section-academy'),
+            scanner: document.getElementById('section-scanner'),
             intelligence: document.getElementById('section-intelligence'),
             settings: document.getElementById('section-settings')
         };
@@ -457,6 +512,29 @@ const App = {
         this.academyGrid = document.getElementById('academyGrid');
         this.academyLessonBody = document.getElementById('academyLessonBody');
         this.academyBackBtn = document.getElementById('academyBackBtn');
+        this.academyGridMS = document.getElementById('academyGridMS');
+
+        // v1.1.0 — AI Scanner
+        this.scannerUploadView = document.getElementById('scannerUploadView');
+        this.scannerReviewView = document.getElementById('scannerReviewView');
+        this.scannerDropzone = document.getElementById('scannerDropzone');
+        this.scannerFileInput = document.getElementById('scannerFileInput');
+        this.scannerUploadBtn = document.getElementById('scannerUploadBtn');
+        this.scannerBackBtn = document.getElementById('scannerBackBtn');
+        this.scannerPreviewImg = document.getElementById('scannerPreviewImg');
+        this.scannerConfidenceNote = document.getElementById('scannerConfidenceNote');
+        this.scannerAsset = document.getElementById('scannerAsset');
+        this.scannerTimeframe = document.getElementById('scannerTimeframe');
+        this.scannerEntry = document.getElementById('scannerEntry');
+        this.scannerStopLoss = document.getElementById('scannerStopLoss');
+        this.scannerTakeProfit = document.getElementById('scannerTakeProfit');
+        this.scannerSetup = document.getElementById('scannerSetup');
+        this.scannerStructuresGrid = document.getElementById('scannerStructuresGrid');
+        this.scannerCancelBtn = document.getElementById('scannerCancelBtn');
+        this.scannerConfirmBtn = document.getElementById('scannerConfirmBtn');
+        this.screenshotLightbox = document.getElementById('screenshotLightbox');
+        this.lightboxImg = document.getElementById('lightboxImg');
+        this.lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
         this.clearChatBtn = document.getElementById('clearChatBtn');
         this.aiSuggestions = document.getElementById('aiSuggestions');
 
@@ -635,6 +713,32 @@ const App = {
         if (this.qaOpenGuardian) this.qaOpenGuardian.addEventListener('click', () => goTo('guardian'));
         if (this.qaOpenAnalytics) this.qaOpenAnalytics.addEventListener('click', () => goTo('analytics'));
         if (this.academyBackBtn) this.academyBackBtn.addEventListener('click', () => this.showAcademyGrid());
+
+        // v1.1.0 — AI Scanner
+        if (this.scannerUploadBtn) this.scannerUploadBtn.addEventListener('click', () => this.scannerFileInput && this.scannerFileInput.click());
+        if (this.scannerDropzone) {
+            this.scannerDropzone.addEventListener('click', () => this.scannerFileInput && this.scannerFileInput.click());
+            this.scannerDropzone.addEventListener('dragover', (e) => { e.preventDefault(); this.scannerDropzone.classList.add('dragover'); });
+            this.scannerDropzone.addEventListener('dragleave', () => this.scannerDropzone.classList.remove('dragover'));
+            this.scannerDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                this.scannerDropzone.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) this.handleScannerFile(e.dataTransfer.files[0]);
+            });
+        }
+        if (this.scannerFileInput) this.scannerFileInput.addEventListener('change', (e) => this.handleScannerFile(e.target.files[0]));
+        if (this.scannerBackBtn) this.scannerBackBtn.addEventListener('click', () => this.showScannerUpload());
+        if (this.scannerCancelBtn) this.scannerCancelBtn.addEventListener('click', () => this.showScannerUpload());
+        if (this.scannerConfirmBtn) this.scannerConfirmBtn.addEventListener('click', () => this.confirmScannerResult());
+        const scannerDirLong = document.getElementById('scannerDirLong');
+        const scannerDirShort = document.getElementById('scannerDirShort');
+        if (scannerDirLong) scannerDirLong.addEventListener('click', () => { this.scannerDirection = 'long'; scannerDirLong.classList.add('active'); scannerDirShort.classList.remove('active'); });
+        if (scannerDirShort) scannerDirShort.addEventListener('click', () => { this.scannerDirection = 'short'; scannerDirShort.classList.add('active'); scannerDirLong.classList.remove('active'); });
+        if (this.scannerPreviewImg) this.scannerPreviewImg.addEventListener('click', () => this.openLightbox(this.scannerScreenshot));
+
+        // Screenshot lightbox (Scanner preview + Journal "view screenshot")
+        if (this.lightboxCloseBtn) this.lightboxCloseBtn.addEventListener('click', () => this.closeLightbox());
+        if (this.screenshotLightbox) this.screenshotLightbox.addEventListener('click', (e) => { if (e.target === this.screenshotLightbox) this.closeLightbox(); });
         if (this.aiInput) this.aiInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.handleAIQuery();
         });
@@ -764,6 +868,22 @@ const App = {
             } else {
                 this.renderAcademyGrid();
             }
+        }
+        // v1.1.0 — re-localize the Scanner review screen's dynamically
+        // generated text WITHOUT wiping anything the user has already
+        // typed or checked (re-running renderScannerReview() would reset
+        // every field back to empty, which would be a real data-loss bug,
+        // not just a translation refresh).
+        if (this.scannerReviewView && this.scannerReviewView.style.display !== 'none') {
+            if (this.scannerConfidenceNote) this.scannerConfidenceNote.innerHTML = `<span class="scanner-confidence-badge">${this.t('scanner_confidence_label')}</span>`;
+            if (this.scannerStructuresGrid) {
+                this.scannerStructuresGrid.querySelectorAll('.ms-learn-link').forEach(link => {
+                    link.textContent = this.t('scanner_learn_more') + ' →';
+                });
+            }
+            [this.scannerAsset, this.scannerTimeframe, this.scannerEntry, this.scannerStopLoss, this.scannerTakeProfit].forEach(el => {
+                if (el && !el.value) el.placeholder = this.t('scanner_not_detected');
+            });
         }
     },
 
@@ -1002,6 +1122,16 @@ const App = {
         this.showSection('dashboard');
     },
 
+    // v1.1.0 — screenshot lightbox
+    openLightbox(src) {
+        if (!src || !this.screenshotLightbox || !this.lightboxImg) return;
+        this.lightboxImg.src = src;
+        this.screenshotLightbox.classList.add('active');
+    },
+    closeLightbox() {
+        if (this.screenshotLightbox) this.screenshotLightbox.classList.remove('active');
+    },
+
     // ===== AVATAR =====
     handleAvatarUpload(e) {
         const file = e.target.files && e.target.files[0];
@@ -1169,6 +1299,7 @@ const App = {
         if (section === 'analytics') { this.updateAnalytics(); }
         if (section === 'guardian') { this.updateGuardianStats(); this.initGuardianChart(); }
         if (section === 'academy') { this.renderAcademyGrid(); }
+        if (section === 'scanner') { this.showScannerUpload(); }
         if (section === 'performance') { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
         if (section === 'dashboard') { this.initDashboardCharts(); this.updateDashboardStats(); }
         this.applyLanguage();
@@ -1524,6 +1655,12 @@ const App = {
             const statusLabel = trade.status === 'win' ? 'Прибыль' : (trade.status === 'loss' ? 'Убыток' : 'Без результата');
             const resultClass = trade.status === 'breakeven' ? 'result-neutral' : (trade.result.startsWith('+') ? 'result-positive' : 'result-negative');
             const sideClass = trade.side === 'BUY' ? 'side-buy' : 'side-sell';
+            // v1.1.0 — trades saved via the AI Scanner carry a `screenshot`
+            // (base64 dataURL) field; existing trades simply don't have
+            // one, so this button only renders when it's actually present.
+            const screenshotBtn = trade.screenshot
+                ? `<button class="journal-screenshot-btn" data-screenshot-id="${trade.id}" title="${this.t('scanner_view_screenshot')}">🖼️</button>`
+                : '';
             html += `<tr>
                         <td>${trade.date}</td>
                         <td class="asset-cell">${trade.asset}</td>
@@ -1534,12 +1671,21 @@ const App = {
                         <td class="${resultClass}">${trade.result}</td>
                         <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                         <td>
+                            ${screenshotBtn}
                             <button class="edit-btn" data-id="${trade.id}" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;transition:0.2s;margin-right:8px;" title="Редактировать">✎</button>
                             <button class="delete-btn" data-id="${trade.id}" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;transition:0.2s;" title="Удалить">✕</button>
                         </td>
                     </tr>`;
         });
         this.journalBody.innerHTML = html;
+
+        this.journalBody.querySelectorAll('[data-screenshot-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = parseInt(btn.dataset.screenshotId);
+                const trade = this.trades.find(t => t.id === id);
+                if (trade && trade.screenshot) this.openLightbox(trade.screenshot);
+            });
+        });
 
         this.journalBody.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1592,9 +1738,15 @@ const App = {
         this.saveState();
     },
 
-    openTradeModal(tradeId = null) {
+    openTradeModal(tradeId = null, fromScanner = false) {
         if (!this.tradeModalOverlay) return;
         this.editingTradeId = tradeId;
+        // v1.1.0 — a screenshot pending from the Scanner should only ever
+        // attach to the trade the Scanner itself is handing off. Every
+        // other way of opening this modal (+ Add Trade, Quick Actions,
+        // the empty-state CTA, editing an existing trade) clears it
+        // defensively here in one place, rather than at every call site.
+        if (!fromScanner) this.pendingScannerScreenshot = null;
         Object.values(this.tFields).forEach(el => { if (el) { el.value = ''; el.classList.remove('input-invalid'); } });
         document.querySelectorAll('#tradeModalOverlay .form-error').forEach(el => el.textContent = '');
 
@@ -1633,6 +1785,10 @@ const App = {
         if (!this.tradeModalOverlay) return;
         this.tradeModalOverlay.classList.remove('active');
         this.editingTradeId = null;
+        // v1.1.0 — if the user backs out of the modal (rather than saving),
+        // a screenshot pending from the Scanner must not linger and attach
+        // itself to some later, unrelated trade.
+        this.pendingScannerScreenshot = null;
     },
 
     validateTradeForm() {
@@ -1722,6 +1878,16 @@ const App = {
             emotionAfter: f.emotionAfter.value,
             notes: f.notes.value.trim()
         };
+        // v1.1.0 — AI Scanner screenshot attachment. Only ever added to
+        // tradeFields when a screenshot is actually pending (i.e. this
+        // Add Trade flow came from the Scanner's "Confirm" step) — the
+        // key is omitted entirely otherwise, so editing an existing trade
+        // that already has a screenshot never overwrites or clears it via
+        // the {...oldTrade, ...tradeFields} merge below, and a normal
+        // manual "+ Add Trade" never attaches a stray leftover screenshot.
+        if (this.pendingScannerScreenshot) {
+            tradeFields.screenshot = this.pendingScannerScreenshot;
+        }
 
         const isEdit = this.editingTradeId !== null;
         if (isEdit) {
@@ -1733,6 +1899,9 @@ const App = {
         }
         this.filteredTrades = [...this.trades];
         this.currentPage = 1;
+        // Consumed — cleared regardless of edit/new so it can never leak
+        // into a later, unrelated trade save.
+        this.pendingScannerScreenshot = null;
 
         this.syncAfterTradeChange();
         this.closeTradeModal();
@@ -3250,15 +3419,355 @@ const App = {
     },
 
     academyOrder: ['position_size', 'risk_per_trade', 'stop_loss', 'leverage', 'isolated_cross', 'liquidation', 'risk_management'],
+    academyOrderMarketStructure: ['fvg', 'ifvg', 'ob', 'liquidity', 'liquidity_sweep', 'bos', 'mss_choch', 'premium_discount', 'pin_bar', 'range'],
+
+    // ============================================================
+    // v1.1.0 — Market Structure illustrations
+    // Small reusable SVG candle helper so each lesson's diagram is a
+    // real (if simplified) labeled chart, not a decorative stock image.
+    // Uses CSS custom properties for color so it stays theme/accent-aware
+    // since these are inlined into the DOM, not loaded as external files.
+    // ============================================================
+    svgCandle(x, o, c, h, l, w = 16) {
+        const up = c <= o; // SVG y grows downward, so a lower y value = higher price
+        const bodyTop = Math.min(o, c);
+        const bodyBottom = Math.max(o, c);
+        const color = up ? 'var(--brand-green)' : 'var(--brand-red)';
+        return `<line x1="${x}" y1="${h}" x2="${x}" y2="${l}" stroke="${color}" stroke-width="2"/>
+                <rect x="${x - w / 2}" y="${bodyTop}" width="${w}" height="${Math.max(2, bodyBottom - bodyTop)}" fill="${color}"/>`;
+    },
+
+    svgLabel(x, y, text, anchor = 'middle') {
+        return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="11" font-weight="600" fill="var(--text-primary)" font-family="var(--font-family)">${text}</text>`;
+    },
+
+    marketStructureLessons: {
+        fvg: {
+            icon: '🕳️', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'FVG (Fair Value Gap)', en: 'FVG (Fair Value Gap)' },
+            desc: { ru: 'Ценовой разрыв между свечами, который рынок часто возвращается заполнить.', en: 'A price gap between candles that the market often returns to fill.' },
+            intro: { ru: 'FVG — это разрыв между тенью 1-й и тенью 3-й свечи в трёхсвечном движении, где 2-я свеча импульсно прошла цену без перекрытия.', en: 'An FVG is the gap between candle 1\'s wick and candle 3\'s wick in a 3-candle move, where candle 2 moved price impulsively without overlap.' },
+            body: {
+                ru: `<p>Если минимум 1-й свечи выше максимума 3-й свечи (в бычьем движении), между ними остаётся незаполненная зона — это и есть FVG.</p><p>Трейдеры отмечают такие зоны как потенциальные места, куда цена может вернуться перед продолжением движения.</p>`,
+                en: `<p>If candle 1's low sits above candle 3's high (in a bullish move), the zone between them is left unfilled — that's the FVG.</p><p>Traders mark these zones as potential areas price may return to before continuing.</p>`
+            },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <rect x="150" y="50" width="70" height="45" fill="var(--accent-a15)" stroke="var(--brand-purple)" stroke-dasharray="3,3"/>
+                ${App.svgLabel(185, 45, 'FVG')}
+                ${App.svgCandle(90, 90, 70, 60, 100)}
+                ${App.svgCandle(140, 70, 40, 30, 75)}
+                ${App.svgCandle(190, 45, 30, 20, 50)}
+                ${App.svgCandle(240, 35, 55, 25, 65)}
+                ${App.svgCandle(290, 55, 45, 40, 70)}
+            </svg>`,
+            mistakes: { ru: ['Считать, что цена ОБЯЗАНА вернуться в FVG', 'Путать любой промежуток между свечами с настоящим FVG', 'Игнорировать общий контекст тренда'], en: ['Assuming price MUST return to fill the FVG', 'Confusing any gap between candles with a true FVG', 'Ignoring the broader trend context'] },
+            warning: { ru: 'FVG — это зона интереса, а не гарантированная разворотная точка.', en: 'An FVG is a zone of interest, not a guaranteed reversal point.' },
+            askCoach: { ru: 'Объясни, что такое FVG простыми словами', en: 'Explain FVG to me in simple terms' }
+        },
+        ifvg: {
+            icon: '🔄', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'IFVG (Inverse FVG)', en: 'IFVG (Inverse FVG)' },
+            desc: { ru: 'FVG, который был пробит и поменял роль поддержки/сопротивления.', en: 'An FVG that got invalidated and flipped its support/resistance role.' },
+            intro: { ru: 'Когда цена полностью проходит через FVG (закрытие свечи за его пределами), зона может "инвертироваться" — бывшая поддержка становится сопротивлением, и наоборот.', en: 'When price fully trades through an FVG (a candle closes beyond it), the zone can "invert" — former support becomes resistance, or vice versa.' },
+            body: { ru: `<p>IFVG используют как признак смены баланса спроса/предложения в этой зоне.</p>`, en: `<p>Traders treat an IFVG as a sign that supply/demand balance in that zone has shifted.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <rect x="140" y="50" width="70" height="40" fill="none" stroke="var(--text-secondary)" stroke-dasharray="3,3"/>
+                ${App.svgLabel(175, 45, 'FVG')}
+                ${App.svgCandle(90, 90, 70, 60, 100)}
+                ${App.svgCandle(140, 70, 55, 45, 75)}
+                ${App.svgCandle(190, 55, 30, 20, 60)}
+                ${App.svgCandle(240, 100, 130, 95, 135)}
+                ${App.svgLabel(240, 148, 'IFVG →', 'middle')}
+                ${App.svgCandle(290, 125, 105, 100, 130)}
+            </svg>`,
+            mistakes: { ru: ['Считать инверсию гарантированным сигналом', 'Не дожидаться подтверждающего закрытия свечи'], en: ['Treating the inversion as a guaranteed signal', 'Not waiting for a confirming candle close'] },
+            warning: { ru: 'Инверсия зоны — это наблюдение за структурой, а не автоматический сигнал входа.', en: 'A zone inversion is a structural observation, not an automatic entry signal.' },
+            askCoach: { ru: 'Что такое IFVG и чем он отличается от FVG?', en: 'What is IFVG and how is it different from FVG?' }
+        },
+        ob: {
+            icon: '🧱', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'Order Block (OB)', en: 'Order Block (OB)' },
+            desc: { ru: 'Последняя противоположная свеча перед сильным импульсным движением.', en: 'The last opposite-direction candle before a strong impulsive move.' },
+            intro: { ru: 'Order Block — это свеча (часто последняя вниз перед сильным ростом), которую трейдеры связывают с зоной, откуда мог произойти вход крупных участников рынка.', en: 'An Order Block is a candle (often the last down candle before a strong rally) that traders associate with a zone where large participants may have entered.' },
+            body: { ru: `<p>OB отмечается как зона, к которой цена может вернуться перед продолжением движения в направлении импульса.</p>`, en: `<p>The OB is marked as a zone price may return to before continuing in the direction of the impulse.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                ${App.svgCandle(80, 60, 55, 50, 90)}
+                <rect x="112" y="70" width="36" height="30" fill="var(--accent-a15)" stroke="var(--brand-purple)" stroke-dasharray="3,3"/>
+                ${App.svgCandle(130, 70, 100, 65, 105)}
+                ${App.svgLabel(130, 130, 'OB')}
+                ${App.svgCandle(180, 95, 55, 45, 100)}
+                ${App.svgCandle(230, 55, 20, 15, 60)}
+                ${App.svgCandle(280, 20, 5, 2, 25)}
+            </svg>`,
+            mistakes: { ru: ['Отмечать OB на каждой мелкой свече без контекста импульса', 'Игнорировать таймфрейм анализа'], en: ['Marking an OB on every minor candle without impulse context', 'Ignoring the analysis timeframe'] },
+            warning: { ru: 'Order Block — предположение о зоне интереса, а не подтверждённый факт о реальных ордерах.', en: 'An Order Block is an inference about a zone of interest, not confirmed knowledge of real orders.' },
+            askCoach: { ru: 'Как определить Order Block на графике?', en: 'How do I identify an Order Block on a chart?' }
+        },
+        liquidity: {
+            icon: '💧', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
+            title: { ru: 'Ликвидность', en: 'Liquidity' },
+            desc: { ru: 'Скопления стоп-ордеров рядом с очевидными уровнями.', en: 'Clusters of stop orders resting near obvious levels.' },
+            intro: { ru: 'Ликвидность — это зоны, где, вероятно, скопились стоп-лоссы и отложенные ордера — часто около равных максимумов/минимумов.', en: 'Liquidity refers to zones where stop-losses and pending orders are likely clustered — often around equal highs/lows.' },
+            body: { ru: `<p>Равные максимумы (или минимумы) привлекают внимание, потому что многие трейдеры ставят стопы чуть выше/ниже них.</p>`, en: `<p>Equal highs (or lows) draw attention because many traders place stops just above or below them.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <line x1="60" y1="50" x2="340" y2="50" stroke="var(--brand-yellow)" stroke-dasharray="4,4" stroke-width="1.5"/>
+                ${App.svgLabel(365, 54, 'BSL', 'start')}
+                ${App.svgCandle(90, 90, 70, 50, 100)}
+                ${App.svgCandle(150, 80, 60, 50, 90)}
+                ${App.svgCandle(210, 85, 65, 50, 95)}
+                ${App.svgCandle(270, 75, 60, 50, 85)}
+            </svg>`,
+            mistakes: { ru: ['Считать, что ликвидность = гарантированное движение цены к ней', 'Игнорировать более крупные уровни на старшем таймфрейме'], en: ['Assuming liquidity guarantees price will move toward it', 'Ignoring bigger levels on a higher timeframe'] },
+            warning: { ru: 'Ликвидность объясняет, ГДЕ могут быть стопы — а не КОГДА цена туда пойдёт.', en: 'Liquidity explains WHERE stops may sit — not WHEN price will move there.' },
+            askCoach: { ru: 'Что такое ликвидность в трейдинге?', en: 'What is liquidity in trading?' }
+        },
+        liquidity_sweep: {
+            icon: '🌊', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'Liquidity Sweep', en: 'Liquidity Sweep' },
+            desc: { ru: 'Кратковременный прокол уровня ликвидности с последующим разворотом.', en: 'A brief poke through a liquidity level followed by a reversal.' },
+            intro: { ru: 'Sweep — это движение, которое ненадолго проходит за уровень (заберая стопы), а затем закрывается обратно внутри диапазона.', en: 'A sweep is a move that briefly trades through a level (taking out stops), then closes back inside the range.' },
+            body: { ru: `<p>Длинная тень за уровнем с закрытием обратно внутри — характерный признак sweep, в отличие от настоящего пробоя с закреплением цены.</p>`, en: `<p>A long wick beyond the level with a close back inside is the signature of a sweep, as opposed to a real breakout that holds.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <line x1="60" y1="60" x2="340" y2="60" stroke="var(--brand-yellow)" stroke-dasharray="4,4" stroke-width="1.5"/>
+                ${App.svgCandle(90, 95, 75, 60, 100)}
+                ${App.svgCandle(150, 85, 65, 60, 90)}
+                ${App.svgCandle(210, 78, 90, 40, 95)}
+                ${App.svgLabel(210, 30, 'Sweep')}
+                ${App.svgCandle(270, 90, 115, 85, 120)}
+                ${App.svgCandle(320, 115, 135, 110, 140)}
+            </svg>`,
+            mistakes: { ru: ['Входить сразу на проколе, не дожидаясь закрытия обратно внутри', 'Путать sweep с настоящим пробоем структуры'], en: ['Entering immediately on the poke, without waiting for a close back inside', 'Confusing a sweep with a real structural breakout'] },
+            warning: { ru: 'Не каждый прокол уровня — sweep. Настоящий пробой может просто продолжиться дальше.', en: 'Not every poke through a level is a sweep. A real breakout can simply continue.' },
+            askCoach: { ru: 'Как отличить sweep ликвидности от настоящего пробоя?', en: 'How do I tell a liquidity sweep apart from a real breakout?' }
+        },
+        bos: {
+            icon: '📈', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 3,
+            title: { ru: 'BOS (Break of Structure)', en: 'BOS (Break of Structure)' },
+            desc: { ru: 'Пробой предыдущего значимого максимума/минимума в сторону тренда.', en: 'A break of the previous significant high/low in the direction of the trend.' },
+            intro: { ru: 'BOS — это закрытие цены за пределами предыдущего важного свинг-максимума (в восходящем тренде) или минимума (в нисходящем), подтверждающее продолжение тренда.', en: 'A BOS is a close beyond the previous significant swing high (in an uptrend) or low (in a downtrend), confirming trend continuation.' },
+            body: { ru: `<p>BOS используется как подтверждение того, что структура рынка остаётся неизменной — тренд продолжается.</p>`, en: `<p>BOS is used to confirm that market structure remains intact — the trend is continuing.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <line x1="120" y1="55" x2="240" y2="55" stroke="var(--text-secondary)" stroke-dasharray="4,4"/>
+                ${App.svgCandle(80, 100, 80, 60, 110)}
+                ${App.svgCandle(130, 78, 60, 55, 85)}
+                ${App.svgCandle(180, 90, 70, 60, 95)}
+                ${App.svgCandle(230, 65, 40, 30, 70)}
+                ${App.svgLabel(255, 25, 'BOS')}
+                ${App.svgCandle(280, 45, 20, 15, 50)}
+            </svg>`,
+            mistakes: { ru: ['Путать BOS с MSS/CHOCH (сменой характера)', 'Игнорировать таймфрейм, на котором отмечена структура'], en: ['Confusing BOS with MSS/CHOCH (a character change)', 'Ignoring which timeframe the structure was marked on'] },
+            warning: { ru: 'BOS подтверждает продолжение существующего тренда — это не то же самое, что разворот.', en: 'A BOS confirms continuation of the existing trend — it is not the same thing as a reversal.' },
+            askCoach: { ru: 'Что такое BOS и чем он отличается от CHOCH?', en: 'What is BOS and how is it different from CHOCH?' }
+        },
+        mss_choch: {
+            icon: '🔀', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
+            title: { ru: 'MSS / CHOCH', en: 'MSS / CHOCH' },
+            desc: { ru: 'Смена характера рынка — первый признак возможного разворота тренда.', en: 'A change of character — the first sign of a possible trend reversal.' },
+            intro: { ru: 'MSS (Market Structure Shift) / CHOCH (Change of Character) — это пробой структуры ПРОТИВ текущего тренда, в отличие от BOS, который идёт ПО тренду.', en: 'MSS (Market Structure Shift) / CHOCH (Change of Character) is a structure break AGAINST the current trend, unlike BOS which goes WITH the trend.' },
+            body: { ru: `<p>Например, в нисходящем тренде цена вдруг закрывается выше последнего значимого минорного максимума — это первый сигнал, что структура может меняться.</p>`, en: `<p>For example, in a downtrend, price suddenly closes above the last minor swing high — that's the first signal structure may be changing.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <line x1="150" y1="70" x2="260" y2="70" stroke="var(--text-secondary)" stroke-dasharray="4,4"/>
+                ${App.svgCandle(80, 40, 55, 35, 60)}
+                ${App.svgCandle(130, 60, 75, 55, 80)}
+                ${App.svgCandle(180, 80, 95, 75, 100)}
+                ${App.svgCandle(230, 90, 65, 60, 95)}
+                ${App.svgLabel(250, 40, 'CHOCH')}
+                ${App.svgCandle(280, 60, 35, 25, 65)}
+            </svg>`,
+            mistakes: { ru: ['Ждать полного разворота тренда сразу после первого CHOCH', 'Принимать любой мелкий откат за смену характера'], en: ['Expecting a full trend reversal immediately after the first CHOCH', 'Treating every minor pullback as a character change'] },
+            warning: { ru: 'MSS/CHOCH сигнализирует о ВОЗМОЖНОЙ смене тренда — а не гарантирует её.', en: 'MSS/CHOCH signals a POSSIBLE trend change — it does not guarantee one.' },
+            askCoach: { ru: 'Объясни разницу между MSS и CHOCH', en: 'Explain the difference between MSS and CHOCH' }
+        },
+        premium_discount: {
+            icon: '⚖️', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 3,
+            title: { ru: 'Premium / Discount', en: 'Premium / Discount' },
+            desc: { ru: 'Верхняя и нижняя половина диапазона относительно его середины.', en: 'The upper and lower half of a range relative to its midpoint.' },
+            intro: { ru: 'Разделив диапазон между значимым максимумом и минимумом пополам, верхнюю половину называют Premium (дорого), нижнюю — Discount (дёшево).', en: 'Splitting the range between a significant high and low in half, the upper half is called Premium (expensive), the lower half Discount (cheap).' },
+            body: { ru: `<p>Покупки чаще ищут в Discount-зоне, продажи — в Premium-зоне, относительно текущего диапазона.</p>`, en: `<p>Buys are more often sought in the Discount zone, sells in the Premium zone, relative to the current range.</p>` },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <rect x="40" y="20" width="320" height="60" fill="rgba(239,68,68,0.08)"/>
+                <rect x="40" y="80" width="320" height="60" fill="rgba(67,198,160,0.08)"/>
+                <line x1="40" y1="80" x2="360" y2="80" stroke="var(--text-secondary)" stroke-dasharray="4,4"/>
+                ${App.svgLabel(60, 35, 'Premium', 'start')}
+                ${App.svgLabel(60, 135, 'Discount', 'start')}
+                ${App.svgCandle(120, 60, 40, 30, 70)}
+                ${App.svgCandle(180, 100, 120, 90, 130)}
+                ${App.svgCandle(240, 70, 50, 40, 80)}
+                ${App.svgCandle(300, 110, 90, 85, 115)}
+            </svg>`,
+            mistakes: { ru: ['Использовать неверные точки для определения диапазона', 'Игнорировать общий тренд при оценке premium/discount'], en: ['Using the wrong points to define the range', 'Ignoring the overall trend when judging premium/discount'] },
+            warning: { ru: 'Premium/Discount — это относительная зона внутри выбранного диапазона, а не абсолютная оценка "дорого/дёшево".', en: 'Premium/Discount is a relative zone within a chosen range, not an absolute "expensive/cheap" judgment.' },
+            askCoach: { ru: 'Что такое Premium и Discount зоны?', en: 'What are Premium and Discount zones?' }
+        },
+        pin_bar: {
+            icon: '📍', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
+            title: { ru: 'Pin Bar', en: 'Pin Bar' },
+            desc: { ru: 'Свеча с маленьким телом и длинной тенью отказа от цены.', en: 'A candle with a small body and a long rejection wick.' },
+            intro: { ru: 'Pin Bar — это свеча с небольшим телом и заметно длинной тенью в одну сторону, показывающая, что цена была отвергнута на этом уровне.', en: 'A Pin Bar is a candle with a small body and a noticeably long wick on one side, showing price was rejected at that level.' },
+            body: {
+                ru: `<p>Бычий Pin Bar — длинная нижняя тень (отказ от продаж снизу). Медвежий — длинная верхняя тень (отказ от покупок сверху).</p>`,
+                en: `<p>A bullish Pin Bar has a long lower wick (rejection of selling below). A bearish Pin Bar has a long upper wick (rejection of buying above).</p>`
+            },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                ${App.svgCandle(110, 60, 55, 50, 130)}
+                ${App.svgLabel(110, 148, 'Bullish')}
+                ${App.svgCandle(290, 40, 45, 25, 100)}
+                ${App.svgLabel(290, 148, 'Bearish')}
+            </svg>`,
+            mistakes: { ru: ['Торговать Pin Bar как автоматический сигнал входа без контекста', 'Игнорировать, где именно на графике появился Pin Bar'], en: ['Trading a Pin Bar as an automatic entry signal without context', 'Ignoring where on the chart the Pin Bar appeared'] },
+            warning: { ru: 'Pin Bar — это не автоматический сигнал на вход. Контекст (уровень, тренд, структура) решает, имеет ли он значение.', en: 'A Pin Bar is not an automatic entry signal. Context (level, trend, structure) determines whether it matters.' },
+            askCoach: { ru: 'Что такое Pin Bar и как его правильно использовать?', en: 'What is a Pin Bar and how should I use it properly?' }
+        },
+        range: {
+            icon: '📏', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
+            title: { ru: 'Range (Диапазон)', en: 'Range' },
+            desc: { ru: 'Консолидация цены между чётким максимумом и минимумом.', en: 'Price consolidating between a clear high and low.' },
+            intro: { ru: 'Range — это период, когда цена движется между относительно стабильными верхней (range high) и нижней (range low) границами.', en: 'A range is a period when price moves between relatively stable upper (range high) and lower (range low) boundaries.' },
+            body: {
+                ru: `<p>Вокруг границ диапазона часто скапливается ликвидность. Ложный пробой (sweep) одной из границ с возвратом внутрь — частый паттерн перед движением в противоположную сторону.</p>`,
+                en: `<p>Liquidity often clusters around the range boundaries. A false breakout (sweep) of one boundary followed by a return inside is a common pattern before a move the other way.</p>`
+            },
+            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <line x1="40" y1="40" x2="360" y2="40" stroke="var(--brand-yellow)" stroke-dasharray="4,4"/>
+                <line x1="40" y1="120" x2="360" y2="120" stroke="var(--brand-yellow)" stroke-dasharray="4,4"/>
+                ${App.svgLabel(60, 33, 'Range High', 'start')}
+                ${App.svgLabel(60, 133, 'Range Low', 'start')}
+                ${App.svgCandle(90, 60, 45, 40, 65)}
+                ${App.svgCandle(140, 100, 115, 95, 120)}
+                ${App.svgCandle(190, 70, 90, 60, 95)}
+                ${App.svgCandle(240, 55, 30, 20, 60)}
+                ${App.svgLabel(240, 12, 'Sweep')}
+                ${App.svgCandle(290, 70, 95, 65, 100)}
+            </svg>`,
+            mistakes: { ru: ['Торговать пробой диапазона сразу, не дожидаясь подтверждения', 'Игнорировать возможность ложного пробоя (sweep) границы'], en: ['Trading a range breakout immediately without waiting for confirmation', 'Ignoring the possibility of a false breakout (sweep) at the boundary'] },
+            warning: { ru: 'Не каждый выход за границу диапазона — настоящий пробой. Проверяйте закрытие свечи и объём/контекст.', en: 'Not every move outside the range boundary is a real breakout. Check the candle close and volume/context.' },
+            askCoach: { ru: 'Как правильно торговать диапазон?', en: 'How should I approach trading a range?' }
+        }
+    },
+
+    // ============================================================
+    // v1.1.0 — AI SCANNER
+    // No vision-AI backend exists in this build, so this never invents
+    // detected values — every field starts genuinely empty/"not detected"
+    // and is filled in by the user. Confirming hands off to the SAME
+    // existing Add Trade modal (openTradeModal → submitTradeForm), so
+    // there is exactly one trade-storage path, one validation path, and
+    // one save path in the whole app.
+    // ============================================================
+    scannerStructureList: ['fvg', 'ifvg', 'ob', 'liquidity', 'liquidity_sweep', 'bos', 'mss_choch', 'premium_discount'],
+    scannerStructureLabels: {
+        fvg: 'FVG', ifvg: 'IFVG', ob: 'OB', liquidity: 'Liquidity',
+        liquidity_sweep: 'Liquidity Sweep', bos: 'BOS', mss_choch: 'MSS / CHOCH', premium_discount: 'Premium / Discount'
+    },
+    scannerStructureLessonMap: {
+        fvg: 'fvg', ifvg: 'ifvg', ob: 'ob', liquidity: 'liquidity', liquidity_sweep: 'liquidity_sweep',
+        bos: 'bos', mss_choch: 'mss_choch', premium_discount: 'premium_discount'
+    },
+
+    showScannerUpload() {
+        this.scannerScreenshot = null;
+        this.scannerDirection = 'long';
+        if (this.scannerUploadView) this.scannerUploadView.style.display = 'block';
+        if (this.scannerReviewView) this.scannerReviewView.style.display = 'none';
+        if (this.scannerFileInput) this.scannerFileInput.value = '';
+    },
+
+    handleScannerFile(file) {
+        if (!file) return;
+        const en = this.currentLang === 'en';
+        if (!file.type.startsWith('image/')) { this.showToast(en ? 'Please choose an image file' : 'Пожалуйста, выберите файл изображения'); return; }
+        if (file.size > 5 * 1024 * 1024) { this.showToast(en ? 'Image must be under 5MB' : 'Изображение должно быть меньше 5МБ'); return; }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            this.scannerScreenshot = ev.target.result;
+            this.renderScannerReview();
+        };
+        reader.readAsDataURL(file);
+    },
+
+    renderScannerReview() {
+        const en = this.currentLang === 'en';
+        if (this.scannerPreviewImg) this.scannerPreviewImg.src = this.scannerScreenshot;
+        if (this.scannerConfidenceNote) this.scannerConfidenceNote.innerHTML = `<span class="scanner-confidence-badge">${this.t('scanner_confidence_label')}</span>`;
+
+        // Reset every field to genuinely empty ("not detected") — nothing
+        // here is ever pre-filled with a guessed value.
+        [this.scannerAsset, this.scannerTimeframe, this.scannerEntry, this.scannerStopLoss, this.scannerTakeProfit, this.scannerSetup].forEach(el => { if (el) el.value = ''; });
+        [this.scannerAsset, this.scannerTimeframe, this.scannerEntry, this.scannerStopLoss, this.scannerTakeProfit].forEach(el => { if (el) el.placeholder = this.t('scanner_not_detected'); });
+        this.scannerDirection = 'long';
+        if (document.getElementById('scannerDirLong')) { document.getElementById('scannerDirLong').classList.add('active'); document.getElementById('scannerDirShort').classList.remove('active'); }
+
+        if (this.scannerStructuresGrid) {
+            let html = '';
+            this.scannerStructureList.forEach(key => {
+                html += `<label class="scanner-structure-chip" data-structure="${key}"><input type="checkbox" data-structure-cb="${key}"> ${this.scannerStructureLabels[key]} <a href="#" class="ms-learn-link" data-learn="${key}">${this.t('scanner_learn_more')} →</a></label>`;
+            });
+            this.scannerStructuresGrid.innerHTML = html;
+            this.scannerStructuresGrid.querySelectorAll('[data-structure-cb]').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    cb.closest('.scanner-structure-chip').classList.toggle('checked', cb.checked);
+                });
+            });
+            this.scannerStructuresGrid.querySelectorAll('[data-learn]').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    const lessonId = this.scannerStructureLessonMap[link.dataset.learn];
+                    if (lessonId) this.openMarketStructureLessonFromScanner(lessonId);
+                });
+            });
+        }
+
+        if (this.scannerUploadView) this.scannerUploadView.style.display = 'none';
+        if (this.scannerReviewView) this.scannerReviewView.style.display = 'block';
+    },
+
+    openMarketStructureLessonFromScanner(lessonId) {
+        this.navItems.forEach(n => n.classList.remove('active'));
+        const targetNav = Array.from(this.navItems).find(n => n.dataset.section === 'academy');
+        if (targetNav) targetNav.classList.add('active');
+        this.showSection('academy');
+        this.openAcademyLesson(lessonId);
+    },
+
+    // Confirm never writes to the Journal itself — it hands the user's own
+    // manually-entered values to the existing Add Trade modal, so the
+    // existing validation and the existing "Save" button are still the
+    // only thing that actually creates a trade record.
+    confirmScannerResult() {
+        const asset = (this.scannerAsset?.value || '').trim();
+        const entry = this.scannerEntry?.value || '';
+        const stopLoss = this.scannerStopLoss?.value || '';
+        const takeProfit = this.scannerTakeProfit?.value || '';
+        const timeframe = (this.scannerTimeframe?.value || '').trim();
+        const setup = (this.scannerSetup?.value || '').trim();
+        const checkedStructures = Array.from(this.scannerStructuresGrid?.querySelectorAll('[data-structure-cb]:checked') || []).map(cb => this.scannerStructureLabels[cb.dataset.structureCb]);
+
+        const en = this.currentLang === 'en';
+        let notes = setup;
+        if (timeframe) notes = `[${timeframe}] ` + notes;
+        if (stopLoss) notes += (notes ? ' | ' : '') + 'SL: ' + stopLoss;
+        if (takeProfit) notes += (notes ? ' | ' : '') + 'TP: ' + takeProfit;
+        if (checkedStructures.length) notes += (notes ? ' | ' : '') + (en ? 'Structures: ' : 'Структуры: ') + checkedStructures.join(', ');
+
+        // Pending screenshot is picked up by submitTradeForm() and attached
+        // to the trade only once the user actually saves it there.
+        this.pendingScannerScreenshot = this.scannerScreenshot;
+
+        this.openTradeModal(null, true);
+        if (this.tFields.asset) this.tFields.asset.value = asset;
+        if (this.tFields.direction) this.tFields.direction.value = this.scannerDirection;
+        if (this.tFields.entry) this.tFields.entry.value = entry;
+        if (this.tFields.exit) this.tFields.exit.value = takeProfit || '';
+        if (this.tFields.notes) this.tFields.notes.value = notes;
+    },
 
     renderAcademyGrid() {
         if (!this.academyGrid) return;
         this.showAcademyGrid();
         const en = this.currentLang === 'en';
-        let html = '';
-        this.academyOrder.forEach(id => {
-            const l = this.academyLessons[id];
-            html += `
+        const cardsHtml = (order, source) => order.map(id => {
+            const l = source[id];
+            return `
                 <div class="academy-card">
                     <div class="academy-card-icon">${l.icon}</div>
                     <h4>${l.title[en ? 'en' : 'ru']}</h4>
@@ -3269,10 +3778,16 @@ const App = {
                     </div>
                     <button class="btn-secondary" data-lesson="${id}">${en ? 'Open lesson' : 'Открыть урок'}</button>
                 </div>`;
-        });
-        this.academyGrid.innerHTML = html;
-        this.academyGrid.querySelectorAll('[data-lesson]').forEach(btn => {
-            btn.addEventListener('click', () => this.openAcademyLesson(btn.dataset.lesson));
+        }).join('');
+
+        this.academyGrid.innerHTML = cardsHtml(this.academyOrder, this.academyLessons);
+        if (this.academyGridMS) this.academyGridMS.innerHTML = cardsHtml(this.academyOrderMarketStructure, this.marketStructureLessons);
+
+        [this.academyGrid, this.academyGridMS].forEach(grid => {
+            if (!grid) return;
+            grid.querySelectorAll('[data-lesson]').forEach(btn => {
+                btn.addEventListener('click', () => this.openAcademyLesson(btn.dataset.lesson));
+            });
         });
     },
 
@@ -3282,7 +3797,7 @@ const App = {
     },
 
     openAcademyLesson(id) {
-        const lesson = this.academyLessons[id];
+        const lesson = this.academyLessons[id] || this.marketStructureLessons[id];
         if (!lesson || !this.academyLessonBody) return;
         this.currentLessonId = id;
         const en = this.currentLang === 'en';
@@ -3293,6 +3808,9 @@ const App = {
             <p class="lesson-intro">${lesson.intro[lang]}</p>
             <section>${lesson.body[lang]}</section>`;
 
+        if (lesson.svg) {
+            html += `<section><div class="lesson-illustration">${lesson.svg()}</div></section>`;
+        }
         if (lesson.formula) {
             html += `<section><h5>${en ? 'Formula' : 'Формула'}</h5><div class="lesson-formula">${lesson.formula[lang]}</div></section>`;
         }
