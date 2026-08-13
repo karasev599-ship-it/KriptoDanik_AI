@@ -1,0 +1,13 @@
+{
+  "name": "KriptoDanik AI",
+  "short_name": "KriptoDanik",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
+  "description": "Аналитика, журнал сделок, дисциплина и AI-коуч.",
+  "icons": [
+    {"src":"assets/logo-brand.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"assets/logo-brand.png","sizes":"512x512","type":"image/png","purpose":"any"}
+  ]
+}

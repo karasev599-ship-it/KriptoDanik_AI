@@ -33,6 +33,16 @@ const App = {
     accentPalette: ['purple', 'blue', 'green', 'yellow', 'red'],
 
     aiHistory: [],
+    strategies: [],
+    builtInStrategy: {
+        id: 'builtin_owner_strategy', protected: true, name: 'My Built-in Strategy', market: 'Crypto', timeframe: '4H → 5M',
+        tags: ['Built-in','Protected','4H → 5M','Pin Bar','Range','FVG','IFVG'],
+        entry: 'На 4H определить максимум и минимум предыдущей сессии. Перенести уровни на 5M и искать ТВХ по Pin Bar, Range, FVG или IFVG. Обязательное условие: должно быть подтверждение.',
+        exit: 'Точные правила выхода не заданы в исходном ТЗ.',
+        notes: 'Точное определение confirmation владельцем стратегии ещё не задано. Не добавлять самостоятельно дополнительные условия, фильтры или правила.',
+        createdAt: '2026-08-13T00:00:00.000Z'
+    },
+    challenge: {},
 
     translations: {
         ru: {
@@ -47,6 +57,7 @@ const App = {
             nav_academy: 'Академия',
             nav_strategy: 'Библиотека стратегий',
             nav_marketpulse: 'Market Pulse',
+            nav_challenge: 'Prop Challenge',
             online: 'AI подключен',
             balance: 'Баланс',
             balance_live: 'Актуальный баланс',
@@ -200,7 +211,7 @@ const App = {
             qa_open_journal: 'Open Journal',
             qa_open_guardian: 'Open Guardian',
             qa_open_analytics: 'Open Analytics',
-            dash_welcome_title: 'Welcome to KriptoDanik AI',
+            dash_welcome_title: 'Добро пожаловать в KriptoDanik AI',
             dash_welcome_no_data: 'No trading data yet',
             dash_welcome_cta: 'Start by recording your first trade.',
             coach_snapshot: 'AI Coach',
@@ -274,6 +285,7 @@ const App = {
             if (dashNav) dashNav.classList.add('active');
             this.showSection('dashboard');
         }
+        this.startMarketPulseAutoRefresh();
         console.log('KriptoDanik AI Release Candidate initialized.');
     },
 
@@ -295,6 +307,8 @@ const App = {
                 this.guardianRules = state.guardianRules || [];
                 this.guardianViolations = state.guardianViolations || [];
                 this.aiHistory = state.aiHistory || [];
+                this.strategies = Array.isArray(state.strategies) ? state.strategies.filter(s => !s.protected) : [];
+                this.challenge = state.challenge || {};
             }
         } catch (e) { console.warn('Failed to load state:', e); }
     },
@@ -309,7 +323,9 @@ const App = {
                 events: this.events,
                 guardianRules: this.guardianRules,
                 guardianViolations: this.guardianViolations,
-                aiHistory: this.aiHistory
+                aiHistory: this.aiHistory,
+                strategies: this.strategies || [],
+                challenge: this.challenge || {}
             };
             localStorage.setItem('kriptodanik_state', JSON.stringify(state));
         } catch (e) { console.warn('Failed to save state:', e); }
@@ -326,6 +342,8 @@ const App = {
         if (this.guardianRules.length !== 6) this.initGuardianRuleDefinitions();
         this.currentDate = new Date();
         this.selectedDate = new Date();
+        if (!Array.isArray(this.strategies)) this.strategies = [];
+        if (!this.challenge || typeof this.challenge !== 'object') this.challenge = {};
     },
 
     initGuardianRuleDefinitions() {
@@ -360,6 +378,10 @@ const App = {
     cacheElements() {
         this.navItems = document.querySelectorAll('.nav-item');
         this.sections = {
+            strategy: document.getElementById('section-strategy'),
+            marketpulse: document.getElementById('section-marketpulse'),
+            propintel: document.getElementById('section-propintel'),
+            challenge: document.getElementById('section-challenge'),
             dashboard: document.getElementById('section-dashboard'),
             journal: document.getElementById('section-journal'),
             analytics: document.getElementById('section-analytics'),
@@ -532,6 +554,46 @@ const App = {
         this.scannerStructuresGrid = document.getElementById('scannerStructuresGrid');
         this.scannerCancelBtn = document.getElementById('scannerCancelBtn');
         this.scannerConfirmBtn = document.getElementById('scannerConfirmBtn');
+
+        this.strategyGrid = document.getElementById('strategyGrid');
+        this.strategyEmpty = document.getElementById('strategyEmpty');
+        this.strategySearch = document.getElementById('strategySearch');
+        this.strategyFilter = document.getElementById('strategyFilter');
+        this.strategyAddBtn = document.getElementById('strategyAddBtn');
+        this.strategyEmptyBtn = document.getElementById('strategyEmptyBtn');
+        this.marketPulseGrid = document.getElementById('marketPulseGrid');
+        this.marketRefreshBtn = document.getElementById('marketRefreshBtn');
+        this.marketLiveStatus = document.getElementById('marketLiveStatus');
+        this.marketLastUpdated = document.getElementById('marketLastUpdated');
+        this.marketLatency = document.getElementById('marketLatency');
+        this.marketRefreshTimer = null;
+        this.challengeSummary = document.getElementById('challengeSummary');
+        this.challengeProgressBar = document.getElementById('challengeProgressBar');
+        this.challengeStepTitle = document.getElementById('challengeStepTitle');
+        this.challengeStatus = document.getElementById('challengeStatus');
+        this.challengeProfitText = document.getElementById('challengeProfitText');
+        this.challengeTargetText = document.getElementById('challengeTargetText');
+        this.challengeRulesList = document.getElementById('challengeRulesList');
+        this.challengeChecks = document.getElementById('challengeChecks');
+        this.challengeSettingsBtn = document.getElementById('challengeSettingsBtn');
+        this.challengeSettingsPanel = document.getElementById('challengeSettingsPanel');
+        this.challengeSaveBtn = document.getElementById('challengeSaveBtn');
+        this.challengeName = document.getElementById('challengeName');
+        this.challengeCapital = document.getElementById('challengeCapital');
+        this.challengeTarget1 = document.getElementById('challengeTarget1');
+        this.challengeTarget2 = document.getElementById('challengeTarget2');
+        this.challengeDaily = document.getElementById('challengeDaily');
+        this.challengeMaxDD = document.getElementById('challengeMaxDD');
+        this.propIntelRefreshBtn = document.getElementById('propIntelRefreshBtn');
+        this.intelOpenChallenge = document.getElementById('intelOpenChallenge');
+        this.intelNewsList = document.getElementById('intelNewsList');
+        this.intelNewsTabs = document.getElementById('intelNewsTabs');
+        this.intelEconomicList = document.getElementById('intelEconomicList');
+        this.intelImportantEvents = document.getElementById('intelImportantEvents');
+        this.propDirectory = document.getElementById('propDirectory');
+        this.propRulesExplained = document.getElementById('propRulesExplained');
+        this.propPitfalls = document.getElementById('propPitfalls');
+        this.sessionTimeline = document.getElementById('sessionTimeline');
         this.screenshotLightbox = document.getElementById('screenshotLightbox');
         this.lightboxImg = document.getElementById('lightboxImg');
         this.lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
@@ -730,6 +792,17 @@ const App = {
         if (this.scannerBackBtn) this.scannerBackBtn.addEventListener('click', () => this.showScannerUpload());
         if (this.scannerCancelBtn) this.scannerCancelBtn.addEventListener('click', () => this.showScannerUpload());
         if (this.scannerConfirmBtn) this.scannerConfirmBtn.addEventListener('click', () => this.confirmScannerResult());
+
+        if (this.strategyAddBtn) this.strategyAddBtn.addEventListener('click', () => this.openStrategyModal());
+        if (this.strategyEmptyBtn) this.strategyEmptyBtn.addEventListener('click', () => this.openStrategyModal());
+        if (this.strategySearch) this.strategySearch.addEventListener('input', () => this.renderStrategyLibrary());
+        if (this.strategyFilter) this.strategyFilter.addEventListener('change', () => this.renderStrategyLibrary());
+        if (this.marketRefreshBtn) this.marketRefreshBtn.addEventListener('click', () => this.loadMarketPulse());
+        if (this.challengeSettingsBtn) this.challengeSettingsBtn.addEventListener('click', () => this.toggleChallengeSettings());
+        if (this.challengeSaveBtn) this.challengeSaveBtn.addEventListener('click', () => this.saveChallengeSettings());
+        if (this.propIntelRefreshBtn) this.propIntelRefreshBtn.addEventListener('click', () => this.loadPropIntelligence());
+        if (this.intelOpenChallenge) this.intelOpenChallenge.addEventListener('click', () => goTo('challenge'));
+        if (this.intelNewsTabs) this.intelNewsTabs.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { this.intelNewsTabs.querySelectorAll('button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); this.renderIntelNews(b.dataset.newsCat); }));
         const scannerDirLong = document.getElementById('scannerDirLong');
         const scannerDirShort = document.getElementById('scannerDirShort');
         if (scannerDirLong) scannerDirLong.addEventListener('click', () => { this.scannerDirection = 'long'; scannerDirLong.classList.add('active'); scannerDirShort.classList.remove('active'); });
@@ -1019,6 +1092,7 @@ const App = {
         { key: 'academy', nav: 'academy' },
         { key: 'strategy', nav: 'strategy' },
         { key: 'marketpulse', nav: 'marketpulse' },
+        { key: 'challenge', nav: 'challenge' },
         { key: 'analytics', nav: 'analytics' },
         { key: 'performance', nav: 'performance' },
         { key: 'guardian', nav: 'guardian' },
@@ -1037,8 +1111,9 @@ const App = {
             journal: { title: 'Journal', body: 'Journal — это единый источник правды для всего приложения. Каждая сделка, которую вы здесь фиксируете, питает Dashboard, Analytics, Performance и Guardian. Записывайте сюда каждую сделку сразу после её закрытия.' },
             calendar: { title: 'Calendar', body: 'Календарь показывает ваши сделки и события по дням. Используйте его, чтобы увидеть, в какие дни вы торговали, и планировать заметки, анализы или перерывы заранее.' },
             academy: { title: 'Academy', body: 'Академия — обучающий раздел про риск-менеджмент, размер позиции, плечо и ликвидацию, с практическим калькулятором позиции. Материалы объясняют концепции — Guardian отдельно проверяет ваши реальные сделки.' },
-            strategy: { title: 'Библиотека стратегий', body: 'Здесь в будущем вы сможете сохранять и оформлять свои торговые стратегии в структурированном виде, чтобы AI Coach мог сверять с ними ваши реальные сделки. Раздел пока в разработке.' },
-            marketpulse: { title: 'Market Pulse', body: 'Market Pulse станет разделом с рыночными новостями и контекстом — без сигналов и прогнозов, только фактическая информация для вашего собственного анализа. Раздел пока в разработке.' },
+            strategy: { title: 'Библиотека стратегий', body: 'Здесь хранятся твои торговые системы: правила входа, стопа, выхода и фильтры. AI Coach помогает сверять журнал с заданными правилами.' },
+            marketpulse: { title: 'Market Pulse', body: 'Здесь можно посмотреть актуальный контекст по доступным рынкам. Никаких сигналов и прогнозов — только данные для собственного анализа.' },
+            challenge: { title: 'Prop Challenge', body: 'Здесь ты ведёшь отдельный контроль челленджа. Правила задаёшь сам, а прогресс считается только по реальным сделкам из Journal.' },
             analytics: { title: 'Analytics', body: 'Здесь ваша статистика раскладывается по полочкам: Win Rate, Profit Factor, лучшие и худшие сделки, серии побед и поражений. Загляните сюда, когда захотите понять, что реально работает в вашей торговле.' },
             performance: { title: 'Performance', body: 'Performance показывает динамику во времени — помесячно и по торговым сессиям. Полезно раз в неделю или в месяц, чтобы увидеть общий тренд, а не отдельную сделку.' },
             guardian: { title: 'Guardian', body: 'Guardian следит за соблюдением ваших собственных правил риск-менеджмента и дисциплины и подсвечивает нарушения. Он начнёт работать, как только появятся первые сделки.' },
@@ -1058,8 +1133,9 @@ const App = {
             journal: { title: 'Journal', body: 'The Journal is the single source of truth for the whole app. Every trade you log here feeds the Dashboard, Analytics, Performance, and Guardian. Log each trade right after you close it.' },
             calendar: { title: 'Calendar', body: 'The Calendar shows your trades and events by day. Use it to see which days you traded, and to plan notes, reviews, or breaks ahead of time.' },
             academy: { title: 'Academy', body: 'Academy is an educational section covering risk management, position size, leverage, and liquidation, with a practical position-size calculator. It teaches the concepts — Guardian separately checks your real trades.' },
-            strategy: { title: 'Strategy Library', body: 'This will let you save and structure your own trading strategies, so the AI Coach can check your real trades against them. Still in development.' },
-            marketpulse: { title: 'Market Pulse', body: 'Market Pulse will bring market news and context — no signals, no predictions, just factual information for your own analysis. Still in development.' },
+            strategy: { title: 'Strategy Library', body: 'Store your trading systems here: entry, stop, exit and filter rules. AI Coach can help compare Journal data with your rules.' },
+            marketpulse: { title: 'Market Pulse', body: 'See current context for supported markets. No signals or predictions — only data for your own analysis.' },
+            challenge: { title: 'Prop Challenge', body: 'Track your challenge separately. You define the rules; progress is calculated only from real Journal trades.' },
             analytics: { title: 'Analytics', body: 'This breaks your stats down in detail: win rate, profit factor, best and worst trades, winning and losing streaks. Come here when you want to understand what\'s actually working in your trading.' },
             performance: { title: 'Performance', body: 'Performance shows your trend over time — monthly and by trading session. Useful weekly or monthly, to see the bigger picture rather than a single trade.' },
             guardian: { title: 'Guardian', body: 'Guardian watches whether you\'re sticking to your own risk-management and discipline rules, and flags violations. It starts working as soon as you log your first trades.' },
@@ -1076,7 +1152,7 @@ const App = {
         if (!this.coachTourOverlay) return;
         this.tourStepIndex = 0;
         this.goToTourStep(0);
-        this.coachTourOverlay.classList.add('active');
+        this.coachTourOverlay.classList.add('active'); this.coachTourOverlay.setAttribute('aria-hidden','false');
     },
 
     goToTourStep(index) {
@@ -1113,7 +1189,7 @@ const App = {
     },
 
     finishCoachTour() {
-        if (this.coachTourOverlay) this.coachTourOverlay.classList.remove('active');
+        if (this.coachTourOverlay) { this.coachTourOverlay.classList.remove('active'); this.coachTourOverlay.setAttribute('aria-hidden','true'); }
         this.navItems.forEach(n => n.classList.remove('tour-highlight'));
         // Only now does the Dashboard actually open.
         this.navItems.forEach(n => n.classList.remove('active'));
@@ -1302,8 +1378,134 @@ const App = {
         if (section === 'scanner') { this.showScannerUpload(); }
         if (section === 'performance') { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
         if (section === 'dashboard') { this.initDashboardCharts(); this.updateDashboardStats(); }
+        if (section === 'strategy') { this.renderStrategyLibrary(); }
+        if (section === 'marketpulse') { this.renderMarketPulseLoading(); this.loadMarketPulse(); }
+        if (section === 'propintel') { this.loadPropIntelligence(); }
+        if (section === 'challenge') { this.renderChallenge(); }
         this.applyLanguage();
     },
+
+    // ============================================================
+    // STRATEGY LIBRARY / MARKET PULSE / PROP CHALLENGE
+    // ============================================================
+    renderStrategyLibrary() {
+        if (!this.strategyGrid || !this.strategyEmpty) return;
+        const q=(this.strategySearch?.value||'').trim().toLowerCase(), filter=this.strategyFilter?.value||'all';
+        const list=[this.builtInStrategy,...(this.strategies||[]).filter(x=>!x.protected)].filter(x=>{const hay=[x.name,x.market,x.timeframe,x.entry,x.exit,x.notes,...(x.tags||[])].join(' ').toLowerCase(); return (!q||hay.includes(q))&&(filter==='all'||(filter==='active'?!x.archived:!!x.archived));});
+        this.strategyEmpty.style.display=list.length?'none':'block';
+        this.strategyGrid.innerHTML=list.map(s=>s.protected?`<article class="strategy-card glass-panel strategy-protected"><div class="strategy-card-head"><div><span class="module-eyebrow">BUILT-IN · PROTECTED</span><h3>${this.escapeHtml(s.name)}</h3></div><span class="strategy-protected-badge">🔒 Protected</span></div><div class="strategy-tags">${s.tags.map(t=>`<span>${this.escapeHtml(t)}</span>`).join('')}</div><div class="strategy-rule"><b>Логика</b><p>${this.escapeHtml(s.entry)}</p></div><div class="strategy-rule"><b>Выход</b><p>${this.escapeHtml(s.exit)}</p></div><div class="strategy-rule"><b>Ограничение</b><p>${this.escapeHtml(s.notes)}</p></div><div class="strategy-footer"><span>Оригинальная стратегия владельца продукта</span><span class="strategy-lock-note">Редактирование и удаление недоступны</span></div></article>`:`<article class="strategy-card glass-panel ${s.archived?'is-archived':''}"><div class="strategy-card-head"><div><span class="module-eyebrow">${s.market||'MARKET'} · ${s.timeframe||'—'}</span><h3>${this.escapeHtml(s.name)}</h3></div><button class="icon-btn" data-strategy-action="archive" data-id="${s.id}">${s.archived?'↩':'⌁'}</button></div><div class="strategy-tags">${(s.tags||[]).slice(0,6).map(t=>`<span>${this.escapeHtml(t)}</span>`).join('')}</div><div class="strategy-rule"><b>Вход</b><p>${this.escapeHtml(s.entry||'Не задано')}</p></div><div class="strategy-rule"><b>Выход</b><p>${this.escapeHtml(s.exit||'Не задано')}</p></div><div class="strategy-footer"><span>Пользовательская стратегия · ${new Date(s.createdAt).toLocaleDateString()}</span><div><button class="btn-secondary small" data-strategy-action="edit" data-id="${s.id}">Изменить</button><button class="btn-danger small" data-strategy-action="delete" data-id="${s.id}">Удалить</button></div></div></article>`).join('');
+        this.strategyGrid.querySelectorAll('[data-strategy-action]').forEach(btn=>btn.addEventListener('click',()=>this.handleStrategyAction(btn.dataset.strategyAction,btn.dataset.id)));
+    },
+    openStrategyModal(id=null) {
+        const existing=id?(this.strategies||[]).find(s=>s.id===id):null; if(existing?.protected||id===this.builtInStrategy.id){this.showToast('Protected Strategy нельзя редактировать');return;}
+        const ask=(label,val='')=>{const v=prompt(label,val);return v===null?null:v.trim()};
+        const name=ask('Название стратегии',existing?.name||'');if(name===null)return; const market=ask('Рынок / инструмент',existing?.market||'');if(market===null)return; const timeframe=ask('Таймфрейм',existing?.timeframe||'');if(timeframe===null)return; const entry=ask('Правила входа',existing?.entry||'');if(entry===null)return; const exit=ask('Правила выхода',existing?.exit||'');if(exit===null)return; const tags=ask('Теги через запятую',(existing?.tags||[]).join(', '));if(tags===null)return; const notes=ask('Дополнительные правила / заметки',existing?.notes||'');if(notes===null)return;
+        const item={id:existing?.id||('str_'+Date.now()),protected:false,name:name||'Без названия',market,timeframe,entry,exit,tags:tags.split(',').map(x=>x.trim()).filter(Boolean),notes,archived:existing?.archived||false,createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+        this.strategies=existing?this.strategies.map(x=>x.id===id?item:x):[item,...(this.strategies||[]).filter(x=>!x.protected)];this.saveState();this.renderStrategyLibrary();
+    },
+    handleStrategyAction(action,id){const s=(this.strategies||[]).find(x=>x.id===id);if(!s||s.protected||id===this.builtInStrategy.id){if(s?.protected)this.showToast('Protected Strategy нельзя изменять');return;}if(action==='edit')this.openStrategyModal(id);if(action==='archive'){s.archived=!s.archived;s.updatedAt=new Date().toISOString();this.saveState();this.renderStrategyLibrary();}if(action==='delete'&&confirm('Удалить пользовательскую стратегию?')){this.strategies=this.strategies.filter(x=>x.id!==id);this.saveState();this.renderStrategyLibrary();}},
+
+    renderMarketPulseLoading(){if(this.marketPulseGrid)this.marketPulseGrid.innerHTML='<div class="module-loading glass-panel">Загружаю актуальные данные…</div>';if(this.marketLiveStatus)this.marketLiveStatus.textContent='Обновление…';},
+    startMarketPulseAutoRefresh(){
+        if(this.marketRefreshTimer) clearInterval(this.marketRefreshTimer);
+        this.marketRefreshTimer=setInterval(()=>{
+            const section=document.getElementById('section-marketpulse');
+            if(section?.classList.contains('active')) this.loadMarketPulse(true);
+        },60000);
+    },
+    marketNum(v){const n=Number(v);return Number.isFinite(n)?n:null;},
+    marketFmtPrice(v){const n=this.marketNum(v);if(n===null)return '—';return '$'+n.toLocaleString(undefined,{maximumFractionDigits:n<1?6:2});},
+    marketFmtPct(v){const n=this.marketNum(v);if(n===null)return '—';return (n>=0?'+':'')+n.toFixed(2)+'%';},
+    getMarketSession(date=new Date()){const h=date.getUTCHours()+date.getUTCMinutes()/60;const sessions=[['Азия',0,8],['Европа',7,16],['США',13,22]];const active=sessions.filter(([,start,end])=>h>=start&&h<end).map(([name])=>name);let current=active.length?active.join(' · '):'Межсессионное окно';let prev=h<7?'США':h<13?'Азия':'Европа';if(h>=22)prev='США';return {current,prev,h};},
+    renderMarketSession(){const els={current:document.getElementById('marketCurrentSession'),status:document.getElementById('marketSessionStatus'),clock:document.getElementById('marketSessionClock'),prev:document.getElementById('marketPreviousSession')};if(!els.current)return;const d=new Date(),s=this.getMarketSession(d);els.current.textContent=s.current;els.status.textContent='UTC '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');els.clock.textContent=d.toISOString().slice(0,16).replace('T',' ');els.prev.textContent='Предыдущая основная сессия: '+s.prev+' · логика стратегии: H4 → 5M';const strategy=this.builtInStrategy;const ctx=document.getElementById('marketStrategyContext');const tags=document.getElementById('marketStrategyTags');if(ctx){ctx.textContent='4H: максимум и минимум предыдущей сессии → 5M: поиск ТВХ. Market Pulse показывает сессию и фактический рынок, но не определяет вход.';}if(tags){tags.innerHTML=(strategy.tags||[]).map(t=>`<span>${this.escapeHtml(t)}</span>`).join('');}},
+    buildMarketAnalysis(results){const box=document.getElementById('marketAiAnalysis');if(!box)return;const rows=results.map(t=>{const pct=+t.priceChangePercent||0,hi=+t.highPrice,lo=+t.lowPrice,last=+t.lastPrice,range=hi-lo,pos=range?((last-lo)/range*100):50;return {name:t.symbol.replace('USDT',''),pct,pos,volume:+t.quoteVolume||0};});const strongest=[...rows].sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct))[0];box.innerHTML=`<div class="analysis-list"><div><b>Движение</b><p>${strongest.name} показывает наибольшее 24h изменение среди наблюдаемых активов: <strong>${strongest.pct>=0?'+':''}${strongest.pct.toFixed(2)}%</strong>.</p></div><div><b>Позиция в диапазоне</b><p>Цена ${strongest.name} находится примерно на ${strongest.pos.toFixed(0)}% 24h-диапазона от минимума к максимуму.</p></div><div><b>Что учитывать</b><p>Сверяй контекст с собственной стратегией, риском и временем сессии. Эти данные не являются прогнозом направления.</p></div></div>`;},
+    async loadMarketPulse(silent=false){
+        if(!this.marketPulseGrid)return;
+        this.renderMarketSession();
+        if(!silent)this.renderMarketPulseLoading();
+        const started=performance.now();
+        const symbols=['BTCUSDT','ETHUSDT','SOLUSDT'];
+        const endpoint=s=>`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`;
+        try{
+            const results=await Promise.all(symbols.map(async symbol=>{const r=await fetch(endpoint(symbol),{cache:'no-store'});if(!r.ok)throw new Error(`${symbol}: ${r.status}`);return r.json();}));
+            const latency=Math.round(performance.now()-started);
+            const now=new Date();
+            const cards=results.map(t=>{
+                const pct=this.marketNum(t.priceChangePercent)||0,hi=this.marketNum(t.highPrice),lo=this.marketNum(t.lowPrice),last=this.marketNum(t.lastPrice),range=(hi!==null&&lo!==null)?Math.max(hi-lo,0):0,pos=range?Math.max(0,Math.min(100,(last-lo)/range*100)):50;
+                const vol=this.marketNum(t.quoteVolume);
+                const name=t.symbol.replace('USDT','');
+                return `<article class="pulse-card glass-panel"><div class="pulse-top"><span>${name}/USDT</span><em class="${pct>=0?'positive':'negative'}">${this.marketFmtPct(pct)}</em></div><strong>${this.marketFmtPrice(last)}</strong><div class="pulse-range" title="Положение цены внутри 24h диапазона"><i style="width:${pos}%"></i></div><div class="pulse-range-labels"><span>${this.marketFmtPrice(lo)}</span><span>${pos.toFixed(0)}%</span><span>${this.marketFmtPrice(hi)}</span></div><div class="pulse-row"><span>24h high</span><b>${this.marketFmtPrice(hi)}</b></div><div class="pulse-row"><span>24h low</span><b>${this.marketFmtPrice(lo)}</b></div><div class="pulse-row"><span>Объём 24h</span><b>${vol===null?'—':'$'+vol.toLocaleString(undefined,{maximumFractionDigits:0})}</b></div></article>`;
+            }).join('');
+            this.marketPulseGrid.innerHTML=cards+`<div class="pulse-source glass-panel">Публичные рыночные данные Binance · ${now.toLocaleTimeString()} · ${latency} ms · без торгового сигнала.</div>`;
+            if(this.marketLiveStatus)this.marketLiveStatus.textContent='Онлайн';
+            if(this.marketLastUpdated)this.marketLastUpdated.textContent=now.toLocaleTimeString();
+            if(this.marketLatency)this.marketLatency.textContent=latency+' ms';
+            this.buildMarketAnalysis(results);
+            localStorage.setItem('kriptodanik_market_cache',JSON.stringify({savedAt:now.toISOString(),results}));
+        }catch(e){
+            const cached=JSON.parse(localStorage.getItem('kriptodanik_market_cache')||'null');
+            if(cached?.results?.length){
+                const age=Math.max(0,Date.now()-new Date(cached.savedAt).getTime());
+                this.renderCachedMarket(cached.results,cached.savedAt,age);
+                if(this.marketLiveStatus)this.marketLiveStatus.textContent='Офлайн · кэш';
+            }else{
+                this.marketPulseGrid.innerHTML='<div class="module-empty glass-panel"><div class="module-empty-icon">⌁</div><h3>Рынок недоступен</h3><p>Не удалось получить публичные данные Binance. Никаких выдуманных значений не показываем. Проверь интернет и нажми «Обновить».</p><button class="btn-primary" onclick="App.loadMarketPulse()">Повторить</button></div>';
+                if(this.marketLiveStatus)this.marketLiveStatus.textContent='Нет соединения';
+                if(this.marketLastUpdated)this.marketLastUpdated.textContent='—';
+                if(this.marketLatency)this.marketLatency.textContent='—';
+            }
+            const box=document.getElementById('marketAiAnalysis');if(box)box.innerHTML='<p class="muted">Анализ строится только после получения фактических данных. Кэш помечается отдельно.</p>';
+        }
+    },
+    renderCachedMarket(results,savedAt,age){
+        const ageMin=Math.floor(age/60000);
+        this.marketPulseGrid.innerHTML=results.map(t=>{const pct=this.marketNum(t.priceChangePercent)||0,hi=this.marketNum(t.highPrice),lo=this.marketNum(t.lowPrice),last=this.marketNum(t.lastPrice),range=(hi!==null&&lo!==null)?Math.max(hi-lo,0):0,pos=range?Math.max(0,Math.min(100,(last-lo)/range*100)):50;return `<article class="pulse-card glass-panel is-cached"><div class="pulse-top"><span>${t.symbol.replace('USDT','')}/USDT</span><em class="${pct>=0?'positive':'negative'}">${this.marketFmtPct(pct)}</em></div><strong>${this.marketFmtPrice(last)}</strong><div class="pulse-range"><i style="width:${pos}%"></i></div><div class="pulse-range-labels"><span>${this.marketFmtPrice(lo)}</span><span>${pos.toFixed(0)}%</span><span>${this.marketFmtPrice(hi)}</span></div><div class="pulse-row"><span>Статус</span><b>Кэш · ${ageMin} мин</b></div></article>`;}).join('')+`<div class="pulse-source glass-panel">Показан последний успешно полученный снимок рынка от ${new Date(savedAt).toLocaleTimeString()}. Обновление с API сейчас недоступно.</div>`;
+        this.buildMarketAnalysis(results);
+        if(this.marketLastUpdated)this.marketLastUpdated.textContent=new Date(savedAt).toLocaleTimeString();
+        if(this.marketLatency)this.marketLatency.textContent='кэш';
+    },
+    renderIntelSessions(){
+        if(!this.sessionTimeline)return;
+        const sessions=[
+            ['Sydney','22:00','07:00','Asia-Pacific'],['Tokyo','01:00','10:00','Asia'],['London','10:00','19:00','Europe'],['New York','15:00','00:00','US']
+        ];
+        const now=new Date(); const mins=now.getHours()*60+now.getMinutes();
+        const toMin=x=>{const [h,m]=x.split(':').map(Number);return h*60+m};
+        const active=sessions.find(x=>{let a=toMin(x[1]),b=toMin(x[2]); if(b<=a)b+=1440; const n=mins<a?mins+1440:mins; return n>=a&&n<b;});
+        this.sessionTimeline.innerHTML=sessions.map(x=>{const on=active&&active[0]===x[0]; return `<div class="session-item ${on?'active':''}"><div><b>${x[0]}</b><span>${x[3]}</span></div><strong>${x[1]}–${x[2]} MSK</strong><em>${on?'OPEN':'CLOSED'}</em></div>`}).join('');
+    },
+    async loadPropIntelligence(){
+        this.renderIntelSessions(); this.renderIntelNews('crypto'); this.renderIntelEconomic(); this.renderIntelImportant(); this.renderPropDirectory(); this.renderPropRules(); this.renderPropPitfalls();
+        const state=document.getElementById('intelMarketState'), fg=document.getElementById('intelFearGreed'), summary=document.getElementById('intelMarketSummary'), updated=document.getElementById('intelUpdated'), breadth=document.getElementById('intelBreadth'), ai=document.getElementById('intelAiText');
+        try{
+            const t0=performance.now();
+            const [fgRes,prices]=await Promise.all([fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json()),Promise.all(['BTCUSDT','ETHUSDT','SOLUSDT'].map(s=>fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`).then(r=>r.json()))) ]);
+            const fgv=fgRes?.data?.[0]; const score=fgv?Number(fgv.value):null; const label=fgv?.value_classification||'—';
+            const changes=prices.map(x=>Number(x.priceChangePercent)||0); const avg=changes.reduce((a,b)=>a+b,0)/changes.length;
+            if(fg)fg.textContent=score===null?'—':`${score} · ${label}`; if(breadth)breadth.textContent=`${changes.filter(x=>x>0).length}/3 ↑`; if(updated)updated.textContent=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+            const stateText=avg>1?'Рынок заметно растёт':avg<-1?'Рынок заметно снижается':'Рынок без выраженного общего импульса'; if(state)state.textContent=stateText;
+            if(summary)summary.textContent=`BTC ${changes[0].toFixed(2)}% · ETH ${changes[1].toFixed(2)}% · SOL ${changes[2].toFixed(2)}%. Среднее изменение: ${avg.toFixed(2)}%. Настроение: ${label}.`;
+            if(ai)ai.innerHTML=`<p><b>Наблюдение:</b> ${stateText.toLowerCase()}. Fear & Greed: ${score===null?'нет данных':score+' ('+label+')'}.</p><p><b>Для трейдера:</b> учитывай волатильность и активную сессию, но не превращай эти данные в автоматический сигнал.</p><p class="muted">Обновлено за ${Math.round(performance.now()-t0)} мс. Источники: Binance public API + Alternative.me.</p>`;
+        }catch(e){ if(state)state.textContent='Данные рынка недоступны'; if(summary)summary.textContent='Не удалось получить актуальный снимок. Никаких выдуманных значений не показываем.'; if(ai)ai.innerHTML='<p>Проверь интернет и официальный источник. Сигналы на основе отсутствующих данных не формируются.</p>'; }
+    },
+    renderIntelNews(cat='crypto'){
+        if(!this.intelNewsList)return;
+        const data={crypto:[['Binance Announcements','Обновления листингов, торговых условий и инфраструктуры','https://www.binance.com/en/support/announcement'],['CoinDesk','Крипторынок и индустриальные события','https://www.coindesk.com/']],forex:[['Federal Reserve','Решения и комментарии ФРС','https://www.federalreserve.gov/newsevents/calendar.htm'],['ECB','Решения и публикации ЕЦБ','https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html']],stocks:[['BLS','Макроэкономические релизы США','https://www.bls.gov/schedule/news_release/'],['SEC','Официальные раскрытия компаний','https://www.sec.gov/news']]}[cat]||[];
+        this.intelNewsList.innerHTML=data.map(x=>`<a class="intel-news-item" href="${x[2]}" target="_blank" rel="noopener"><div><b>${x[0]}</b><p>${x[1]}</p></div><span>↗</span></a>`).join('')+`<p class="muted intel-source-note">Лента намеренно показывает первоисточники, а не пересказывает неподтверждённые новости.</p>`;
+    },
+    renderIntelEconomic(){if(!this.intelEconomicList)return; const e=[['FOMC','Решения ФРС','https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'],['CPI','Инфляция США','https://www.bls.gov/cpi/'],['NFP','Занятость США','https://www.bls.gov/news.release/empsit.htm'],['ECB','Решения ЕЦБ','https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html']]; this.intelEconomicList.innerHTML=e.map(x=>`<a class="event-row" href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><em>Официальный календарь ↗</em></a>`).join('');},
+    renderIntelImportant(){if(!this.intelImportantEvents)return; const e=[['FOMC','Ставка и риторика ФРС','Высокое влияние','https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'],['CPI','Инфляция США','Высокое влияние','https://www.bls.gov/cpi/'],['NFP','Рынок труда США','Высокое влияние','https://www.bls.gov/news.release/empsit.htm'],['ECB','Решения ЕЦБ','Высокое влияние','https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html']]; this.intelImportantEvents.innerHTML=e.map(x=>`<a class="important-event" href="${x[3]}" target="_blank" rel="noopener"><span class="event-dot high"></span><div><b>${x[0]}</b><p>${x[1]}</p></div><em>${x[2]} ↗</em></a>`).join('');},
+    renderPropDirectory(){if(!this.propDirectory)return; const firms=[
+        {name:'SpiceProp · Sweet Pepper',region:'Доступность по регионам: проверять перед покупкой',vpn:'Только если официально разрешён',lang:'EN',rules:'Step 1 7.5% · Step 2 5% · Daily 5.5% · Max 11% · 3 profitable days · 1:100',checked:'13.08.2026',url:'https://spiceprop.com/'},
+        {name:'FTMO · 2-Step',region:'Регион/KYC: проверять по официальной странице',vpn:'Не делать вывод без официального подтверждения',lang:'EN',rules:'Target 10% / 5% · Daily 5% · Max 10% · Min 4 trading days · unlimited period',checked:'13.08.2026',url:'https://ftmo.com/en/trading-objectives/'},
+        {name:'The5ers · High Stakes',region:'Регион/KYC: проверять по официальной странице',vpn:'Проверять правила компании',lang:'EN',rules:'Target 10% / 5% · Daily 5% · Max 10% · Min 3 profitable days · unlimited',checked:'13.08.2026',url:'https://www.the5ers.com/high-stakes/'}]; this.propDirectory.innerHTML=firms.map(f=>`<article class="prop-card"><div class="prop-card-head"><div><span class="module-eyebrow">PROP FIRM</span><h3>${f.name}</h3></div><span class="prop-verified">Проверено ${f.checked}</span></div><div class="prop-facts"><span><b>Регион</b>${f.region}</span><span><b>VPN</b>${f.vpn}</span><span><b>Язык</b>${f.lang}</span><span><b>Ключевые правила</b>${f.rules}</span></div><a class="btn-secondary small" href="${f.url}" target="_blank" rel="noopener">Официальные правила ↗</a></article>`).join('');},
+    renderPropRules(){if(!this.propRulesExplained)return; const r=[['Daily Loss','Лимит дневного риска. Смотри не только закрытый P&L: конкретная компания может считать equity, комиссии, свопы и плавающий P&L.','Проверяй метод расчёта на официальной странице.'],['Maximum Drawdown','Общий предел просадки за весь период. Он может быть static или trailing/EOD.','Не путай Max Loss и Max Daily Loss.'],['Best Day / Consistency','Некоторые программы требуют распределять прибыль между днями.','Не пытайся закрыть весь target одной сделкой.'],['Overnight / News','Ограничения по новостям и переносу позиций отличаются по компании и программе.','Перед удержанием позиции открой официальные правила.']]; this.propRulesExplained.innerHTML=r.map(x=>`<article class="rule-explainer"><b>${x[0]}</b><p>${x[1]}</p><small>${x[2]}</small></article>`).join('');},
+    renderPropPitfalls(){if(!this.propPitfalls)return; const p=['Считать лимит только по закрытым сделкам, хотя фирма использует equity.','Игнорировать reset time и часовой пояс компании.','Путать static drawdown с trailing drawdown.','Держать позицию через запрещённую новость или выходные.','Считать VPN автоматически разрешённым без подтверждения.','Покупать челлендж, не проверив актуальные правила и KYC.']; this.propPitfalls.innerHTML=p.map((x,i)=>`<div class="pitfall-item"><span>${String(i+1).padStart(2,'0')}</span><p>${x}</p></div>`).join('');},
+    toggleChallengeSettings(){if(!this.challengeSettingsPanel)return;const open=this.challengeSettingsPanel.style.display!=='none';this.challengeSettingsPanel.style.display=open?'none':'block';if(!open){const c=this.challenge||{};this.challengeName.value=c.name||'';this.challengeCapital.value=c.capital||'';this.challengeTarget1.value=c.target1??'';this.challengeTarget2.value=c.target2??'';this.challengeDaily.value=c.daily??'';this.challengeMaxDD.value=c.maxDD??'';}},
+    saveChallengeSettings(){this.challenge={name:this.challengeName.value.trim()||'Prop Challenge',capital:parseFloat(this.challengeCapital.value)||0,target1:parseFloat(this.challengeTarget1.value)||0,target2:parseFloat(this.challengeTarget2.value)||0,daily:parseFloat(this.challengeDaily.value)||0,maxDD:parseFloat(this.challengeMaxDD.value)||0};this.saveState();this.challengeSettingsPanel.style.display='none';this.renderChallenge();},
+    maxDailyLossPercent(){const c=this.challenge||{};const base=parseFloat(c.capital)||parseFloat(this.userData.capital)||0;if(!base)return 0;const byDay={};(this.trades||[]).forEach(t=>{const d=String(t.date||'').slice(0,10);byDay[d]=(byDay[d]||0)+(parseFloat(t.pnl)||0);});const worst=Math.min(0,...Object.values(byDay));return Math.abs(worst/base*100);},
+    maxDrawdownPercent(){const base=parseFloat((this.challenge||{}).capital)||parseFloat(this.userData.capital)||0;if(!base)return 0;let equity=base,peak=base,maxDd=0;const ordered=[...(this.trades||[])].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0));ordered.forEach(t=>{equity+=parseFloat(t.pnl)||0;peak=Math.max(peak,equity);maxDd=Math.max(maxDd,(peak-equity)/base*100);});return maxDd;},
+    renderChallenge(){if(!this.challengeSummary)return;const c=this.challenge||{};const trades=this.trades||[];const base=parseFloat(c.capital)||parseFloat(this.userData.capital)||0;const pnl=trades.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);const equity=base+pnl;const dd=this.maxDrawdownPercent();const target1=base*((parseFloat(c.target1)||0)/100);const target2=base*((parseFloat(c.target2)||0)/100);const step1Done=target1>0&&pnl>=target1;const step2Done=step1Done&&target2>0&&pnl>=target1+target2;const activeTarget=step1Done?target2:target1;const activeBase=step1Done?target1:0;const progress=activeTarget>0?Math.max(0,Math.min(100,(pnl-activeBase)/activeTarget*100)):0;const dailyBad=c.daily>0&&this.maxDailyLossPercent()>c.daily;const ddBad=c.maxDD>0&&dd>c.maxDD;const status=!base?'Не настроен':(dailyBad||ddBad?'Нарушение лимита':step2Done?'Челлендж пройден':step1Done?'Шаг 1 выполнен · идёт шаг 2':'В процессе');this.challengeStatus.textContent=status;this.challengeStepTitle.textContent=step2Done?'Челлендж завершён':step1Done?'Шаг 2 · '+(c.target2||0)+'%':'Шаг 1 · '+(c.target1||0)+'%';this.challengeProgressBar.style.width=progress+'%';this.challengeProfitText.textContent=(pnl>=0?'+':'')+pnl.toFixed(2)+' $';this.challengeTargetText.textContent=activeTarget>0?'Цель текущего шага '+activeTarget.toFixed(2)+' $':'Цели не заданы';this.challengeSummary.innerHTML=[['Счёт',base?'$'+base.toLocaleString():'—'],['Equity',base?'$'+equity.toFixed(2):'—'],['P&L',(pnl>=0?'+':'')+'$'+pnl.toFixed(2)],['Max DD',base?dd.toFixed(2)+'%':'—']].map(x=>`<div class="challenge-stat glass-panel"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');this.challengeRulesList.innerHTML=[['Размер счёта',base?'$'+base.toLocaleString():'Не задан'],['Цель шага 1',c.target1?c.target1+'%':'Не задана'],['Цель шага 2',c.target2?c.target2+'%':'Не задана'],['Дневной лимит',c.daily?c.daily+'%':'Не задан'],['Макс. просадка',c.maxDD?c.maxDD+'%':'Не задана']].map(x=>`<div class="challenge-rule"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');this.challengeChecks.innerHTML=[['Сделки в Journal',trades.length?'OK · '+trades.length:'Нет данных',!!trades.length],['Дневной лимит',c.daily?(dailyBad?'ПРЕВЫШЕН':'В норме'):'Не задан',c.daily?!dailyBad:null],['Макс. просадка',c.maxDD?(ddBad?'ПРЕВЫШЕНА':'В норме'):'Не задана',c.maxDD?!ddBad:null],['Шаг 1',step1Done?'Выполнен':'В процессе',step1Done],['Шаг 2',step2Done?'Выполнен':(step1Done?'В процессе':'Заблокирован'),step2Done?true:null]].map(x=>`<div class="challenge-check"><span>${x[0]}</span><b class="${x[2]===true?'ok':x[2]===false?'bad':'muted'}">${x[1]}</b></div>`).join('');},
 
     // ============================================================
     // DASHBOARD
@@ -1321,7 +1523,21 @@ const App = {
         
         this.initDashboardCharts();
         this.renderDashboardSmartWidgets();
+        this.renderBrandRecentTrades();
         this.saveState();
+    },
+
+    renderBrandRecentTrades() {
+        const box = document.getElementById('brandRecentTrades');
+        if (!box) return;
+        if (!this.trades.length) {
+            box.innerHTML = '<div class="brand-empty-trades"><div>Пока нет реальных сделок</div><small>Добавленные тобой сделки появятся здесь автоматически.</small></div>';
+            return;
+        }
+        box.innerHTML = this.trades.slice(0,5).map(t => {
+            const cls = t.status === 'win' ? 'win' : (t.status === 'loss' ? 'loss' : '');
+            return `<div class="brand-trade-row"><span>${t.asset || '—'}</span><span>${t.side === 'BUY' ? 'LONG' : 'SHORT'}</span><span>${t.entry ?? '—'}</span><span>${t.exit ?? '—'}</span><span class="${cls}">${t.result || '—'}</span><span>${t.rr || '—'}</span><span>${t.date || '—'}</span></div>`;
+        }).join('');
     },
 
     // ============================================================
@@ -2554,6 +2770,45 @@ const App = {
         return { total, wins, losses, winRate, avgRR, maxWinStreak, maxLossStreak, recentStreak, recentType, violations, bestSession };
     },
 
+    getIntegratedContext() {
+        const stats = this.getCoachStats();
+        let market = null;
+        try {
+            const cached = JSON.parse(localStorage.getItem('kriptodanik_market_cache') || 'null');
+            if (cached?.results?.length) {
+                market = cached.results.map(t => ({
+                    symbol: String(t.symbol || '').replace('USDT',''),
+                    price: Number(t.lastPrice),
+                    change24h: Number(t.priceChangePercent),
+                    high24h: Number(t.highPrice),
+                    low24h: Number(t.lowPrice),
+                    volume24h: Number(t.quoteVolume),
+                    savedAt: cached.savedAt
+                })).filter(x => Number.isFinite(x.price));
+            }
+        } catch (_) {}
+        const recent = [...this.trades].slice(0, 5).map(t => ({
+            asset: t.asset, direction: t.direction, status: t.status,
+            pnl: Number(t.pnl) || 0, rr: Number(t.rr) || 0,
+            session: t.session || '—', strategy: t.strategy || '—'
+        }));
+        return { stats, market, recent, challenge: this.challenge || {} };
+    },
+
+    renderIntegratedCoachContext() {
+        const el = document.getElementById('aiContextSnapshot');
+        if (!el) return;
+        const c = this.getIntegratedContext();
+        if (!c.stats.total) {
+            el.innerHTML = '<span class="coach-context-empty">Нет сделок — AI Coach ждёт первую запись в Journal.</span>';
+            return;
+        }
+        const m = c.market?.[0];
+        const marketText = m ? `${m.symbol} ${m.change24h >= 0 ? '+' : ''}${m.change24h.toFixed(2)}% 24h` : 'рынок не синхронизирован';
+        const dd = this.maxDrawdownPercent();
+        el.innerHTML = `<span>Journal: <b>${c.stats.total}</b> сделок</span><span>Win Rate: <b>${c.stats.winRate ?? '—'}%</b></span><span>Avg RR: <b>${c.stats.avgRR === null ? '—' : (c.stats.avgRR >= 0 ? '+' : '') + c.stats.avgRR.toFixed(2) + 'R'}</b></span><span>Max DD: <b>${dd.toFixed(2)}%</b></span><span>Market: <b>${marketText}</b></span>`;
+    },
+
     // Very small keyword-based intent classifier. Order matters — first match wins.
     classifyCoachIntent(question) {
         const q = question.toLowerCase();
@@ -2657,8 +2912,10 @@ const App = {
             default: {
                 const wrText = s.winRate !== null ? s.winRate + '%' : '—';
                 const rrText = s.avgRR !== null ? (s.avgRR >= 0 ? '+' : '') + s.avgRR.toFixed(1) + 'R' : '—';
+                const integrated = this.getIntegratedContext();
+                const marketText = integrated.market?.length ? ` Current market context: ${integrated.market.map(m => `${m.symbol} ${m.change24h >= 0 ? '+' : ''}${m.change24h.toFixed(2)}% 24h`).join(', ')}. I use that only as context, not as a prediction or signal.` : '';
                 return en
-                    ? `Here's where you stand: ${s.total} logged trades, ${wrText} win rate, average ${rrText} per trade. ${s.violations.length > 0 ? `Guardian is flagging ${s.violations.length} rule${s.violations.length === 1 ? '' : 's'} right now.` : 'Guardian shows no active rule violations.'} Ask me about your risk management, psychology, or strategy and I'll dig into the specifics.`
+                    ? `Here's where you stand: ${s.total} logged trades, ${wrText} win rate, average ${rrText} per trade.${marketText} ${s.violations.length > 0 ? `Guardian is flagging ${s.violations.length} rule${s.violations.length === 1 ? '' : 's'} right now.` : 'Guardian shows no active rule violations.'} Ask me about your risk management, psychology, or strategy and I'll dig into the specifics.`
                     : `Вот ваша текущая картина: ${s.total} сделок в журнале, Win Rate ${wrText}, средний результат ${rrText} на сделку. ${s.violations.length > 0 ? `Guardian сейчас отмечает ${s.violations.length} нарушени${s.violations.length === 1 ? 'е' : 'я'}.` : 'Guardian не фиксирует активных нарушений.'} Спросите меня про риск-менеджмент, психологию или стратегию — разберём подробнее.`;
             }
         }
@@ -3654,14 +3911,14 @@ const App = {
     // there is exactly one trade-storage path, one validation path, and
     // one save path in the whole app.
     // ============================================================
-    scannerStructureList: ['fvg', 'ifvg', 'ob', 'liquidity', 'liquidity_sweep', 'bos', 'mss_choch', 'premium_discount'],
+    scannerStructureList: ['fvg', 'ifvg', 'ob', 'liquidity', 'liquidity_sweep', 'bos', 'mss_choch', 'premium_discount', 'pin_bar', 'range'],
     scannerStructureLabels: {
         fvg: 'FVG', ifvg: 'IFVG', ob: 'OB', liquidity: 'Liquidity',
-        liquidity_sweep: 'Liquidity Sweep', bos: 'BOS', mss_choch: 'MSS / CHOCH', premium_discount: 'Premium / Discount'
+        liquidity_sweep: 'Liquidity Sweep', bos: 'BOS', mss_choch: 'MSS / CHOCH', premium_discount: 'Premium / Discount', pin_bar: 'Pin Bar', range: 'Range'
     },
     scannerStructureLessonMap: {
         fvg: 'fvg', ifvg: 'ifvg', ob: 'ob', liquidity: 'liquidity', liquidity_sweep: 'liquidity_sweep',
-        bos: 'bos', mss_choch: 'mss_choch', premium_discount: 'premium_discount'
+        bos: 'bos', mss_choch: 'mss_choch', premium_discount: 'premium_discount', pin_bar: 'pin_bar', range: 'range'
     },
 
     showScannerUpload() {
@@ -3976,6 +4233,7 @@ const App = {
         this.initEquityChart();
         this.initDashboardCharts();
         this.renderDashboardExtras();
+        this.renderIntegratedCoachContext();
         this.updateDashboardStats();
         this.updateBalanceDisplay();
         this.renderNotifications();
@@ -3989,3 +4247,158 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.App = App;
+// v1.1.3 brand dashboard bindings
+(function(){
+  function bindBrand(){
+    const first=document.getElementById('brandFirstTradeBtn');
+    const add=document.getElementById('addTradeBtn');
+    if(first && add && !first.dataset.bound){ first.dataset.bound='1'; first.addEventListener('click',()=>add.click()); }
+    const coachMap=[['brandCoachAnalyze','dashAskBtn'],['brandCoachSetup','dashAskBtn'],['brandCoachDiscipline','dashAskBtn']];
+    coachMap.forEach(([a,b])=>{const x=document.getElementById(a),y=document.getElementById(b); if(x&&y&&!x.dataset.bound){x.dataset.bound='1';x.addEventListener('click',()=>y.click())}});
+    const av=document.getElementById('headerAvatar');
+    if(av){av.textContent='';av.style.backgroundImage="url('assets/avatar-circle-clean.png')";av.style.backgroundSize='cover';av.style.backgroundPosition='center';av.style.border='1px solid rgba(255,211,105,.5)';}
+    const sav=document.getElementById('settingsAvatar');
+    if(sav){sav.textContent='';sav.style.backgroundImage="url('assets/avatar-circle-clean.png')";sav.style.backgroundSize='cover';sav.style.backgroundPosition='center';}
+    const actions={
+      brandOpenJournal:'journal',brandQuickJournal:'journal',brandQuickAnalytics:'analytics',brandQuickAcademy:'academy',brandQuickScanner:'scanner'
+    };
+    Object.entries(actions).forEach(([id,section])=>{const el=document.getElementById(id);if(el&&!el.dataset.bound){el.dataset.bound='1';el.addEventListener('click',()=>window.App&&window.App.showSection(section));}});
+  }
+
+  function renderBrandRealData(){
+    const trades=(window.App&&Array.isArray(window.App.trades))?window.App.trades:[];
+    const total=trades.length;
+    const chartWrap=document.getElementById('brandChartWrap');
+    const svg=document.querySelector('.brand-equity-svg');
+    const line=svg&&svg.querySelector('.brand-line');
+    const area=svg&&svg.querySelector('.brand-area');
+    const dot=svg&&svg.querySelector('.brand-dot');
+    const marker=svg&&svg.querySelector('.brand-marker');
+    const tooltip=document.querySelector('.brand-chart-tooltip');
+    const donut=document.getElementById('brandDonut');
+    const legend=document.getElementById('brandLegend');
+
+    if(!total){
+      if(chartWrap) chartWrap.classList.add('is-empty');
+      if(donut) donut.classList.add('is-empty');
+      if(legend) legend.innerHTML='<div class="brand-empty-distribution">Нет сделок — распределение появится после первой сделки.</div>';
+      return;
+    }
+
+    if(chartWrap) chartWrap.classList.remove('is-empty');
+    if(donut) donut.classList.remove('is-empty');
+
+    // Build an equity curve from real stored P&L values only.
+    const values=[0];
+    let cumulative=0;
+    trades.slice().reverse().forEach(t=>{
+      cumulative += parseFloat(t.pnl)||0;
+      values.push(cumulative);
+    });
+    const points=values.length;
+    const min=Math.min(...values,0);
+    const max=Math.max(...values,0);
+    const range=Math.max(max-min,1);
+    const x0=40, x1=740, y0=230, y1=35;
+    const pts=values.map((v,i)=>{
+      const x=x0+(x1-x0)*(i/(points-1||1));
+      const y=y0-(v-min)/range*(y0-y1);
+      return [x,y];
+    });
+    const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+    const areaD=d+' L '+x1+',250 L '+x0+',250 Z';
+    if(line) line.setAttribute('d',d);
+    if(area) area.setAttribute('d',areaD);
+    const last=pts[pts.length-1];
+    if(dot){dot.setAttribute('cx',last[0]);dot.setAttribute('cy',last[1]);}
+    if(marker){marker.setAttribute('x1',last[0]);marker.setAttribute('x2',last[0]);marker.setAttribute('y1',last[1]);}
+    if(tooltip){
+      const pnl=cumulative;
+      tooltip.innerHTML='<b>'+(pnl>=0?'+':'')+pnl.toFixed(2)+' $</b><span>Текущий P&L</span>';
+      tooltip.style.left=Math.min(Math.max((last[0]/760)*100-10,5),72)+'%';
+      tooltip.style.top=Math.max((last[1]/280)*100-6,5)+'%';
+    }
+
+    // Real asset distribution.
+    const counts={};
+    trades.forEach(t=>{const a=t.asset||'Другие'; counts[a]=(counts[a]||0)+1;});
+    const rows=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const totalCount=trades.length;
+    const palette=['#ffd369','#f97316','#8a2be2','#4b4a63','#22c55e'];
+    if(legend){
+      legend.innerHTML=rows.map((r,i)=>'<div><i style="background:'+palette[i%palette.length]+'"></i><span>'+r[0]+'</span><b>'+Math.round(r[1]/totalCount*100)+'%</b></div>').join('');
+    }
+    if(donut){
+      let cursor=0;
+      const stops=rows.map((r,i)=>{
+        const start=cursor;
+        cursor += r[1]/totalCount*100;
+        return palette[i%palette.length]+' '+start+'% '+cursor+'%';
+      }).join(',');
+      donut.style.background='radial-gradient(circle,#0d0a18 0 43%,transparent 44%),conic-gradient('+stops+')';
+    }
+  }
+
+  function sync(){
+    const total=(window.App&&Array.isArray(window.App.trades))?window.App.trades.length:0;
+    renderBrandRealData();
+    const progressEl=document.getElementById('brandProgress');
+    const progressBar=document.getElementById('brandProgressBar');
+    const disciplineLabel=document.getElementById('brandDisciplineLabel');
+    const disciplineGrade=document.getElementById('brandDisciplineGrade');
+    const realTrades=(window.App&&Array.isArray(window.App.trades))?window.App.trades:[];
+    const completedChallenges=realTrades.length ? Math.min(10, realTrades.filter(t=>t&&t.status!=='open').length) : 0;
+    if(progressEl) progressEl.textContent=completedChallenges+' / 10';
+    if(progressBar) progressBar.style.width=(completedChallenges*10)+'%';
+    if(disciplineLabel) disciplineLabel.textContent=realTrades.length?'Рассчитывается':'Нет данных';
+    if(disciplineGrade) disciplineGrade.textContent=realTrades.length?'—':'—';
+    const balance=document.getElementById('balanceDisplay');
+    const b=document.getElementById('brandBalance');
+    const t=document.getElementById('brandTrades');
+    const w=document.getElementById('brandWinrate');
+    const pf=document.getElementById('brandProfitFactor');
+    const pfSub=document.getElementById('brandProfitFactorSub');
+    const streak=document.getElementById('brandStreak');
+    const streakSub=document.getElementById('brandStreakSub');
+    const donut=document.getElementById('brandDonut');
+    const donutTotal=document.getElementById('brandDonutTotal');
+    const legend=document.getElementById('brandLegend');
+    const chartWrap=document.getElementById('brandChartWrap');
+
+    if (b && balance) b.textContent=balance.textContent;
+    if (t) t.textContent=String(total);
+    if (w) w.textContent=total ? ((window.App && window.App.winRateDisplay && window.App.winRateDisplay.textContent) || '—') : '—';
+    if (donutTotal) donutTotal.textContent=String(total);
+
+    if(total===0){
+      if(pf) pf.textContent='—';
+      if(pfSub) pfSub.textContent='Недостаточно данных';
+      if(streak) streak.textContent='0 дней';
+      if(streakSub) streakSub.textContent='Начните журнал';
+      if(donut) donut.classList.add('is-empty');
+      if(legend) legend.innerHTML='<div class="brand-empty-distribution">Нет сделок — распределение появится после первой сделки.</div>';
+      if(chartWrap) chartWrap.classList.add('is-empty');
+      return;
+    }
+
+    if(donut) donut.classList.remove('is-empty');
+    if(chartWrap) chartWrap.classList.remove('is-empty');
+
+    const map=[['balanceDisplay','brandBalance'],['totalTradesDisplay','brandTrades'],['winRateDisplay','brandWinrate']];
+    map.forEach(([a,bid])=>{const x=document.getElementById(a),y=document.getElementById(bid);if(x&&y)y.textContent=x.textContent;});
+
+    // Profit factor from real stored trades only.
+    const wins=(window.App.trades||[]).filter(x=>x.status==='win').reduce((s,x)=>s+(parseFloat(x.pnl)||0),0);
+    const losses=Math.abs((window.App.trades||[]).filter(x=>x.status==='loss').reduce((s,x)=>s+(parseFloat(x.pnl)||0),0));
+    if(pf) pf.textContent=losses>0 ? (wins/losses).toFixed(2) : '—';
+    if(pfSub) pfSub.textContent=losses>0 ? 'По реальным сделкам' : 'Недостаточно данных';
+
+    // Current winning streak from real chronological trades.
+    let run=0;
+    [...(window.App.trades||[])].reverse().some(x=>{ if(x.status==='win'){run++;return false;} return true; });
+    if(streak) streak.textContent=run+' '+(run===1?'день':'дн.');
+    if(streakSub) streakSub.textContent=run ? 'Текущая серия' : 'Нет серии';
+  }
+  document.addEventListener('DOMContentLoaded',()=>{bindBrand();sync();setTimeout(sync,700);setTimeout(sync,1800);});
+  window.addEventListener('load',()=>{bindBrand();sync();});
+})();
