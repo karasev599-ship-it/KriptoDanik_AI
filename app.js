@@ -4,6 +4,8 @@
    KRIPTODANIK AI — RELEASE CANDIDATE (SPRINT 9)
    ============================================================ */
 
+const KD_BUILD_VERSION = '1.8.2';
+
 const App = {
 
     // ===== DATA =====
@@ -286,7 +288,7 @@ const App = {
             this.showSection('dashboard');
         }
         this.startMarketPulseAutoRefresh();
-        console.log('KriptoDanik AI Release Candidate initialized.');
+        console.log(`KriptoDanik AI ${KD_BUILD_VERSION} initialized.`);
     },
 
     // ===== LOCALSTORAGE =====
@@ -367,7 +369,7 @@ const App = {
     getCurrentBalance() {
         const start = parseFloat(this.userData.capital) || 0;
         const pnlSum = this.trades.reduce((sum, t) => sum + (typeof t.pnl === 'number' && !isNaN(t.pnl) ? t.pnl : (parseFloat(t.pnl) || 0)), 0);
-        return start + pnlSum;
+        return this.trades.length ? start + pnlSum : 0;
     },
 
     updateBalanceDisplay() {
@@ -4256,7 +4258,7 @@ window.App = App;
     const coachMap=[['brandCoachAnalyze','dashAskBtn'],['brandCoachSetup','dashAskBtn'],['brandCoachDiscipline','dashAskBtn']];
     coachMap.forEach(([a,b])=>{const x=document.getElementById(a),y=document.getElementById(b); if(x&&y&&!x.dataset.bound){x.dataset.bound='1';x.addEventListener('click',()=>y.click())}});
     const av=document.getElementById('headerAvatar');
-    if(av){av.textContent='';av.style.backgroundImage="url('assets/avatar-circle-clean.png')";av.style.backgroundSize='cover';av.style.backgroundPosition='center';av.style.border='1px solid rgba(255,211,105,.5)';}
+    if(av){av.textContent='';av.style.backgroundImage="url('assets/avatar-circle-clean.png')";av.style.backgroundSize='cover';av.style.backgroundPosition='center';av.onerror=null;av.style.border='1px solid rgba(255,211,105,.5)';}
     const sav=document.getElementById('settingsAvatar');
     if(sav){sav.textContent='';sav.style.backgroundImage="url('assets/avatar-circle-clean.png')";sav.style.backgroundSize='cover';sav.style.backgroundPosition='center';}
     const actions={
@@ -4346,12 +4348,18 @@ window.App = App;
     const progressBar=document.getElementById('brandProgressBar');
     const disciplineLabel=document.getElementById('brandDisciplineLabel');
     const disciplineGrade=document.getElementById('brandDisciplineGrade');
+    const disciplineGood=document.getElementById('brandDisciplineGood');
+    const guardianStatus=document.getElementById('brandGuardianStatus');
+    const guardianList=document.getElementById('brandGuardianList');
     const realTrades=(window.App&&Array.isArray(window.App.trades))?window.App.trades:[];
     const completedChallenges=realTrades.length ? Math.min(10, realTrades.filter(t=>t&&t.status!=='open').length) : 0;
     if(progressEl) progressEl.textContent=completedChallenges+' / 10';
     if(progressBar) progressBar.style.width=(completedChallenges*10)+'%';
     if(disciplineLabel) disciplineLabel.textContent=realTrades.length?'Рассчитывается':'Нет данных';
-    if(disciplineGrade) disciplineGrade.textContent=realTrades.length?'—':'—';
+    if(disciplineGrade) disciplineGrade.textContent='—';
+    if(disciplineGood) disciplineGood.hidden = true;
+    if(guardianStatus){ guardianStatus.textContent='● Нет данных'; guardianStatus.classList.remove('is-good'); guardianStatus.classList.add('is-empty'); }
+    if(guardianList){ guardianList.innerHTML='<span>● Добавьте первую сделку</span><span>● Guardian проверит реальные правила</span><span>● Здесь не будет выдуманных оценок</span>'; }
     const balance=document.getElementById('balanceDisplay');
     const b=document.getElementById('brandBalance');
     const t=document.getElementById('brandTrades');
@@ -4365,7 +4373,7 @@ window.App = App;
     const legend=document.getElementById('brandLegend');
     const chartWrap=document.getElementById('brandChartWrap');
 
-    if (b && balance) b.textContent=balance.textContent;
+    if (b) b.textContent = total === 0 ? '$ 0.00' : ((balance && balance.textContent) || '$ 0.00');
     if (t) t.textContent=String(total);
     if (w) w.textContent=total ? ((window.App && window.App.winRateDisplay && window.App.winRateDisplay.textContent) || '—') : '—';
     if (donutTotal) donutTotal.textContent=String(total);
@@ -4375,6 +4383,8 @@ window.App = App;
       if(pfSub) pfSub.textContent='Недостаточно данных';
       if(streak) streak.textContent='0 дней';
       if(streakSub) streakSub.textContent='Начните журнал';
+      const balanceSub=document.getElementById('brandBalanceSub');
+      if(balanceSub) balanceSub.textContent='Пока нет данных';
       if(donut) donut.classList.add('is-empty');
       if(legend) legend.innerHTML='<div class="brand-empty-distribution">Нет сделок — распределение появится после первой сделки.</div>';
       if(chartWrap) chartWrap.classList.add('is-empty');
@@ -4392,6 +4402,15 @@ window.App = App;
     const losses=Math.abs((window.App.trades||[]).filter(x=>x.status==='loss').reduce((s,x)=>s+(parseFloat(x.pnl)||0),0));
     if(pf) pf.textContent=losses>0 ? (wins/losses).toFixed(2) : '—';
     if(pfSub) pfSub.textContent=losses>0 ? 'По реальным сделкам' : 'Недостаточно данных';
+    const balanceSub=document.getElementById('brandBalanceSub');
+    if(balanceSub) balanceSub.textContent='По данным Journal';
+    if(guardianStatus){ guardianStatus.textContent='● Отслеживается'; guardianStatus.classList.remove('is-empty'); guardianStatus.classList.add('is-good'); }
+    if(guardianList){
+      const violations=(window.App.guardianRules||[]).filter(r=>r.state==='fail').length;
+      guardianList.innerHTML=violations
+        ? `<span>● Нарушений сейчас: ${violations}</span><span>● Проверь Guardian перед следующей сделкой</span><span>● Все показатели основаны на Journal</span>`
+        : '<span>● Активных нарушений не найдено</span><span>● Проверка основана на реальных сделках</span><span>● Добавляй сделки — Guardian будет обновляться</span>';
+    }
 
     // Current winning streak from real chronological trades.
     let run=0;

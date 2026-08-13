@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=1.8.2" />
 
     <!-- Pinned to an exact Chart.js release (was the unpinned "/npm/chart.js" alias,
          which resolves to whatever build is "latest" at request time — that drift is
@@ -258,7 +258,7 @@
                 <div class="coach-tour-backdrop"></div>
                 <section class="coach-tour-card" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
                     <div class="coach-tour-copy">
-                        <div class="coach-tour-brand"><img src="assets/avatar-circle-clean.png" alt=""><span>KriptoDanik AI · AI Коуч</span></div>
+                        <div class="coach-tour-brand"><img src="assets/avatar-circle-clean.png" alt="" onerror="kdAssetFallback(this, 'avatar')"><span>KriptoDanik AI · AI Коуч</span></div>
                         <div class="coach-tour-step" id="tourStepLabel">1 / 7</div>
                         <h2 id="tourTitle">Добро пожаловать в KriptoDanik AI</h2>
                         <div id="tourBody" class="coach-tour-body"></div>
@@ -271,7 +271,7 @@
                     </div>
                     <div class="coach-tour-character">
                         <div class="coach-tour-glow"></div>
-                        <img src="assets/hero-character-clean.png" alt="KriptoDanik AI">
+                        <img src="assets/hero-character-clean.png" alt="KriptoDanik AI" onerror="kdAssetFallback(this, 'hero')">
                         <div class="coach-tour-bubble">
                             <span>AI COACH</span>
                             <strong>Я проведу тебя по рабочему пространству и покажу, где находится всё важное.</strong>
@@ -435,7 +435,7 @@
                             </div>
                             <button class="brand-cta" id="brandFirstTradeBtn">Добавить первую сделку <b>→</b></button>
                         </div>
-                        <div class="brand-hero-art"><img src="assets/hero-character-clean.png" alt="KriptoDanik AI"></div>
+                        <div class="brand-hero-art"><img src="assets/hero-character-clean.png" alt="KriptoDanik AI" onerror="kdAssetFallback(this, 'hero')"></div>
                         <div class="brand-quote">“Trade smarter.<br>Think longer.”</div>
                     </section>
                     <aside class="brand-side-stack">
@@ -444,10 +444,10 @@
                             <strong id="brandProgress">0 / 10</strong><small id="brandProgressLabel">вызовов пройдено</small>
                             <div class="progress-track"><i id="brandProgressBar" style="width:0%"></i></div>
                             <div class="discipline-row"><div><b>♙</b><span>Уровень дисциплины<em id="brandDisciplineLabel">Нет данных</em></span></div><div class="grade" id="brandDisciplineGrade">—</div></div>
-                            <div class="discipline-good">A- <span>Очень хорошо</span></div>
+                            <div class="discipline-good" id="brandDisciplineGood" hidden>A- <span>Очень хорошо</span></div>
                         </div>
                         <div class="brand-coach glass-panel">
-                            <div class="coach-head"><img src="assets/avatar-circle-clean.png"><div><b>KriptoDanik AI</b><small>AI Коуч</small></div></div>
+                            <div class="coach-head"><img src="assets/avatar-circle-clean.png" onerror="kdAssetFallback(this, 'avatar')"><div><b>KriptoDanik AI</b><small>AI Коуч</small></div></div>
                             <p><b>Привет, Даниил! 🔥</b><br>Как проходит твоя торговая неделя? Хочешь проанализировать последние сделки или разобрать какой-то сетап?</p>
                             <button class="coach-btn" id="brandCoachAnalyze">◉ Проанализируй мои сделки</button>
                             <button class="coach-btn" id="brandCoachSetup">♢ Можем разобрать сетап?</button>
@@ -457,7 +457,7 @@
                 </div>
 
                 <div class="brand-kpis">
-                    <div class="brand-kpi"><span>Баланс</span><b id="brandBalance">$ 6 000.00</b><em>+12.4% за месяц</em></div>
+                    <div class="brand-kpi"><span>Баланс</span><b id="brandBalance">$ 0.00</b><em id="brandBalanceSub">Пока нет данных</em></div>
                     <div class="brand-kpi"><span>Всего сделок</span><b id="brandTrades">0</b><em id="brandTradesSub">Нет данных</em></div>
                     <div class="brand-kpi"><span>Win Rate</span><b id="brandWinrate">—</b><em id="brandWinrateSub">Недостаточно данных</em></div>
                     <div class="brand-kpi"><span>Profit Factor</span><b id="brandProfitFactor">—</b><em id="brandProfitFactorSub">Недостаточно данных</em></div>
@@ -507,8 +507,8 @@
                     </section>
 
                     <section class="brand-showcase-panel brand-guardian glass-panel">
-                        <div class="brand-showcase-head"><h3>🛡 Guardian</h3><span class="brand-status-ok">● Все в норме</span></div>
-                        <div class="brand-guardian-list"><span>● Риск в пределах лимитов</span><span>● План соблюдается</span><span>● Эмоции под контролем</span><span>● Дисциплина растет</span></div>
+                        <div class="brand-showcase-head"><h3>🛡 Guardian</h3><span class="brand-status-ok" id="brandGuardianStatus">● Нет данных</span></div>
+                        <div class="brand-guardian-list" id="brandGuardianList"><span>● Добавьте первую сделку</span><span>● Guardian проверит реальные правила</span><span>● Здесь не будет выдуманных оценок</span></div>
                         <div class="brand-guardian-footer"><b>♛</b><span>Маленькие шаги<br><small>делают большие результаты</small></span></div>
                     </section>
                 </div>
@@ -1339,7 +1339,7 @@
                                         <div class="logo-icon">KD</div>
                                         <div>
                                             <h2 style="font-size:24px;">KriptoDanik</h2>
-                                            <span style="font-size:14px;color:var(--text-secondary);">AI v1.8.1</span>
+                                            <span style="font-size:14px;color:var(--text-secondary);">AI v1.8.2</span>
                                         </div>
                                     </div>
                                     <p style="color:var(--text-secondary);margin-bottom:24px;font-size:14px;line-height:1.6;">
@@ -1362,9 +1362,28 @@
 
     </div>
 
-    <script src="chart.js"></script>
-    <script src="app.js"></script>
-    <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+    <script src="brand-fallback.js?v=1.8.3"></script>
+    <script src="chart.js?v=1.8.3"></script>
+    <script src="app.js?v=1.8.3"></script>
+    <script>
+(() => {
+  if (!('serviceWorker' in navigator)) return;
+  const BUILD = '1.8.3';
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloaded || sessionStorage.getItem('kd_sw_reloaded') === BUILD) return;
+    reloaded = true;
+    sessionStorage.setItem('kd_sw_reloaded', BUILD);
+    window.location.reload();
+  });
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register(`sw.js?v=${BUILD}`, { updateViaCache: 'none' });
+      await reg.update();
+    } catch (_) {}
+  });
+})();
+</script>
 
 </body>
 </html>
