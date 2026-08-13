@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KriptoDanik AI</title>
+    <meta name="theme-color" content="#0A0A0F">
+    <meta name="description" content="KriptoDanik AI — аналитика, журнал сделок, дисциплина и AI-коуч.">
+    <link rel="manifest" href="manifest.webmanifest">
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -74,17 +77,23 @@
                     </button>
                 </nav>
 
-                <div class="nav-group-label">Скоро</div>
+                <div class="nav-group-label">Инструменты</div>
                 <nav>
-                    <button class="nav-item roadmap-item" data-section="strategy" data-roadmap="true" tabindex="-1">
+                    <button class="nav-item" data-section="strategy">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                        <span data-key="nav_strategy">Strategy Library</span>
-                        <span class="roadmap-soon-badge">Soon</span>
+                        <span data-key="nav_strategy">Библиотека стратегий</span>
                     </button>
-                    <button class="nav-item roadmap-item" data-section="marketpulse" data-roadmap="true" tabindex="-1">
+                    <button class="nav-item" data-section="marketpulse">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
                         <span data-key="nav_marketpulse">Market Pulse</span>
-                        <span class="roadmap-soon-badge">Soon</span>
+                    </button>
+                    <button class="nav-item" data-section="propintel">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="6" cy="16" r="1"/><circle cx="10" cy="11" r="1"/><circle cx="13" cy="14" r="1"/><circle cx="18" cy="7" r="1"/></svg>
+                        <span>Prop Intelligence</span>
+                    </button>
+                    <button class="nav-item" data-section="challenge">
+                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M6 3h12v5a6 6 0 0 1-12 0V3z"/><path d="M6 6H3a3 3 0 0 0 3 3"/><path d="M18 6h3a3 3 0 0 1-3 3"/></svg>
+                        <span data-key="nav_challenge">Prop Challenge</span>
                     </button>
                 </nav>
 
@@ -245,25 +254,30 @@
             <!-- ============================================================
             AI COACH PRODUCT TOUR (first-user experience, v1.0.6)
             ============================================================ -->
-            <div id="coachTourOverlay" class="onboarding-overlay">
-                <div class="onboarding-modal glass-panel tour-modal">
-                    <div class="wizard-progress"><div class="wizard-progress-bar" id="tourProgressBar" style="width:10%;"></div></div>
-                    <div class="wizard-step-label" id="tourStepLabel">1 / 10</div>
-                    <div class="onboarding-header">
-                        <h3 id="tourTitle">Знакомство с KriptoDanik AI</h3>
-                    </div>
-                    <div class="onboarding-body">
-                        <div class="ai-msg-wrapper ai" style="margin-bottom:0;">
-                            <div class="ai-msg-avatar">AI</div>
-                            <div class="ai-msg-bubble tour-body" id="tourBody">...</div>
+            <div id="coachTourOverlay" class="coach-tour-overlay" aria-hidden="true">
+                <div class="coach-tour-backdrop"></div>
+                <section class="coach-tour-card" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+                    <div class="coach-tour-copy">
+                        <div class="coach-tour-brand"><img src="assets/avatar-circle-clean.png" alt=""><span>KriptoDanik AI · AI Коуч</span></div>
+                        <div class="coach-tour-step" id="tourStepLabel">1 / 7</div>
+                        <h2 id="tourTitle">Добро пожаловать в KriptoDanik AI</h2>
+                        <div id="tourBody" class="coach-tour-body"></div>
+                        <div class="coach-tour-progress"><i id="tourProgressBar"></i></div>
+                        <div class="coach-tour-actions">
+                            <button class="coach-tour-skip" id="tourSkipBtn">Пропустить</button>
+                            <button class="coach-tour-back" id="tourBackBtn">Назад</button>
+                            <button class="coach-tour-next" id="tourNextBtn">Далее</button>
                         </div>
                     </div>
-                    <div class="onboarding-footer wizard-footer" style="margin-top:20px; justify-content:space-between; align-items:center;">
-                        <button class="btn-secondary" id="tourBackBtn" style="visibility:hidden;">Назад</button>
-                        <button class="about-link" id="tourSkipBtn" data-key="tour_skip" style="background:none; border:none; cursor:pointer; font-size:13px;">Пропустить тур</button>
-                        <button class="btn-primary" id="tourNextBtn">Далее</button>
+                    <div class="coach-tour-character">
+                        <div class="coach-tour-glow"></div>
+                        <img src="assets/hero-character-clean.png" alt="KriptoDanik AI">
+                        <div class="coach-tour-bubble">
+                            <span>AI COACH</span>
+                            <strong>Я проведу тебя по рабочему пространству и покажу, где находится всё важное.</strong>
+                        </div>
                     </div>
-                </div>
+                </section>
             </div>
 
             <!-- ============================================================
@@ -408,7 +422,98 @@
             <!-- ============================================================
             DASHBOARD (ЭТАП 2)
             ============================================================ -->
-            <div id="section-dashboard" class="section-content">
+            <div id="section-dashboard" class="section-content brand-dashboard">
+                <div class="brand-hero-grid">
+                    <section class="brand-hero glass-panel">
+                        <div class="brand-hero-copy">
+                            <span class="brand-eyebrow">KRIPTODANIK AI • TRADING INTELLIGENCE</span>
+                            <h1>Добро пожаловать в<br><span>KriptoDanik AI</span></h1>
+                            <p>Твой AI-проводник в трейдинге.</p>
+                            <div class="brand-pills">
+                                <span>◈ Анализируй рынок</span><span>▣ Веди журнал</span>
+                                <span>♢ Контролируй риск</span><span>♜ Становись дисциплинированнее</span>
+                            </div>
+                            <button class="brand-cta" id="brandFirstTradeBtn">Добавить первую сделку <b>→</b></button>
+                        </div>
+                        <div class="brand-hero-art"><img src="assets/hero-character-clean.png" alt="KriptoDanik AI"></div>
+                        <div class="brand-quote">“Trade smarter.<br>Think longer.”</div>
+                    </section>
+                    <aside class="brand-side-stack">
+                        <div class="brand-progress glass-panel">
+                            <div class="brand-panel-title"><span>♕ Твой прогресс</span><button>×</button></div>
+                            <strong id="brandProgress">0 / 10</strong><small id="brandProgressLabel">вызовов пройдено</small>
+                            <div class="progress-track"><i id="brandProgressBar" style="width:0%"></i></div>
+                            <div class="discipline-row"><div><b>♙</b><span>Уровень дисциплины<em id="brandDisciplineLabel">Нет данных</em></span></div><div class="grade" id="brandDisciplineGrade">—</div></div>
+                            <div class="discipline-good">A- <span>Очень хорошо</span></div>
+                        </div>
+                        <div class="brand-coach glass-panel">
+                            <div class="coach-head"><img src="assets/avatar-circle-clean.png"><div><b>KriptoDanik AI</b><small>AI Коуч</small></div></div>
+                            <p><b>Привет, Даниил! 🔥</b><br>Как проходит твоя торговая неделя? Хочешь проанализировать последние сделки или разобрать какой-то сетап?</p>
+                            <button class="coach-btn" id="brandCoachAnalyze">◉ Проанализируй мои сделки</button>
+                            <button class="coach-btn" id="brandCoachSetup">♢ Можем разобрать сетап?</button>
+                            <button class="coach-btn" id="brandCoachDiscipline">♙ Дай фидбек по дисциплине</button>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="brand-kpis">
+                    <div class="brand-kpi"><span>Баланс</span><b id="brandBalance">$ 6 000.00</b><em>+12.4% за месяц</em></div>
+                    <div class="brand-kpi"><span>Всего сделок</span><b id="brandTrades">0</b><em id="brandTradesSub">Нет данных</em></div>
+                    <div class="brand-kpi"><span>Win Rate</span><b id="brandWinrate">—</b><em id="brandWinrateSub">Недостаточно данных</em></div>
+                    <div class="brand-kpi"><span>Profit Factor</span><b id="brandProfitFactor">—</b><em id="brandProfitFactorSub">Недостаточно данных</em></div>
+                    <div class="brand-kpi streak"><span>Текущий стрик</span><b id="brandStreak">0 дней</b><em id="brandStreakSub">Начните журнал</em></div>
+                </div>
+
+                <div class="brand-motto glass-panel"><span>♕</span><b>«Дисциплина делает из трейдера легенду»</b><small>— KriptoDanik AI</small></div>
+
+                <!-- v1.1.3 — BRAND-FIRST DASHBOARD -->
+                <div class="brand-showcase-grid">
+                    <section class="brand-showcase-panel brand-performance glass-panel">
+                        <div class="brand-showcase-head"><h3>Эффективность</h3><div class="brand-periods"><button>7Д</button><button class="active">30Д</button><button>90Д</button><button>Все</button></div></div>
+                        <div class="brand-chart-wrap" id="brandChartWrap">
+                            <svg viewBox="0 0 760 280" preserveAspectRatio="none" class="brand-equity-svg" aria-label="График эффективности">
+                                <defs><linearGradient id="brandArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#8a2be2" stop-opacity=".42"/><stop offset="100%" stop-color="#8a2be2" stop-opacity="0"/></linearGradient></defs>
+                                <g class="chart-grid"><line x1="40" y1="45" x2="740" y2="45"/><line x1="40" y1="105" x2="740" y2="105"/><line x1="40" y1="165" x2="740" y2="165"/><line x1="40" y1="225" x2="740" y2="225"/></g>
+                                <path class="brand-area" d="M40,235 C80,220 95,180 130,198 S185,165 220,180 S265,140 300,157 S340,120 375,142 S425,95 460,118 S510,75 545,100 S600,62 635,78 S690,35 740,55 L740,250 L40,250 Z"/>
+                                <path class="brand-line" d="M40,235 C80,220 95,180 130,198 S185,165 220,180 S265,140 300,157 S340,120 375,142 S425,95 460,118 S510,75 545,100 S600,62 635,78 S690,35 740,55"/>
+                                <circle cx="460" cy="118" r="6" class="brand-dot"/><line x1="460" y1="118" x2="460" y2="250" class="brand-marker"/>
+                            </svg>
+                            <div class="brand-chart-tooltip"><b>+$1 240</b><span>12 февр.</span></div>
+                            <div class="brand-chart-labels"><span>0$</span><span>2k</span><span>4k</span><span>6k</span><span>8k</span></div>
+                            <div class="brand-chart-empty" id="brandChartEmpty">
+                                <strong>Пока нет данных</strong>
+                                <span>Добавьте первую сделку — и здесь появится реальная кривая доходности.</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="brand-showcase-panel brand-distribution glass-panel">
+                        <div class="brand-showcase-head"><h3>Распределение сделок</h3></div>
+                        <div class="brand-donut-layout">
+                            <div class="brand-donut" id="brandDonut"><div><b id="brandDonutTotal">0</b><span>сделок</span></div></div>
+                            <div class="brand-legend" id="brandLegend"><div class="brand-empty-distribution">Нет сделок — распределение появится после первой сделки.</div></div>
+                        </div>
+                    </section>
+
+                    <section class="brand-showcase-panel brand-recent glass-panel">
+                        <div class="brand-showcase-head"><h3>Последние сделки</h3><button class="brand-link-btn" id="brandOpenJournal">Открыть журнал →</button></div>
+                        <div class="brand-trade-table-head"><span>Символ</span><span>Тип</span><span>Вход</span><span>Выход</span><span>Результат</span><span>RR</span><span>Дата</span></div>
+                        <div id="brandRecentTrades" class="brand-trade-list"><div class="brand-empty-trades"><div>Пока нет реальных сделок</div><small>Добавленные тобой сделки появятся здесь автоматически.</small></div></div>
+                    </section>
+
+                    <section class="brand-showcase-panel brand-quick glass-panel">
+                        <div class="brand-showcase-head"><h3>Быстрые действия</h3></div>
+                        <div class="brand-quick-grid"><button id="brandQuickScanner"><b>◎</b><span>AI Scanner<small>Проверить сетап</small></span></button><button id="brandQuickJournal"><b>▣</b><span>Открыть журнал<small>Добавить сделку</small></span></button><button id="brandQuickAnalytics"><b>▥</b><span>Аналитика<small>Глубокий анализ</small></span></button><button id="brandQuickAcademy"><b>◇</b><span>Академия<small>Продолжить обучение</small></span></button></div>
+                    </section>
+
+                    <section class="brand-showcase-panel brand-guardian glass-panel">
+                        <div class="brand-showcase-head"><h3>🛡 Guardian</h3><span class="brand-status-ok">● Все в норме</span></div>
+                        <div class="brand-guardian-list"><span>● Риск в пределах лимитов</span><span>● План соблюдается</span><span>● Эмоции под контролем</span><span>● Дисциплина растет</span></div>
+                        <div class="brand-guardian-footer"><b>♛</b><span>Маленькие шаги<br><small>делают большие результаты</small></span></div>
+                    </section>
+                </div>
+
+                <div class="legacy-dashboard-data">
                 <div class="dash-row-4">
                     <div class="dash-card glass-panel">
                         <div class="dash-card-header">
@@ -553,6 +658,7 @@
                             <div class="ai-avatar-small">AI</div>
                         </div>
                         <div class="ai-content">
+                            <div class="ai-context-snapshot" id="aiContextSnapshot"><span class="coach-context-empty">Нет данных для персонального контекста.</span></div>
                             <p class="ai-msg" id="dashAIMsg">—</p>
                             <p class="ai-msg sub" id="dashAIMsgSub">—</p>
                             <button class="btn-primary full-width" id="dashAskBtn">Спросить AI Коуча</button>
@@ -592,6 +698,7 @@
                             <div class="asset-list" id="assetListBody"></div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -1024,6 +1131,59 @@
             </div>
 
             <!-- ============================================================
+            STRATEGY LIBRARY
+            ============================================================ -->
+            <div id="section-strategy" class="section-content">
+                <div class="module-header glass-panel"><div><span class="module-eyebrow">TRADING SYSTEM</span><h2>Библиотека стратегий</h2><p>Храни свои правила в одном месте и сверяй реальные сделки с планом.</p></div><button class="btn-primary" id="strategyAddBtn">+ Новая стратегия</button></div>
+                <div class="module-toolbar glass-panel"><input id="strategySearch" class="form-input" placeholder="Поиск стратегии..."/><select id="strategyFilter" class="form-input"><option value="all">Все</option><option value="active">Активные</option><option value="archived">Архив</option></select></div>
+                <div id="strategyGrid" class="strategy-grid"></div><div id="strategyEmpty" class="module-empty glass-panel"><div class="module-empty-icon">♜</div><h3>Стратегий пока нет</h3><p>Создай первую стратегию: условия входа, стоп, выход, фильтры и правила дисциплины.</p><button class="btn-primary" id="strategyEmptyBtn">Создать стратегию</button></div>
+            </div>
+            <div id="section-marketpulse" class="section-content">
+                <div class="module-header glass-panel"><div><span class="module-eyebrow">MARKET CONTEXT · v1.2</span><h2>Market Pulse</h2><p>Актуальный рыночный контекст, торговые сессии и фактические данные — без сигналов и обещаний движения цены.</p></div><button class="btn-secondary" id="marketRefreshBtn">↻ Обновить</button></div>
+                <div class="market-session-grid">
+                    <article class="glass-panel market-session-card"><span class="module-eyebrow">CURRENT SESSION</span><div class="market-session-main"><b id="marketCurrentSession">—</b><span id="marketSessionStatus">—</span></div><div class="market-session-times"><span>UTC</span><b id="marketSessionClock">—</b></div><div class="market-session-note" id="marketPreviousSession">Предыдущая сессия: —</div></article>
+                    <article class="glass-panel market-context-card"><span class="module-eyebrow">TRADING CONTEXT</span><h3>Твоя стратегия</h3><p id="marketStrategyContext">Здесь появится связь Market Pulse с твоей стратегией.</p><div class="market-context-tags" id="marketStrategyTags"></div></article>
+                </div>
+                <div class="pulse-meta glass-panel"><div><span class="module-eyebrow">LIVE STATUS</span><b id="marketLiveStatus">Ожидание данных</b></div><div><span class="module-eyebrow">ОБНОВЛЕНО</span><b id="marketLastUpdated">—</b></div><div><span class="module-eyebrow">ЗАДЕРЖКА</span><b id="marketLatency">—</b></div><div><span class="module-eyebrow">ИСТОЧНИК</span><b>Binance public API</b></div></div><div class="pulse-grid" id="marketPulseGrid"></div>
+                <div class="market-analysis-grid">
+                    <article class="glass-panel market-analysis-card"><span class="module-eyebrow">AI MARKET ANALYSIS</span><h3>Что это значит</h3><div id="marketAiAnalysis"><p class="muted">Обнови данные, чтобы получить нейтральный разбор текущего контекста.</p></div></article>
+                    <article class="glass-panel market-links-card"><span class="module-eyebrow">NEWS SOURCES</span><h3>Проверяй первоисточник</h3><p>Новости не подменяются выдуманными событиями. Используй официальные источники и открывай их перед принятием решений.</p><div class="market-source-links"><a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener">Federal Reserve</a><a href="https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html" target="_blank" rel="noopener">ECB</a><a href="https://www.bls.gov/schedule/news_release/" target="_blank" rel="noopener">US Economic Calendar</a><a href="https://www.binance.com/en/support/announcement" target="_blank" rel="noopener">Binance Announcements</a></div></article>
+                </div>
+                <div class="market-news-grid">
+                    <article class="glass-panel market-news-card"><span class="module-eyebrow">PROP FIRM NEWS</span><h3>Новости проп-компаний</h3><p>Блок подготовлен для подключения проверенных источников. Пока здесь нет выдуманных обновлений правил или челленджей.</p><span class="market-news-status">Источник не подключён</span></article>
+                    <article class="glass-panel market-news-card"><span class="module-eyebrow">KRIPTODANIK AI NEWS</span><h3>Новости продукта</h3><p>Версии и функции будут отображаться здесь только после фактического добавления обновления.</p><span class="market-news-status">Публикаций пока нет</span></article>
+                </div>
+                <div class="market-note glass-panel"><b>Важно:</b> Market Pulse не говорит «покупать» или «продавать». AI Market Analysis описывает только наблюдаемые данные и возможные области внимания; это не прогноз и не финансовый совет.</div>
+            </div>
+            <div id="section-propintel" class="section-content">
+                <div class="module-header glass-panel"><div><span class="module-eyebrow">MARKET PULSE · v1.2</span><h2>Prop Intelligence</h2><p>Рынок, сессии, новости, макроданные и правила проп-компаний в одном месте. Только проверяемые данные и явные статусы источников.</p></div><button class="btn-secondary" id="propIntelRefreshBtn">↻ Обновить</button></div>
+                <div class="intel-overview-grid">
+                    <article class="glass-panel intel-hero"><span class="module-eyebrow">MARKET OVERVIEW</span><h3 id="intelMarketState">Загрузка состояния рынка…</h3><div class="intel-big-row"><div><b id="intelFearGreed">—</b><span>Fear &amp; Greed</span></div><div><b id="intelBreadth">—</b><span>Наблюдаемые активы</span></div><div><b id="intelUpdated">—</b><span>Последнее обновление</span></div></div><p id="intelMarketSummary">Подключаем фактические данные BTC, ETH и SOL и индекс настроений.</p></article>
+                    <article class="glass-panel intel-ai"><span class="module-eyebrow">AI MARKET ANALYSIS</span><h3>Почему это важно</h3><div id="intelAiText"><p>AI разберёт только наблюдаемые данные: изменение цены, диапазон, настроение и сессии. Это не торговый сигнал.</p></div></article>
+                </div>
+                <div class="intel-section-head"><div><span class="module-eyebrow">MARKET SESSIONS</span><h3>24-HOUR SESSION TIMELINE</h3></div><span class="muted">Все времена — Москва (MSK)</span></div>
+                <div class="session-timeline glass-panel" id="sessionTimeline"></div>
+                <div class="intel-columns">
+                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">NEWS</span><h3>Актуальная лента</h3></div></div><div class="intel-tabs" id="intelNewsTabs"><button class="active" data-news-cat="crypto">Crypto</button><button data-news-cat="forex">Forex</button><button data-news-cat="stocks">Stocks</button></div><div id="intelNewsList" class="intel-news-list"></div></section>
+                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">ECONOMIC CALENDAR</span><h3>Экономический календарь</h3></div></div><div class="event-list" id="intelEconomicList"></div></section>
+                </div>
+                <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">IMPORTANT EVENTS</span><h3>События, за которыми стоит следить</h3></div></div><div class="important-events" id="intelImportantEvents"></div></section>
+                <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">PROP FIRMS</span><h3>Prop Firm Directory</h3></div><span class="muted">Проверяй официальный источник перед покупкой</span></div><div class="prop-directory" id="propDirectory"></div></section>
+                <div class="intel-columns">
+                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">RULES EXPLAINED</span><h3>Как не нарушить правила</h3></div></div><div id="propRulesExplained" class="rules-explained"></div></section>
+                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">PITFALLS</span><h3>Prop Firm Pitfalls</h3></div></div><div id="propPitfalls" class="pitfall-list"></div></section>
+                </div>
+                <section class="glass-panel guardian-prop-link"><div><span class="module-eyebrow">PROP FIRM → GUARDIAN</span><h3>Свяжи правила челленджа с контролем риска</h3><p>Выбери параметры в Prop Challenge — Guardian и Challenge используют реальные сделки Journal для контроля дневного лимита и просадки.</p></div><button class="btn-primary" id="intelOpenChallenge">Открыть Prop Challenge</button></section>
+            </div>
+            <div id="section-challenge" class="section-content">
+                <div class="module-header glass-panel"><div><span class="module-eyebrow">RISK &amp; DISCIPLINE</span><h2>Prop Challenge</h2><p>Отдельный трек для челленджа. Никаких выдуманных результатов — всё считается из твоих данных и заданных правил.</p></div><button class="btn-primary" id="challengeSettingsBtn">Настроить</button></div>
+                <div class="challenge-summary-grid" id="challengeSummary"></div>
+                <div class="challenge-progress-card glass-panel"><div class="challenge-progress-head"><b id="challengeStepTitle">Шаг 1</b><span id="challengeStatus">Не настроен</span></div><div class="challenge-track"><i id="challengeProgressBar"></i></div><div class="challenge-progress-meta"><span id="challengeProfitText">$0.00 прибыли</span><span id="challengeTargetText">Цель не задана</span></div></div>
+                <div class="challenge-layout"><div class="challenge-rules glass-panel"><h3>Правила челленджа</h3><div id="challengeRulesList"></div></div><div class="challenge-log glass-panel"><h3>Контроль</h3><p>Для расчёта используются только сделки из Journal. Добавь или измени сделку там — Challenge обновится автоматически.</p><div id="challengeChecks"></div></div></div>
+                <div id="challengeSettingsPanel" class="challenge-settings glass-panel" style="display:none;"><h3>Параметры</h3><div class="form-row-2"><div class="form-group"><label>Компания / челлендж</label><input id="challengeName" class="form-input" placeholder="Sweet Pepper 2-Step Challenge"/></div><div class="form-group"><label>Размер счёта</label><input id="challengeCapital" type="number" class="form-input" placeholder="6000"/></div></div><div class="form-row-2"><div class="form-group"><label>Цель шага 1, %</label><input id="challengeTarget1" type="number" class="form-input" step="0.1" placeholder="10"/></div><div class="form-group"><label>Цель шага 2, %</label><input id="challengeTarget2" type="number" class="form-input" step="0.1" placeholder="5"/></div></div><div class="form-row-2"><div class="form-group"><label>Дневной лимит, %</label><input id="challengeDaily" type="number" class="form-input" step="0.1" placeholder="5"/></div><div class="form-group"><label>Макс. просадка, %</label><input id="challengeMaxDD" type="number" class="form-input" step="0.1" placeholder="10"/></div></div><button class="btn-primary" id="challengeSaveBtn">Сохранить правила</button></div>
+            </div>
+
+            <!-- ============================================================
             SETTINGS (ЭТАП 8)
             ============================================================ -->
             <div id="section-settings" class="section-content">
@@ -1179,7 +1339,7 @@
                                         <div class="logo-icon">KD</div>
                                         <div>
                                             <h2 style="font-size:24px;">KriptoDanik</h2>
-                                            <span style="font-size:14px;color:var(--text-secondary);">AI v1.3.0</span>
+                                            <span style="font-size:14px;color:var(--text-secondary);">AI v1.8.1</span>
                                         </div>
                                     </div>
                                     <p style="color:var(--text-secondary);margin-bottom:24px;font-size:14px;line-height:1.6;">
@@ -1187,9 +1347,8 @@
                                         Аналитика, дисциплина и поддержка в одном приложении.
                                     </p>
                                     <div class="about-links">
-                                        <a href="#" class="about-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2H3v16h5v4l6-4h7V2z"/></svg> Telegram</a>
-                                        <a href="#" class="about-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Website</a>
-                                        <a href="#" class="about-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> support@kriptodanik.ai</a>
+                                        <a href="https://t.me/kd040401" class="about-link" target="_blank" rel="noopener noreferrer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2H3v16h5v4l6-4h7V2z"/></svg> Telegram</a>
+                                        <a href="mailto:support@kriptodanik.ai" class="about-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> support@kriptodanik.ai</a>
                                     </div>
                                 </div>
                             </div>
@@ -1205,6 +1364,7 @@
 
     <script src="chart.js"></script>
     <script src="app.js"></script>
+    <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
 
 </body>
 </html>
