@@ -20,6 +20,7 @@
          sourceMappingURL pointed at a chart.umd.min.js.map that didn't match, producing
          a 404 in DevTools. Pinning fixes the mismatch without changing chart behavior. -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="brand-fallback.js?v=1.8.8"></script>
 </head>
 <body>
 
@@ -250,7 +251,7 @@
                 <div class="coach-tour-backdrop"></div>
                 <section class="coach-tour-card" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
                     <div class="coach-tour-copy">
-                        <div class="coach-tour-brand"><img src="assets/avatar-circle-clean.png" alt="" onerror="kdAssetFallback(this, 'avatar')"><span>KriptoDanik AI · AI Коуч</span></div>
+                        <div class="coach-tour-brand"><img src="assets/avatar-circle-clean.png" alt="" onerror="this.onerror=null;this.src='assets/avatar-circle.png'"><span>KriptoDanik AI · AI Коуч</span></div>
                         <div class="coach-tour-step" id="tourStepLabel">1 / 7</div>
                         <h2 id="tourTitle">Добро пожаловать в KriptoDanik AI</h2>
                         <div id="tourBody" class="coach-tour-body"></div>
@@ -263,7 +264,7 @@
                     </div>
                     <div class="coach-tour-character">
                         <div class="coach-tour-glow"></div>
-                        <img src="assets/hero-character-clean.png" alt="KriptoDanik AI" onerror="kdAssetFallback(this, 'hero')">
+                        <img src="assets/hero-character-clean.png" alt="KriptoDanik AI" onerror="this.onerror=null;this.src='assets/hero-character.png'">
                         <div class="coach-tour-bubble">
                             <span>AI COACH</span>
                             <strong>Я проведу тебя по рабочему пространству и покажу, где находится всё важное.</strong>
@@ -427,7 +428,7 @@
                             </div>
                             <button class="brand-cta" id="brandFirstTradeBtn">Добавить первую сделку <b>→</b></button>
                         </div>
-                        <div class="brand-hero-art"><img src="assets/hero-character-clean.png" alt="KriptoDanik AI" onerror="kdAssetFallback(this, 'hero')"></div>
+                        <div class="brand-hero-art"><img src="assets/hero-character-clean.png" alt="KriptoDanik AI" onerror="this.onerror=null;this.src='assets/hero-character.png'"></div>
                         <div class="brand-quote">“Trade smarter.<br>Think longer.”</div>
                     </section>
                     <aside class="brand-side-stack">
@@ -439,7 +440,7 @@
                             <div class="discipline-good" id="brandDisciplineGood" hidden>A- <span>Очень хорошо</span></div>
                         </div>
                         <div class="brand-coach glass-panel">
-                            <div class="coach-head"><img src="assets/avatar-circle-clean.png" onerror="kdAssetFallback(this, 'avatar')"><div><b>KriptoDanik AI</b><small>AI Коуч</small></div></div>
+                            <div class="coach-head"><img src="assets/avatar-circle-clean.png" onerror="this.onerror=null;this.src='assets/avatar-circle.png'"><div><b>KriptoDanik AI</b><small>AI Коуч</small></div></div>
                             <p><b>Привет, Даниил! 🔥</b><br>Как проходит твоя торговая неделя? Хочешь проанализировать последние сделки или разобрать какой-то сетап?</p>
                             <button class="coach-btn" id="brandCoachAnalyze">◉ Проанализируй мои сделки</button>
                             <button class="coach-btn" id="brandCoachSetup">♢ Можем разобрать сетап?</button>
@@ -1329,13 +1330,12 @@
 
     </div>
 
-    <script src="brand-fallback.js?v=1.8.3"></script>
-    <script src="chart.js?v=1.8.3"></script>
-    <script src="app.js?v=1.8.3"></script>
+    <script src="chart.js?v=1.8.8"></script>
+    <script src="app.js?v=1.8.8"></script>
     <script>
 (() => {
   if (!('serviceWorker' in navigator)) return;
-  const BUILD = '1.8.3';
+  const BUILD = '1.8.8';
   let reloaded = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (reloaded || sessionStorage.getItem('kd_sw_reloaded') === BUILD) return;
