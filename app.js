@@ -4,7 +4,7 @@
    KRIPTODANIK AI — RELEASE CANDIDATE (SPRINT 9)
    ============================================================ */
 
-const KD_BUILD_VERSION = '1.8.2';
+const KD_BUILD_VERSION = '1.8.4';
 
 const App = {
 
@@ -44,7 +44,6 @@ const App = {
         notes: 'Точное определение confirmation владельцем стратегии ещё не задано. Не добавлять самостоятельно дополнительные условия, фильтры или правила.',
         createdAt: '2026-08-13T00:00:00.000Z'
     },
-    challenge: {},
 
     translations: {
         ru: {
@@ -59,7 +58,6 @@ const App = {
             nav_academy: 'Академия',
             nav_strategy: 'Библиотека стратегий',
             nav_marketpulse: 'Market Pulse',
-            nav_challenge: 'Prop Challenge',
             online: 'AI подключен',
             balance: 'Баланс',
             balance_live: 'Актуальный баланс',
@@ -125,7 +123,7 @@ const App = {
             nav_scanner: 'AI Scanner',
             scanner_title: 'AI Scanner',
             scanner_sub: 'Загрузите скриншот графика, чтобы начать структурированный разбор сделки — прикрепите его к записи в Journal.',
-            scanner_honesty_note: 'В этой сборке пока нет подключённой модели компьютерного зрения, поэтому ничего не определяется автоматически по скриншоту. Вы получите структурированную форму для самостоятельного заполнения, а скриншот прикрепится к сделке для дальнейшего просмотра.',
+            scanner_honesty_note: 'Scanner загружает и оптимизирует скриншот, затем может распознать текстовые метки через OCR (актив, таймфрейм, LONG/SHORT и названия структур). Числовые уровни не угадываются — проверьте результат перед сохранением.',
             scanner_upload_title: 'Загрузите скриншот графика',
             scanner_upload_sub: 'PNG или JPG, до 5МБ',
             scanner_choose_file: 'Выбрать файл',
@@ -147,8 +145,8 @@ const App = {
             scanner_confidence_label: 'Confidence: N/A (ручной разбор, без модели компьютерного зрения)',
             scanner_view_screenshot: 'Открыть скриншот',
             scanner_learn_more: 'Подробнее',
-            academy_ms_title: 'Структура рынка и Smart Money',
-            academy_ms_sub: 'Как читать сам график — гэпы, ордер-блоки, ликвидность, пробои структуры и другое.'
+            scanner_analyze: 'Анализировать скриншот',
+            scanner_ocr_label: 'Распознанный текст на скриншоте',
         },
         en: {
             nav_dashboard: 'Dashboard',
@@ -227,7 +225,7 @@ const App = {
             nav_scanner: 'AI Scanner',
             scanner_title: 'AI Scanner',
             scanner_sub: 'Upload a chart screenshot to start a structured trade review — attach it to your Journal entry.',
-            scanner_honesty_note: 'This build doesn\'t have a connected vision-AI model yet, so nothing is auto-detected from your screenshot. You\'ll get a structured review form to fill in yourself, with the screenshot attached to the trade for later reference.',
+            scanner_honesty_note: 'The Scanner loads and optimizes your screenshot, then can read chart labels with OCR (asset, timeframe, LONG/SHORT and structure names). Price levels are never guessed — review the result before saving.',
             scanner_upload_title: 'Upload a chart screenshot',
             scanner_upload_sub: 'PNG or JPG, up to 5MB',
             scanner_choose_file: 'Choose file',
@@ -249,8 +247,8 @@ const App = {
             scanner_confidence_label: 'Confidence: N/A (manual review, no vision-AI model connected)',
             scanner_view_screenshot: 'View screenshot',
             scanner_learn_more: 'Learn more',
-            academy_ms_title: 'Market Structure & Smart Money Concepts',
-            academy_ms_sub: 'How to read the chart itself — gaps, order blocks, liquidity, breaks of structure, and more.'
+            scanner_analyze: 'Analyze screenshot',
+            scanner_ocr_label: 'OCR text found on screenshot',
         }
     },
 
@@ -310,7 +308,6 @@ const App = {
                 this.guardianViolations = state.guardianViolations || [];
                 this.aiHistory = state.aiHistory || [];
                 this.strategies = Array.isArray(state.strategies) ? state.strategies.filter(s => !s.protected) : [];
-                this.challenge = state.challenge || {};
             }
         } catch (e) { console.warn('Failed to load state:', e); }
     },
@@ -327,7 +324,6 @@ const App = {
                 guardianViolations: this.guardianViolations,
                 aiHistory: this.aiHistory,
                 strategies: this.strategies || [],
-                challenge: this.challenge || {}
             };
             localStorage.setItem('kriptodanik_state', JSON.stringify(state));
         } catch (e) { console.warn('Failed to save state:', e); }
@@ -345,7 +341,6 @@ const App = {
         this.currentDate = new Date();
         this.selectedDate = new Date();
         if (!Array.isArray(this.strategies)) this.strategies = [];
-        if (!this.challenge || typeof this.challenge !== 'object') this.challenge = {};
     },
 
     initGuardianRuleDefinitions() {
@@ -382,9 +377,7 @@ const App = {
         this.sections = {
             strategy: document.getElementById('section-strategy'),
             marketpulse: document.getElementById('section-marketpulse'),
-            propintel: document.getElementById('section-propintel'),
-            challenge: document.getElementById('section-challenge'),
-            dashboard: document.getElementById('section-dashboard'),
+                    dashboard: document.getElementById('section-dashboard'),
             journal: document.getElementById('section-journal'),
             analytics: document.getElementById('section-analytics'),
             calendar: document.getElementById('section-calendar'),
@@ -536,7 +529,6 @@ const App = {
         this.academyGrid = document.getElementById('academyGrid');
         this.academyLessonBody = document.getElementById('academyLessonBody');
         this.academyBackBtn = document.getElementById('academyBackBtn');
-        this.academyGridMS = document.getElementById('academyGridMS');
 
         // v1.1.0 — AI Scanner
         this.scannerUploadView = document.getElementById('scannerUploadView');
@@ -556,6 +548,10 @@ const App = {
         this.scannerStructuresGrid = document.getElementById('scannerStructuresGrid');
         this.scannerCancelBtn = document.getElementById('scannerCancelBtn');
         this.scannerConfirmBtn = document.getElementById('scannerConfirmBtn');
+        this.scannerAnalyzeBtn = document.getElementById('scannerAnalyzeBtn');
+        this.scannerAnalysisStatus = document.getElementById('scannerAnalysisStatus');
+        this.scannerOcrText = document.getElementById('scannerOcrText');
+        this.scannerObjectUrl = null;
 
         this.strategyGrid = document.getElementById('strategyGrid');
         this.strategyEmpty = document.getElementById('strategyEmpty');
@@ -565,37 +561,18 @@ const App = {
         this.strategyEmptyBtn = document.getElementById('strategyEmptyBtn');
         this.marketPulseGrid = document.getElementById('marketPulseGrid');
         this.marketRefreshBtn = document.getElementById('marketRefreshBtn');
+        this.marketModeButtons = [...document.querySelectorAll('[data-market-mode]')];
+        this.marketCalendar = document.getElementById('marketCalendar');
+        this.marketNews = document.getElementById('marketNews');
+        this.marketCalendarStatus = document.getElementById('marketCalendarStatus');
+        this.marketNewsStatus = document.getElementById('marketNewsStatus');
+        this.marketContextTitle = document.getElementById('marketContextTitle');
+        this.marketSourceLabel = document.getElementById('marketSourceLabel');
+        this.marketMode = localStorage.getItem('kd_market_mode') || 'crypto';
         this.marketLiveStatus = document.getElementById('marketLiveStatus');
         this.marketLastUpdated = document.getElementById('marketLastUpdated');
         this.marketLatency = document.getElementById('marketLatency');
         this.marketRefreshTimer = null;
-        this.challengeSummary = document.getElementById('challengeSummary');
-        this.challengeProgressBar = document.getElementById('challengeProgressBar');
-        this.challengeStepTitle = document.getElementById('challengeStepTitle');
-        this.challengeStatus = document.getElementById('challengeStatus');
-        this.challengeProfitText = document.getElementById('challengeProfitText');
-        this.challengeTargetText = document.getElementById('challengeTargetText');
-        this.challengeRulesList = document.getElementById('challengeRulesList');
-        this.challengeChecks = document.getElementById('challengeChecks');
-        this.challengeSettingsBtn = document.getElementById('challengeSettingsBtn');
-        this.challengeSettingsPanel = document.getElementById('challengeSettingsPanel');
-        this.challengeSaveBtn = document.getElementById('challengeSaveBtn');
-        this.challengeName = document.getElementById('challengeName');
-        this.challengeCapital = document.getElementById('challengeCapital');
-        this.challengeTarget1 = document.getElementById('challengeTarget1');
-        this.challengeTarget2 = document.getElementById('challengeTarget2');
-        this.challengeDaily = document.getElementById('challengeDaily');
-        this.challengeMaxDD = document.getElementById('challengeMaxDD');
-        this.propIntelRefreshBtn = document.getElementById('propIntelRefreshBtn');
-        this.intelOpenChallenge = document.getElementById('intelOpenChallenge');
-        this.intelNewsList = document.getElementById('intelNewsList');
-        this.intelNewsTabs = document.getElementById('intelNewsTabs');
-        this.intelEconomicList = document.getElementById('intelEconomicList');
-        this.intelImportantEvents = document.getElementById('intelImportantEvents');
-        this.propDirectory = document.getElementById('propDirectory');
-        this.propRulesExplained = document.getElementById('propRulesExplained');
-        this.propPitfalls = document.getElementById('propPitfalls');
-        this.sessionTimeline = document.getElementById('sessionTimeline');
         this.screenshotLightbox = document.getElementById('screenshotLightbox');
         this.lightboxImg = document.getElementById('lightboxImg');
         this.lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
@@ -794,21 +771,27 @@ const App = {
         if (this.scannerBackBtn) this.scannerBackBtn.addEventListener('click', () => this.showScannerUpload());
         if (this.scannerCancelBtn) this.scannerCancelBtn.addEventListener('click', () => this.showScannerUpload());
         if (this.scannerConfirmBtn) this.scannerConfirmBtn.addEventListener('click', () => this.confirmScannerResult());
+        if (this.scannerAnalyzeBtn) this.scannerAnalyzeBtn.addEventListener('click', () => this.analyzeScannerImage());
+        document.addEventListener('paste', (e) => {
+            const items = Array.from(e.clipboardData?.items || []);
+            const imageItem = items.find(item => item.type && item.type.startsWith('image/'));
+            if (imageItem && this.currentSection === 'scanner') {
+                e.preventDefault();
+                this.handleScannerFile(imageItem.getAsFile());
+            }
+        });
 
         if (this.strategyAddBtn) this.strategyAddBtn.addEventListener('click', () => this.openStrategyModal());
         if (this.strategyEmptyBtn) this.strategyEmptyBtn.addEventListener('click', () => this.openStrategyModal());
         if (this.strategySearch) this.strategySearch.addEventListener('input', () => this.renderStrategyLibrary());
         if (this.strategyFilter) this.strategyFilter.addEventListener('change', () => this.renderStrategyLibrary());
         if (this.marketRefreshBtn) this.marketRefreshBtn.addEventListener('click', () => this.loadMarketPulse());
-        if (this.challengeSettingsBtn) this.challengeSettingsBtn.addEventListener('click', () => this.toggleChallengeSettings());
-        if (this.challengeSaveBtn) this.challengeSaveBtn.addEventListener('click', () => this.saveChallengeSettings());
-        if (this.propIntelRefreshBtn) this.propIntelRefreshBtn.addEventListener('click', () => this.loadPropIntelligence());
-        if (this.intelOpenChallenge) this.intelOpenChallenge.addEventListener('click', () => goTo('challenge'));
-        if (this.intelNewsTabs) this.intelNewsTabs.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { this.intelNewsTabs.querySelectorAll('button').forEach(x=>x.classList.remove('active')); b.classList.add('active'); this.renderIntelNews(b.dataset.newsCat); }));
+        this.marketModeButtons.forEach(btn => btn.addEventListener('click', () => { this.marketMode = btn.dataset.marketMode; localStorage.setItem('kd_market_mode', this.marketMode); this.renderMarketMode(); this.loadMarketPulse(); }));
+        this.renderMarketMode();
         const scannerDirLong = document.getElementById('scannerDirLong');
         const scannerDirShort = document.getElementById('scannerDirShort');
-        if (scannerDirLong) scannerDirLong.addEventListener('click', () => { this.scannerDirection = 'long'; scannerDirLong.classList.add('active'); scannerDirShort.classList.remove('active'); });
-        if (scannerDirShort) scannerDirShort.addEventListener('click', () => { this.scannerDirection = 'short'; scannerDirShort.classList.add('active'); scannerDirLong.classList.remove('active'); });
+        if (scannerDirLong) scannerDirLong.addEventListener('click', () => this.setScannerDirection('long'));
+        if (scannerDirShort) scannerDirShort.addEventListener('click', () => this.setScannerDirection('short'));
         if (this.scannerPreviewImg) this.scannerPreviewImg.addEventListener('click', () => this.openLightbox(this.scannerScreenshot));
 
         // Screenshot lightbox (Scanner preview + Journal "view screenshot")
@@ -1094,7 +1077,6 @@ const App = {
         { key: 'academy', nav: 'academy' },
         { key: 'strategy', nav: 'strategy' },
         { key: 'marketpulse', nav: 'marketpulse' },
-        { key: 'challenge', nav: 'challenge' },
         { key: 'analytics', nav: 'analytics' },
         { key: 'performance', nav: 'performance' },
         { key: 'guardian', nav: 'guardian' },
@@ -1115,7 +1097,6 @@ const App = {
             academy: { title: 'Academy', body: 'Академия — обучающий раздел про риск-менеджмент, размер позиции, плечо и ликвидацию, с практическим калькулятором позиции. Материалы объясняют концепции — Guardian отдельно проверяет ваши реальные сделки.' },
             strategy: { title: 'Библиотека стратегий', body: 'Здесь хранятся твои торговые системы: правила входа, стопа, выхода и фильтры. AI Coach помогает сверять журнал с заданными правилами.' },
             marketpulse: { title: 'Market Pulse', body: 'Здесь можно посмотреть актуальный контекст по доступным рынкам. Никаких сигналов и прогнозов — только данные для собственного анализа.' },
-            challenge: { title: 'Prop Challenge', body: 'Здесь ты ведёшь отдельный контроль челленджа. Правила задаёшь сам, а прогресс считается только по реальным сделкам из Journal.' },
             analytics: { title: 'Analytics', body: 'Здесь ваша статистика раскладывается по полочкам: Win Rate, Profit Factor, лучшие и худшие сделки, серии побед и поражений. Загляните сюда, когда захотите понять, что реально работает в вашей торговле.' },
             performance: { title: 'Performance', body: 'Performance показывает динамику во времени — помесячно и по торговым сессиям. Полезно раз в неделю или в месяц, чтобы увидеть общий тренд, а не отдельную сделку.' },
             guardian: { title: 'Guardian', body: 'Guardian следит за соблюдением ваших собственных правил риск-менеджмента и дисциплины и подсвечивает нарушения. Он начнёт работать, как только появятся первые сделки.' },
@@ -1137,7 +1118,6 @@ const App = {
             academy: { title: 'Academy', body: 'Academy is an educational section covering risk management, position size, leverage, and liquidation, with a practical position-size calculator. It teaches the concepts — Guardian separately checks your real trades.' },
             strategy: { title: 'Strategy Library', body: 'Store your trading systems here: entry, stop, exit and filter rules. AI Coach can help compare Journal data with your rules.' },
             marketpulse: { title: 'Market Pulse', body: 'See current context for supported markets. No signals or predictions — only data for your own analysis.' },
-            challenge: { title: 'Prop Challenge', body: 'Track your challenge separately. You define the rules; progress is calculated only from real Journal trades.' },
             analytics: { title: 'Analytics', body: 'This breaks your stats down in detail: win rate, profit factor, best and worst trades, winning and losing streaks. Come here when you want to understand what\'s actually working in your trading.' },
             performance: { title: 'Performance', body: 'Performance shows your trend over time — monthly and by trading session. Useful weekly or monthly, to see the bigger picture rather than a single trade.' },
             guardian: { title: 'Guardian', body: 'Guardian watches whether you\'re sticking to your own risk-management and discipline rules, and flags violations. It starts working as soon as you log your first trades.' },
@@ -1364,6 +1344,7 @@ const App = {
 
     // ===== NAVIGATION =====
     showSection(section) {
+        this.currentSection = section;
         Object.keys(this.sections).forEach(key => {
             if (this.sections[key]) this.sections[key].classList.toggle('active', key === section);
         });
@@ -1382,13 +1363,11 @@ const App = {
         if (section === 'dashboard') { this.initDashboardCharts(); this.updateDashboardStats(); }
         if (section === 'strategy') { this.renderStrategyLibrary(); }
         if (section === 'marketpulse') { this.renderMarketPulseLoading(); this.loadMarketPulse(); }
-        if (section === 'propintel') { this.loadPropIntelligence(); }
-        if (section === 'challenge') { this.renderChallenge(); }
         this.applyLanguage();
     },
 
     // ============================================================
-    // STRATEGY LIBRARY / MARKET PULSE / PROP CHALLENGE
+    // STRATEGY LIBRARY / MARKET PULSE
     // ============================================================
     renderStrategyLibrary() {
         if (!this.strategyGrid || !this.strategyEmpty) return;
@@ -1407,7 +1386,12 @@ const App = {
     },
     handleStrategyAction(action,id){const s=(this.strategies||[]).find(x=>x.id===id);if(!s||s.protected||id===this.builtInStrategy.id){if(s?.protected)this.showToast('Protected Strategy нельзя изменять');return;}if(action==='edit')this.openStrategyModal(id);if(action==='archive'){s.archived=!s.archived;s.updatedAt=new Date().toISOString();this.saveState();this.renderStrategyLibrary();}if(action==='delete'&&confirm('Удалить пользовательскую стратегию?')){this.strategies=this.strategies.filter(x=>x.id!==id);this.saveState();this.renderStrategyLibrary();}},
 
-    renderMarketPulseLoading(){if(this.marketPulseGrid)this.marketPulseGrid.innerHTML='<div class="module-loading glass-panel">Загружаю актуальные данные…</div>';if(this.marketLiveStatus)this.marketLiveStatus.textContent='Обновление…';},
+    renderMarketPulseLoading(){
+        if(this.marketPulseGrid)this.marketPulseGrid.innerHTML='<div class="module-loading glass-panel">Загружаю актуальные данные…</div>';
+        if(this.marketCalendar)this.marketCalendar.innerHTML='<div class="market-feed-loading">Загружаю календарь…</div>';
+        if(this.marketNews)this.marketNews.innerHTML='<div class="market-feed-loading">Загружаю новости…</div>';
+        if(this.marketLiveStatus)this.marketLiveStatus.textContent='Обновление…';
+    },
     startMarketPulseAutoRefresh(){
         if(this.marketRefreshTimer) clearInterval(this.marketRefreshTimer);
         this.marketRefreshTimer=setInterval(()=>{
@@ -1419,96 +1403,104 @@ const App = {
     marketFmtPrice(v){const n=this.marketNum(v);if(n===null)return '—';return '$'+n.toLocaleString(undefined,{maximumFractionDigits:n<1?6:2});},
     marketFmtPct(v){const n=this.marketNum(v);if(n===null)return '—';return (n>=0?'+':'')+n.toFixed(2)+'%';},
     getMarketSession(date=new Date()){const h=date.getUTCHours()+date.getUTCMinutes()/60;const sessions=[['Азия',0,8],['Европа',7,16],['США',13,22]];const active=sessions.filter(([,start,end])=>h>=start&&h<end).map(([name])=>name);let current=active.length?active.join(' · '):'Межсессионное окно';let prev=h<7?'США':h<13?'Азия':'Европа';if(h>=22)prev='США';return {current,prev,h};},
-    renderMarketSession(){const els={current:document.getElementById('marketCurrentSession'),status:document.getElementById('marketSessionStatus'),clock:document.getElementById('marketSessionClock'),prev:document.getElementById('marketPreviousSession')};if(!els.current)return;const d=new Date(),s=this.getMarketSession(d);els.current.textContent=s.current;els.status.textContent='UTC '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');els.clock.textContent=d.toISOString().slice(0,16).replace('T',' ');els.prev.textContent='Предыдущая основная сессия: '+s.prev+' · логика стратегии: H4 → 5M';const strategy=this.builtInStrategy;const ctx=document.getElementById('marketStrategyContext');const tags=document.getElementById('marketStrategyTags');if(ctx){ctx.textContent='4H: максимум и минимум предыдущей сессии → 5M: поиск ТВХ. Market Pulse показывает сессию и фактический рынок, но не определяет вход.';}if(tags){tags.innerHTML=(strategy.tags||[]).map(t=>`<span>${this.escapeHtml(t)}</span>`).join('');}},
-    buildMarketAnalysis(results){const box=document.getElementById('marketAiAnalysis');if(!box)return;const rows=results.map(t=>{const pct=+t.priceChangePercent||0,hi=+t.highPrice,lo=+t.lowPrice,last=+t.lastPrice,range=hi-lo,pos=range?((last-lo)/range*100):50;return {name:t.symbol.replace('USDT',''),pct,pos,volume:+t.quoteVolume||0};});const strongest=[...rows].sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct))[0];box.innerHTML=`<div class="analysis-list"><div><b>Движение</b><p>${strongest.name} показывает наибольшее 24h изменение среди наблюдаемых активов: <strong>${strongest.pct>=0?'+':''}${strongest.pct.toFixed(2)}%</strong>.</p></div><div><b>Позиция в диапазоне</b><p>Цена ${strongest.name} находится примерно на ${strongest.pos.toFixed(0)}% 24h-диапазона от минимума к максимуму.</p></div><div><b>Что учитывать</b><p>Сверяй контекст с собственной стратегией, риском и временем сессии. Эти данные не являются прогнозом направления.</p></div></div>`;},
+    renderMarketMode(){
+        const mode=this.marketMode==='forex'?'forex':'crypto';
+        this.marketModeButtons?.forEach(b=>b.classList.toggle('active',b.dataset.marketMode===mode));
+        if(this.marketContextTitle)this.marketContextTitle.textContent=mode==='crypto'?'Крипта':'Форекс';
+        if(this.marketSourceLabel)this.marketSourceLabel.textContent=mode==='crypto'?'Binance + экономический календарь':'Forex economic calendar + рыночные данные';
+        if(this.marketStrategyContext)this.marketStrategyContext.textContent=mode==='crypto'?'Отслеживаем BTC/ETH/SOL и события USD, ставки, инфляцию, занятость и крупные крипто-публикации — именно они чаще всего меняют риск-аппетит и волатильность крипты.':'Отслеживаем USD/EUR/GBP/JPY и события центральных банков, инфляцию, занятость и ВВП. Важность события определяется его влиянием на конкретную валюту.';
+        if(this.marketStrategyTags)this.marketStrategyTags.innerHTML=(mode==='crypto'?['BTC','ETH','USD / ставки','Risk-on / Risk-off']:['USD','EUR','GBP','JPY','ЦБ / инфляция']).map(t=>`<span>${this.escapeHtml(t)}</span>`).join('');
+    },
+    renderMarketSession(){const els={current:document.getElementById('marketCurrentSession'),status:document.getElementById('marketSessionStatus'),clock:document.getElementById('marketSessionClock'),prev:document.getElementById('marketPreviousSession')};if(!els.current)return;const d=new Date(),s=this.getMarketSession(d);els.current.textContent=s.current;els.status.textContent='UTC '+String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');els.clock.textContent=d.toISOString().slice(0,16).replace('T',' ');els.prev.textContent='Предыдущая основная сессия: '+s.prev;},
+    buildMarketAnalysis(results){
+        const box=document.getElementById('marketAiAnalysis');if(!box)return;
+        if(!results?.length){box.innerHTML='<p class="muted">Нет актуальных рыночных данных для анализа.</p>';return;}
+        const rows=results.map(t=>{const pct=+t.priceChangePercent||0,hi=+t.highPrice,lo=+t.lowPrice,last=+t.lastPrice,range=hi-lo,pos=range?((last-lo)/range*100):50;return {name:t.symbol.replace('USDT',''),pct,pos,volume:+t.quoteVolume||0};});
+        const strongest=[...rows].sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct))[0];
+        box.innerHTML=`<div class="analysis-list"><div><b>Рынок</b><p>${this.marketMode==='crypto'?'Криптовалюты':'Форекс'} · данные получены сейчас.</p></div><div><b>Движение</b><p>${strongest.name} показывает наибольшее 24h изменение среди наблюдаемых активов: <strong>${strongest.pct>=0?'+':''}${strongest.pct.toFixed(2)}%</strong>.</p></div><div><b>Влияющие события</b><p>Смотри красные события календаря и новости с меткой «Высокое влияние» ниже. Они не являются торговым сигналом.</p></div></div>`;
+    },
+    marketImpactClass(impact){const x=String(impact||'').toLowerCase();if(x.includes('high')||x.includes('выс'))return 'high';if(x.includes('medium')||x.includes('сред'))return 'medium';return 'low';},
+    marketImpactLabel(impact){const c=this.marketImpactClass(impact);return c==='high'?'ВАЖНО':c==='medium'?'СРЕДНЕ':'НИЗКО';},
+    marketEscape(v){return this.escapeHtml(v==null?'':String(v));},
+    async loadMarketCalendar(){
+        const mode=this.marketMode==='forex'?'forex':'crypto';
+        if(this.marketCalendarStatus)this.marketCalendarStatus.textContent='Обновление…';
+        try{
+            const r=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-store'}); if(!r.ok)throw new Error('Calendar '+r.status); const all=await r.json();
+            const now=Date.now();
+            const allowed=mode==='forex'?new Set(['USD','EUR','GBP','JPY','CAD','AUD','NZD','CHF']):new Set(['USD','EUR','CNY','JPY','GBP','CAD','AUD']);
+            const rows=(Array.isArray(all)?all:[]).filter(e=>allowed.has(String(e.country||e.currency||'').toUpperCase())).filter(e=>{
+                const d=new Date(e.date||e.datetime||e.time||0); return !Number.isNaN(d.getTime()) && d.getTime()>=now-6*3600e3;
+            }).sort((a,b)=>new Date(a.date||a.datetime||a.time)-new Date(b.date||b.datetime||b.time)).slice(0,30);
+            if(!rows.length)throw new Error('empty');
+            this.marketCalendar.innerHTML=rows.map(e=>{
+                const impact=this.marketImpactClass(e.impact); const d=new Date(e.date||e.datetime||e.time); const time=Number.isNaN(d.getTime())?'—':d.toLocaleString([], {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                const c=this.marketEscape(e.country||e.currency||''); const title=this.marketEscape(e.title||e.event||'Economic event'); const actual=this.marketEscape(e.actual||'—'), forecast=this.marketEscape(e.forecast||'—'), previous=this.marketEscape(e.previous||'—');
+                const affects=mode==='crypto'?(c==='USD'?'BTC · ETH · весь risk-on':'BTC · ETH · risk assets'):(c+' · валюта страны');
+                return `<article class="calendar-row impact-${impact}"><div class="calendar-impact"><span class="impact-dot ${impact}"></span><b>${this.marketImpactLabel(e.impact)}</b></div><div class="calendar-time">${time}</div><div class="calendar-event"><strong>${title}</strong><small>${c} · Влияет на: ${this.marketEscape(affects)}</small></div><div class="calendar-values"><span>Факт <b>${actual}</b></span><span>Прогноз <b>${forecast}</b></span><span>Пред. <b>${previous}</b></span></div></article>`;
+            }).join('');
+            if(this.marketCalendarStatus)this.marketCalendarStatus.textContent=`${rows.length} событий · обновлено ${new Date().toLocaleTimeString()}`;
+        }catch(err){
+            if(this.marketCalendar)this.marketCalendar.innerHTML='<div class="market-feed-empty"><b>Календарь временно недоступен.</b><span>Не показываем выдуманные события. Нажми «Обновить» или открой первоисточники ниже.</span></div>';
+            if(this.marketCalendarStatus)this.marketCalendarStatus.textContent='Нет соединения';
+        }
+    },
+    async loadMarketNews(){
+        const mode=this.marketMode==='forex'?'forex':'crypto';
+        if(this.marketNewsStatus)this.marketNewsStatus.textContent='Обновление…';
+        try{
+            const q=mode==='crypto'?'Bitcoin OR Ethereum OR Binance OR crypto market':'Federal Reserve OR ECB OR inflation OR jobs OR dollar OR euro';
+            const url='https://api.gdeltproject.org/api/v2/doc/doc?query='+encodeURIComponent(q)+'&mode=artlist&format=json&maxrecords=20&sort=datedesc';
+            const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('News '+r.status); const data=await r.json(); const arts=Array.isArray(data.articles)?data.articles:[];
+            if(!arts.length)throw new Error('empty');
+            const rows=arts.slice(0,12).map(a=>{const text=((a.title||'')+' '+(a.snippet||'')).toLowerCase();let impact='low';if(/rate|fed|ecb|inflation|cpi|ppi|jobs|payroll|bitcoin|ethereum|binance|etf|sec|tariff|recession/.test(text))impact='high';else if(/market|currency|stocks|dollar|euro|yield/.test(text))impact='medium';return {a,impact};});
+            this.marketNews.innerHTML=rows.map(({a,impact})=>{const title=this.marketEscape(a.title||'Без заголовка'),source=this.marketEscape(a.domain||a.sourcecountry||'Источник'),url=this.marketEscape(a.url||'#'),date=a.seendate?this.marketEscape(String(a.seendate).replace(/\d{2}(?=\d{4}$)/,'')):'—';const affects=mode==='crypto'?(impact==='high'?'BTC · ETH · риск-аппетит':'крипторынок'):(/fed|dollar|usd/.test((a.title||'').toLowerCase())?'USD · доходности':'валютный рынок');return `<article class="news-row impact-${impact}"><div class="news-impact"><span class="impact-dot ${impact}"></span><b>${this.marketImpactLabel(impact)}</b></div><div class="news-main"><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a><small>${source} · ${date}</small><span>Влияет на: ${this.marketEscape(affects)}</span></div></article>`;}).join('');
+            if(this.marketNewsStatus)this.marketNewsStatus.textContent=`${rows.length} публикаций · ${new Date().toLocaleTimeString()}`;
+        }catch(err){
+            if(this.marketNews)this.marketNews.innerHTML='<div class="market-feed-empty"><b>Лента новостей временно недоступна.</b><span>Не показываем выдуманные публикации. Календарь и первоисточники остаются доступны.</span></div>';
+            if(this.marketNewsStatus)this.marketNewsStatus.textContent='Нет соединения';
+        }
+    },
     async loadMarketPulse(silent=false){
         if(!this.marketPulseGrid)return;
-        this.renderMarketSession();
+        this.renderMarketSession(); this.renderMarketMode();
         if(!silent)this.renderMarketPulseLoading();
         const started=performance.now();
-        const symbols=['BTCUSDT','ETHUSDT','SOLUSDT'];
-        const endpoint=s=>`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`;
+        const mode=this.marketMode==='forex'?'forex':'crypto';
         try{
-            const results=await Promise.all(symbols.map(async symbol=>{const r=await fetch(endpoint(symbol),{cache:'no-store'});if(!r.ok)throw new Error(`${symbol}: ${r.status}`);return r.json();}));
-            const latency=Math.round(performance.now()-started);
-            const now=new Date();
-            const cards=results.map(t=>{
-                const pct=this.marketNum(t.priceChangePercent)||0,hi=this.marketNum(t.highPrice),lo=this.marketNum(t.lowPrice),last=this.marketNum(t.lastPrice),range=(hi!==null&&lo!==null)?Math.max(hi-lo,0):0,pos=range?Math.max(0,Math.min(100,(last-lo)/range*100)):50;
-                const vol=this.marketNum(t.quoteVolume);
-                const name=t.symbol.replace('USDT','');
-                return `<article class="pulse-card glass-panel"><div class="pulse-top"><span>${name}/USDT</span><em class="${pct>=0?'positive':'negative'}">${this.marketFmtPct(pct)}</em></div><strong>${this.marketFmtPrice(last)}</strong><div class="pulse-range" title="Положение цены внутри 24h диапазона"><i style="width:${pos}%"></i></div><div class="pulse-range-labels"><span>${this.marketFmtPrice(lo)}</span><span>${pos.toFixed(0)}%</span><span>${this.marketFmtPrice(hi)}</span></div><div class="pulse-row"><span>24h high</span><b>${this.marketFmtPrice(hi)}</b></div><div class="pulse-row"><span>24h low</span><b>${this.marketFmtPrice(lo)}</b></div><div class="pulse-row"><span>Объём 24h</span><b>${vol===null?'—':'$'+vol.toLocaleString(undefined,{maximumFractionDigits:0})}</b></div></article>`;
-            }).join('');
-            this.marketPulseGrid.innerHTML=cards+`<div class="pulse-source glass-panel">Публичные рыночные данные Binance · ${now.toLocaleTimeString()} · ${latency} ms · без торгового сигнала.</div>`;
-            if(this.marketLiveStatus)this.marketLiveStatus.textContent='Онлайн';
-            if(this.marketLastUpdated)this.marketLastUpdated.textContent=now.toLocaleTimeString();
-            if(this.marketLatency)this.marketLatency.textContent=latency+' ms';
-            this.buildMarketAnalysis(results);
-            localStorage.setItem('kriptodanik_market_cache',JSON.stringify({savedAt:now.toISOString(),results}));
-        }catch(e){
-            const cached=JSON.parse(localStorage.getItem('kriptodanik_market_cache')||'null');
-            if(cached?.results?.length){
-                const age=Math.max(0,Date.now()-new Date(cached.savedAt).getTime());
-                this.renderCachedMarket(cached.results,cached.savedAt,age);
-                if(this.marketLiveStatus)this.marketLiveStatus.textContent='Офлайн · кэш';
+            let results=[];
+            if(mode==='crypto'){
+                const symbols=['BTCUSDT','ETHUSDT','SOLUSDT'];
+                results=await Promise.all(symbols.map(async symbol=>{const r=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`,{cache:'no-store'});if(!r.ok)throw new Error(`${symbol}: ${r.status}`);return r.json();}));
             }else{
-                this.marketPulseGrid.innerHTML='<div class="module-empty glass-panel"><div class="module-empty-icon">⌁</div><h3>Рынок недоступен</h3><p>Не удалось получить публичные данные Binance. Никаких выдуманных значений не показываем. Проверь интернет и нажми «Обновить».</p><button class="btn-primary" onclick="App.loadMarketPulse()">Повторить</button></div>';
-                if(this.marketLiveStatus)this.marketLiveStatus.textContent='Нет соединения';
-                if(this.marketLastUpdated)this.marketLastUpdated.textContent='—';
-                if(this.marketLatency)this.marketLatency.textContent='—';
+                const nowDate=new Date();
+                const prevDate=new Date(nowDate); prevDate.setUTCDate(prevDate.getUTCDate()-3);
+                const fmt=d=>d.toISOString().slice(0,10);
+                const [latestR,prevR]=await Promise.all([
+                    fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY',{cache:'no-store'}),
+                    fetch(`https://api.frankfurter.app/${fmt(prevDate)}?from=USD&to=EUR,GBP,JPY`,{cache:'no-store'})
+                ]);
+                if(!latestR.ok||!prevR.ok)throw new Error('Forex API unavailable');
+                const latest=await latestR.json(), previous=await prevR.json();
+                results=['EUR','GBP','JPY'].map(code=>{const last=Number(latest.rates?.[code]), prev=Number(previous.rates?.[code]); const pct=prev?((last-prev)/prev*100):0; return {symbol:`USD${code}`,lastPrice:last,priceChangePercent:pct,highPrice:last*(1+Math.abs(pct)/100),lowPrice:last*(1-Math.abs(pct)/100),quoteVolume:null};});
             }
-            const box=document.getElementById('marketAiAnalysis');if(box)box.innerHTML='<p class="muted">Анализ строится только после получения фактических данных. Кэш помечается отдельно.</p>';
+            const latency=Math.round(performance.now()-started),now=new Date();
+            const cards=results.map(t=>{const pct=this.marketNum(t.priceChangePercent)||0,hi=this.marketNum(t.highPrice),lo=this.marketNum(t.lowPrice),last=this.marketNum(t.lastPrice),range=(hi!==null&&lo!==null)?Math.max(hi-lo,0):0,pos=range?Math.max(0,Math.min(100,(last-lo)/range*100)):50,vol=this.marketNum(t.quoteVolume),name=t.symbol.replace('USDT','');return `<article class="pulse-card glass-panel"><div class="pulse-top"><span>${mode==='crypto'?name+'/USDT':name.slice(0,3)+' / '+name.slice(3)}</span><em class="${pct>=0?'positive':'negative'}">${this.marketFmtPct(pct)}</em></div><strong>${mode==='forex'?last.toFixed(name.endsWith('JPY')?3:5):this.marketFmtPrice(last)}</strong><div class="pulse-range" title="Положение внутри расчётного диапазона"><i style="width:${pos}%"></i></div><div class="pulse-range-labels"><span>${mode==='forex'?lo.toFixed(name.endsWith('JPY')?3:5):this.marketFmtPrice(lo)}</span><span>${pos.toFixed(0)}%</span><span>${mode==='forex'?hi.toFixed(name.endsWith('JPY')?3:5):this.marketFmtPrice(hi)}</span></div><div class="pulse-row"><span>${mode==='forex'?'Изменение':'24h high'}</span><b>${mode==='forex'?this.marketFmtPct(pct):this.marketFmtPrice(hi)}</b></div><div class="pulse-row"><span>${mode==='forex'?'Источник':'24h low'}</span><b>${mode==='forex'?'Frankfurter / ECB':this.marketFmtPrice(lo)}</b></div><div class="pulse-row"><span>${mode==='forex'?'Курс за USD':'Объём 24h'}</span><b>${mode==='forex'?'актуальный':(vol===null?'—':'$'+vol.toLocaleString(undefined,{maximumFractionDigits:0}))}</b></div></article>`;}).join('');
+            this.marketPulseGrid.innerHTML=cards+`<div class="pulse-source glass-panel">${mode==='crypto'?'Binance public API':'Frankfurter (ECB reference rates)'} · ${now.toLocaleTimeString()} · ${latency} ms · режим: ${mode==='crypto'?'Крипта':'Форекс'}.</div>`;
+            if(this.marketLiveStatus)this.marketLiveStatus.textContent='Данные актуальны'; if(this.marketLastUpdated)this.marketLastUpdated.textContent=now.toLocaleTimeString(); if(this.marketLatency)this.marketLatency.textContent=latency+' ms';
+            this.buildMarketAnalysis(results);
+            await Promise.all([this.loadMarketCalendar(),this.loadMarketNews()]);
+        }catch(err){
+            const cached=this.marketCache; if(cached?.results?.length){this.renderCachedMarket(cached.results,cached.savedAt,Date.now()-cached.savedAt);}else if(this.marketPulseGrid)this.marketPulseGrid.innerHTML='<div class="module-empty glass-panel"><div class="module-empty-icon">⌁</div><h3>Рынок недоступен</h3><p>Не удалось получить данные выбранного рынка. Никаких выдуманных значений не показываем.</p><button class="btn-primary" onclick="App.loadMarketPulse()">Повторить</button></div>';
+            if(this.marketLiveStatus)this.marketLiveStatus.textContent='Нет соединения'; if(this.marketLatency)this.marketLatency.textContent='—';
+            await Promise.all([this.loadMarketCalendar(),this.loadMarketNews()]);
         }
     },
     renderCachedMarket(results,savedAt,age){
         const ageMin=Math.floor(age/60000);
-        this.marketPulseGrid.innerHTML=results.map(t=>{const pct=this.marketNum(t.priceChangePercent)||0,hi=this.marketNum(t.highPrice),lo=this.marketNum(t.lowPrice),last=this.marketNum(t.lastPrice),range=(hi!==null&&lo!==null)?Math.max(hi-lo,0):0,pos=range?Math.max(0,Math.min(100,(last-lo)/range*100)):50;return `<article class="pulse-card glass-panel is-cached"><div class="pulse-top"><span>${t.symbol.replace('USDT','')}/USDT</span><em class="${pct>=0?'positive':'negative'}">${this.marketFmtPct(pct)}</em></div><strong>${this.marketFmtPrice(last)}</strong><div class="pulse-range"><i style="width:${pos}%"></i></div><div class="pulse-range-labels"><span>${this.marketFmtPrice(lo)}</span><span>${pos.toFixed(0)}%</span><span>${this.marketFmtPrice(hi)}</span></div><div class="pulse-row"><span>Статус</span><b>Кэш · ${ageMin} мин</b></div></article>`;}).join('')+`<div class="pulse-source glass-panel">Показан последний успешно полученный снимок рынка от ${new Date(savedAt).toLocaleTimeString()}. Обновление с API сейчас недоступно.</div>`;
-        this.buildMarketAnalysis(results);
-        if(this.marketLastUpdated)this.marketLastUpdated.textContent=new Date(savedAt).toLocaleTimeString();
-        if(this.marketLatency)this.marketLatency.textContent='кэш';
+        this.marketPulseGrid.innerHTML=results.map(t=>{const pct=this.marketNum(t.priceChangePercent)||0,hi=this.marketNum(t.highPrice),lo=this.marketNum(t.lowPrice),last=this.marketNum(t.lastPrice),range=(hi!==null&&lo!==null)?Math.max(hi-lo,0):0,pos=range?Math.max(0,Math.min(100,(last-lo)/range*100)):50;return `<article class="pulse-card glass-panel is-cached"><div class="pulse-top"><span>${t.symbol.replace('USDT','')}/USDT</span><em class="${pct>=0?'positive':'negative'}">${this.marketFmtPct(pct)}</em></div><strong>${this.marketFmtPrice(last)}</strong><div class="pulse-range"><i style="width:${pos}%"></i></div><div class="pulse-range-labels"><span>${this.marketFmtPrice(lo)}</span><span>${pos.toFixed(0)}%</span><span>${this.marketFmtPrice(hi)}</span></div><div class="pulse-row"><span>Статус</span><b>Кэш · ${ageMin} мин</b></div></article>`;}).join('')+`<div class="pulse-source glass-panel">Последний успешно полученный снимок рынка от ${new Date(savedAt).toLocaleTimeString()}.</div>`;
+        this.buildMarketAnalysis(results); if(this.marketLastUpdated)this.marketLastUpdated.textContent=new Date(savedAt).toLocaleTimeString(); if(this.marketLatency)this.marketLatency.textContent='кэш';
     },
-    renderIntelSessions(){
-        if(!this.sessionTimeline)return;
-        const sessions=[
-            ['Sydney','22:00','07:00','Asia-Pacific'],['Tokyo','01:00','10:00','Asia'],['London','10:00','19:00','Europe'],['New York','15:00','00:00','US']
-        ];
-        const now=new Date(); const mins=now.getHours()*60+now.getMinutes();
-        const toMin=x=>{const [h,m]=x.split(':').map(Number);return h*60+m};
-        const active=sessions.find(x=>{let a=toMin(x[1]),b=toMin(x[2]); if(b<=a)b+=1440; const n=mins<a?mins+1440:mins; return n>=a&&n<b;});
-        this.sessionTimeline.innerHTML=sessions.map(x=>{const on=active&&active[0]===x[0]; return `<div class="session-item ${on?'active':''}"><div><b>${x[0]}</b><span>${x[3]}</span></div><strong>${x[1]}–${x[2]} MSK</strong><em>${on?'OPEN':'CLOSED'}</em></div>`}).join('');
-    },
-    async loadPropIntelligence(){
-        this.renderIntelSessions(); this.renderIntelNews('crypto'); this.renderIntelEconomic(); this.renderIntelImportant(); this.renderPropDirectory(); this.renderPropRules(); this.renderPropPitfalls();
-        const state=document.getElementById('intelMarketState'), fg=document.getElementById('intelFearGreed'), summary=document.getElementById('intelMarketSummary'), updated=document.getElementById('intelUpdated'), breadth=document.getElementById('intelBreadth'), ai=document.getElementById('intelAiText');
-        try{
-            const t0=performance.now();
-            const [fgRes,prices]=await Promise.all([fetch('https://api.alternative.me/fng/?limit=1').then(r=>r.json()),Promise.all(['BTCUSDT','ETHUSDT','SOLUSDT'].map(s=>fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${s}`).then(r=>r.json()))) ]);
-            const fgv=fgRes?.data?.[0]; const score=fgv?Number(fgv.value):null; const label=fgv?.value_classification||'—';
-            const changes=prices.map(x=>Number(x.priceChangePercent)||0); const avg=changes.reduce((a,b)=>a+b,0)/changes.length;
-            if(fg)fg.textContent=score===null?'—':`${score} · ${label}`; if(breadth)breadth.textContent=`${changes.filter(x=>x>0).length}/3 ↑`; if(updated)updated.textContent=new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-            const stateText=avg>1?'Рынок заметно растёт':avg<-1?'Рынок заметно снижается':'Рынок без выраженного общего импульса'; if(state)state.textContent=stateText;
-            if(summary)summary.textContent=`BTC ${changes[0].toFixed(2)}% · ETH ${changes[1].toFixed(2)}% · SOL ${changes[2].toFixed(2)}%. Среднее изменение: ${avg.toFixed(2)}%. Настроение: ${label}.`;
-            if(ai)ai.innerHTML=`<p><b>Наблюдение:</b> ${stateText.toLowerCase()}. Fear & Greed: ${score===null?'нет данных':score+' ('+label+')'}.</p><p><b>Для трейдера:</b> учитывай волатильность и активную сессию, но не превращай эти данные в автоматический сигнал.</p><p class="muted">Обновлено за ${Math.round(performance.now()-t0)} мс. Источники: Binance public API + Alternative.me.</p>`;
-        }catch(e){ if(state)state.textContent='Данные рынка недоступны'; if(summary)summary.textContent='Не удалось получить актуальный снимок. Никаких выдуманных значений не показываем.'; if(ai)ai.innerHTML='<p>Проверь интернет и официальный источник. Сигналы на основе отсутствующих данных не формируются.</p>'; }
-    },
-    renderIntelNews(cat='crypto'){
-        if(!this.intelNewsList)return;
-        const data={crypto:[['Binance Announcements','Обновления листингов, торговых условий и инфраструктуры','https://www.binance.com/en/support/announcement'],['CoinDesk','Крипторынок и индустриальные события','https://www.coindesk.com/']],forex:[['Federal Reserve','Решения и комментарии ФРС','https://www.federalreserve.gov/newsevents/calendar.htm'],['ECB','Решения и публикации ЕЦБ','https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html']],stocks:[['BLS','Макроэкономические релизы США','https://www.bls.gov/schedule/news_release/'],['SEC','Официальные раскрытия компаний','https://www.sec.gov/news']]}[cat]||[];
-        this.intelNewsList.innerHTML=data.map(x=>`<a class="intel-news-item" href="${x[2]}" target="_blank" rel="noopener"><div><b>${x[0]}</b><p>${x[1]}</p></div><span>↗</span></a>`).join('')+`<p class="muted intel-source-note">Лента намеренно показывает первоисточники, а не пересказывает неподтверждённые новости.</p>`;
-    },
-    renderIntelEconomic(){if(!this.intelEconomicList)return; const e=[['FOMC','Решения ФРС','https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'],['CPI','Инфляция США','https://www.bls.gov/cpi/'],['NFP','Занятость США','https://www.bls.gov/news.release/empsit.htm'],['ECB','Решения ЕЦБ','https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html']]; this.intelEconomicList.innerHTML=e.map(x=>`<a class="event-row" href="${x[2]}" target="_blank" rel="noopener"><b>${x[0]}</b><span>${x[1]}</span><em>Официальный календарь ↗</em></a>`).join('');},
-    renderIntelImportant(){if(!this.intelImportantEvents)return; const e=[['FOMC','Ставка и риторика ФРС','Высокое влияние','https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'],['CPI','Инфляция США','Высокое влияние','https://www.bls.gov/cpi/'],['NFP','Рынок труда США','Высокое влияние','https://www.bls.gov/news.release/empsit.htm'],['ECB','Решения ЕЦБ','Высокое влияние','https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html']]; this.intelImportantEvents.innerHTML=e.map(x=>`<a class="important-event" href="${x[3]}" target="_blank" rel="noopener"><span class="event-dot high"></span><div><b>${x[0]}</b><p>${x[1]}</p></div><em>${x[2]} ↗</em></a>`).join('');},
-    renderPropDirectory(){if(!this.propDirectory)return; const firms=[
-        {name:'SpiceProp · Sweet Pepper',region:'Доступность по регионам: проверять перед покупкой',vpn:'Только если официально разрешён',lang:'EN',rules:'Step 1 7.5% · Step 2 5% · Daily 5.5% · Max 11% · 3 profitable days · 1:100',checked:'13.08.2026',url:'https://spiceprop.com/'},
-        {name:'FTMO · 2-Step',region:'Регион/KYC: проверять по официальной странице',vpn:'Не делать вывод без официального подтверждения',lang:'EN',rules:'Target 10% / 5% · Daily 5% · Max 10% · Min 4 trading days · unlimited period',checked:'13.08.2026',url:'https://ftmo.com/en/trading-objectives/'},
-        {name:'The5ers · High Stakes',region:'Регион/KYC: проверять по официальной странице',vpn:'Проверять правила компании',lang:'EN',rules:'Target 10% / 5% · Daily 5% · Max 10% · Min 3 profitable days · unlimited',checked:'13.08.2026',url:'https://www.the5ers.com/high-stakes/'}]; this.propDirectory.innerHTML=firms.map(f=>`<article class="prop-card"><div class="prop-card-head"><div><span class="module-eyebrow">PROP FIRM</span><h3>${f.name}</h3></div><span class="prop-verified">Проверено ${f.checked}</span></div><div class="prop-facts"><span><b>Регион</b>${f.region}</span><span><b>VPN</b>${f.vpn}</span><span><b>Язык</b>${f.lang}</span><span><b>Ключевые правила</b>${f.rules}</span></div><a class="btn-secondary small" href="${f.url}" target="_blank" rel="noopener">Официальные правила ↗</a></article>`).join('');},
-    renderPropRules(){if(!this.propRulesExplained)return; const r=[['Daily Loss','Лимит дневного риска. Смотри не только закрытый P&L: конкретная компания может считать equity, комиссии, свопы и плавающий P&L.','Проверяй метод расчёта на официальной странице.'],['Maximum Drawdown','Общий предел просадки за весь период. Он может быть static или trailing/EOD.','Не путай Max Loss и Max Daily Loss.'],['Best Day / Consistency','Некоторые программы требуют распределять прибыль между днями.','Не пытайся закрыть весь target одной сделкой.'],['Overnight / News','Ограничения по новостям и переносу позиций отличаются по компании и программе.','Перед удержанием позиции открой официальные правила.']]; this.propRulesExplained.innerHTML=r.map(x=>`<article class="rule-explainer"><b>${x[0]}</b><p>${x[1]}</p><small>${x[2]}</small></article>`).join('');},
-    renderPropPitfalls(){if(!this.propPitfalls)return; const p=['Считать лимит только по закрытым сделкам, хотя фирма использует equity.','Игнорировать reset time и часовой пояс компании.','Путать static drawdown с trailing drawdown.','Держать позицию через запрещённую новость или выходные.','Считать VPN автоматически разрешённым без подтверждения.','Покупать челлендж, не проверив актуальные правила и KYC.']; this.propPitfalls.innerHTML=p.map((x,i)=>`<div class="pitfall-item"><span>${String(i+1).padStart(2,'0')}</span><p>${x}</p></div>`).join('');},
-    toggleChallengeSettings(){if(!this.challengeSettingsPanel)return;const open=this.challengeSettingsPanel.style.display!=='none';this.challengeSettingsPanel.style.display=open?'none':'block';if(!open){const c=this.challenge||{};this.challengeName.value=c.name||'';this.challengeCapital.value=c.capital||'';this.challengeTarget1.value=c.target1??'';this.challengeTarget2.value=c.target2??'';this.challengeDaily.value=c.daily??'';this.challengeMaxDD.value=c.maxDD??'';}},
-    saveChallengeSettings(){this.challenge={name:this.challengeName.value.trim()||'Prop Challenge',capital:parseFloat(this.challengeCapital.value)||0,target1:parseFloat(this.challengeTarget1.value)||0,target2:parseFloat(this.challengeTarget2.value)||0,daily:parseFloat(this.challengeDaily.value)||0,maxDD:parseFloat(this.challengeMaxDD.value)||0};this.saveState();this.challengeSettingsPanel.style.display='none';this.renderChallenge();},
-    maxDailyLossPercent(){const c=this.challenge||{};const base=parseFloat(c.capital)||parseFloat(this.userData.capital)||0;if(!base)return 0;const byDay={};(this.trades||[]).forEach(t=>{const d=String(t.date||'').slice(0,10);byDay[d]=(byDay[d]||0)+(parseFloat(t.pnl)||0);});const worst=Math.min(0,...Object.values(byDay));return Math.abs(worst/base*100);},
-    maxDrawdownPercent(){const base=parseFloat((this.challenge||{}).capital)||parseFloat(this.userData.capital)||0;if(!base)return 0;let equity=base,peak=base,maxDd=0;const ordered=[...(this.trades||[])].sort((a,b)=>new Date(a.date||0)-new Date(b.date||0));ordered.forEach(t=>{equity+=parseFloat(t.pnl)||0;peak=Math.max(peak,equity);maxDd=Math.max(maxDd,(peak-equity)/base*100);});return maxDd;},
-    renderChallenge(){if(!this.challengeSummary)return;const c=this.challenge||{};const trades=this.trades||[];const base=parseFloat(c.capital)||parseFloat(this.userData.capital)||0;const pnl=trades.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);const equity=base+pnl;const dd=this.maxDrawdownPercent();const target1=base*((parseFloat(c.target1)||0)/100);const target2=base*((parseFloat(c.target2)||0)/100);const step1Done=target1>0&&pnl>=target1;const step2Done=step1Done&&target2>0&&pnl>=target1+target2;const activeTarget=step1Done?target2:target1;const activeBase=step1Done?target1:0;const progress=activeTarget>0?Math.max(0,Math.min(100,(pnl-activeBase)/activeTarget*100)):0;const dailyBad=c.daily>0&&this.maxDailyLossPercent()>c.daily;const ddBad=c.maxDD>0&&dd>c.maxDD;const status=!base?'Не настроен':(dailyBad||ddBad?'Нарушение лимита':step2Done?'Челлендж пройден':step1Done?'Шаг 1 выполнен · идёт шаг 2':'В процессе');this.challengeStatus.textContent=status;this.challengeStepTitle.textContent=step2Done?'Челлендж завершён':step1Done?'Шаг 2 · '+(c.target2||0)+'%':'Шаг 1 · '+(c.target1||0)+'%';this.challengeProgressBar.style.width=progress+'%';this.challengeProfitText.textContent=(pnl>=0?'+':'')+pnl.toFixed(2)+' $';this.challengeTargetText.textContent=activeTarget>0?'Цель текущего шага '+activeTarget.toFixed(2)+' $':'Цели не заданы';this.challengeSummary.innerHTML=[['Счёт',base?'$'+base.toLocaleString():'—'],['Equity',base?'$'+equity.toFixed(2):'—'],['P&L',(pnl>=0?'+':'')+'$'+pnl.toFixed(2)],['Max DD',base?dd.toFixed(2)+'%':'—']].map(x=>`<div class="challenge-stat glass-panel"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');this.challengeRulesList.innerHTML=[['Размер счёта',base?'$'+base.toLocaleString():'Не задан'],['Цель шага 1',c.target1?c.target1+'%':'Не задана'],['Цель шага 2',c.target2?c.target2+'%':'Не задана'],['Дневной лимит',c.daily?c.daily+'%':'Не задан'],['Макс. просадка',c.maxDD?c.maxDD+'%':'Не задана']].map(x=>`<div class="challenge-rule"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');this.challengeChecks.innerHTML=[['Сделки в Journal',trades.length?'OK · '+trades.length:'Нет данных',!!trades.length],['Дневной лимит',c.daily?(dailyBad?'ПРЕВЫШЕН':'В норме'):'Не задан',c.daily?!dailyBad:null],['Макс. просадка',c.maxDD?(ddBad?'ПРЕВЫШЕНА':'В норме'):'Не задана',c.maxDD?!ddBad:null],['Шаг 1',step1Done?'Выполнен':'В процессе',step1Done],['Шаг 2',step2Done?'Выполнен':(step1Done?'В процессе':'Заблокирован'),step2Done?true:null]].map(x=>`<div class="challenge-check"><span>${x[0]}</span><b class="${x[2]===true?'ok':x[2]===false?'bad':'muted'}">${x[1]}</b></div>`).join('');},
-
     // ============================================================
     // DASHBOARD
     // ============================================================
@@ -2794,7 +2786,7 @@ const App = {
             pnl: Number(t.pnl) || 0, rr: Number(t.rr) || 0,
             session: t.session || '—', strategy: t.strategy || '—'
         }));
-        return { stats, market, recent, challenge: this.challenge || {} };
+        return { stats, market, recent };
     },
 
     renderIntegratedCoachContext() {
@@ -2807,7 +2799,6 @@ const App = {
         }
         const m = c.market?.[0];
         const marketText = m ? `${m.symbol} ${m.change24h >= 0 ? '+' : ''}${m.change24h.toFixed(2)}% 24h` : 'рынок не синхронизирован';
-        const dd = this.maxDrawdownPercent();
         el.innerHTML = `<span>Journal: <b>${c.stats.total}</b> сделок</span><span>Win Rate: <b>${c.stats.winRate ?? '—'}%</b></span><span>Avg RR: <b>${c.stats.avgRR === null ? '—' : (c.stats.avgRR >= 0 ? '+' : '') + c.stats.avgRR.toFixed(2) + 'R'}</b></span><span>Max DD: <b>${dd.toFixed(2)}%</b></span><span>Market: <b>${marketText}</b></span>`;
     },
 
@@ -3678,232 +3669,6 @@ const App = {
     },
 
     academyOrder: ['position_size', 'risk_per_trade', 'stop_loss', 'leverage', 'isolated_cross', 'liquidation', 'risk_management'],
-    academyOrderMarketStructure: ['fvg', 'ifvg', 'ob', 'liquidity', 'liquidity_sweep', 'bos', 'mss_choch', 'premium_discount', 'pin_bar', 'range'],
-
-    // ============================================================
-    // v1.1.0 — Market Structure illustrations
-    // Small reusable SVG candle helper so each lesson's diagram is a
-    // real (if simplified) labeled chart, not a decorative stock image.
-    // Uses CSS custom properties for color so it stays theme/accent-aware
-    // since these are inlined into the DOM, not loaded as external files.
-    // ============================================================
-    svgCandle(x, o, c, h, l, w = 16) {
-        const up = c <= o; // SVG y grows downward, so a lower y value = higher price
-        const bodyTop = Math.min(o, c);
-        const bodyBottom = Math.max(o, c);
-        const color = up ? 'var(--brand-green)' : 'var(--brand-red)';
-        return `<line x1="${x}" y1="${h}" x2="${x}" y2="${l}" stroke="${color}" stroke-width="2"/>
-                <rect x="${x - w / 2}" y="${bodyTop}" width="${w}" height="${Math.max(2, bodyBottom - bodyTop)}" fill="${color}"/>`;
-    },
-
-    svgLabel(x, y, text, anchor = 'middle') {
-        return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="11" font-weight="600" fill="var(--text-primary)" font-family="var(--font-family)">${text}</text>`;
-    },
-
-    marketStructureLessons: {
-        fvg: {
-            icon: '🕳️', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
-            title: { ru: 'FVG (Fair Value Gap)', en: 'FVG (Fair Value Gap)' },
-            desc: { ru: 'Ценовой разрыв между свечами, который рынок часто возвращается заполнить.', en: 'A price gap between candles that the market often returns to fill.' },
-            intro: { ru: 'FVG — это разрыв между тенью 1-й и тенью 3-й свечи в трёхсвечном движении, где 2-я свеча импульсно прошла цену без перекрытия.', en: 'An FVG is the gap between candle 1\'s wick and candle 3\'s wick in a 3-candle move, where candle 2 moved price impulsively without overlap.' },
-            body: {
-                ru: `<p>Если минимум 1-й свечи выше максимума 3-й свечи (в бычьем движении), между ними остаётся незаполненная зона — это и есть FVG.</p><p>Трейдеры отмечают такие зоны как потенциальные места, куда цена может вернуться перед продолжением движения.</p>`,
-                en: `<p>If candle 1's low sits above candle 3's high (in a bullish move), the zone between them is left unfilled — that's the FVG.</p><p>Traders mark these zones as potential areas price may return to before continuing.</p>`
-            },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <rect x="150" y="50" width="70" height="45" fill="var(--accent-a15)" stroke="var(--brand-purple)" stroke-dasharray="3,3"/>
-                ${App.svgLabel(185, 45, 'FVG')}
-                ${App.svgCandle(90, 90, 70, 60, 100)}
-                ${App.svgCandle(140, 70, 40, 30, 75)}
-                ${App.svgCandle(190, 45, 30, 20, 50)}
-                ${App.svgCandle(240, 35, 55, 25, 65)}
-                ${App.svgCandle(290, 55, 45, 40, 70)}
-            </svg>`,
-            mistakes: { ru: ['Считать, что цена ОБЯЗАНА вернуться в FVG', 'Путать любой промежуток между свечами с настоящим FVG', 'Игнорировать общий контекст тренда'], en: ['Assuming price MUST return to fill the FVG', 'Confusing any gap between candles with a true FVG', 'Ignoring the broader trend context'] },
-            warning: { ru: 'FVG — это зона интереса, а не гарантированная разворотная точка.', en: 'An FVG is a zone of interest, not a guaranteed reversal point.' },
-            askCoach: { ru: 'Объясни, что такое FVG простыми словами', en: 'Explain FVG to me in simple terms' }
-        },
-        ifvg: {
-            icon: '🔄', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
-            title: { ru: 'IFVG (Inverse FVG)', en: 'IFVG (Inverse FVG)' },
-            desc: { ru: 'FVG, который был пробит и поменял роль поддержки/сопротивления.', en: 'An FVG that got invalidated and flipped its support/resistance role.' },
-            intro: { ru: 'Когда цена полностью проходит через FVG (закрытие свечи за его пределами), зона может "инвертироваться" — бывшая поддержка становится сопротивлением, и наоборот.', en: 'When price fully trades through an FVG (a candle closes beyond it), the zone can "invert" — former support becomes resistance, or vice versa.' },
-            body: { ru: `<p>IFVG используют как признак смены баланса спроса/предложения в этой зоне.</p>`, en: `<p>Traders treat an IFVG as a sign that supply/demand balance in that zone has shifted.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <rect x="140" y="50" width="70" height="40" fill="none" stroke="var(--text-secondary)" stroke-dasharray="3,3"/>
-                ${App.svgLabel(175, 45, 'FVG')}
-                ${App.svgCandle(90, 90, 70, 60, 100)}
-                ${App.svgCandle(140, 70, 55, 45, 75)}
-                ${App.svgCandle(190, 55, 30, 20, 60)}
-                ${App.svgCandle(240, 100, 130, 95, 135)}
-                ${App.svgLabel(240, 148, 'IFVG →', 'middle')}
-                ${App.svgCandle(290, 125, 105, 100, 130)}
-            </svg>`,
-            mistakes: { ru: ['Считать инверсию гарантированным сигналом', 'Не дожидаться подтверждающего закрытия свечи'], en: ['Treating the inversion as a guaranteed signal', 'Not waiting for a confirming candle close'] },
-            warning: { ru: 'Инверсия зоны — это наблюдение за структурой, а не автоматический сигнал входа.', en: 'A zone inversion is a structural observation, not an automatic entry signal.' },
-            askCoach: { ru: 'Что такое IFVG и чем он отличается от FVG?', en: 'What is IFVG and how is it different from FVG?' }
-        },
-        ob: {
-            icon: '🧱', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
-            title: { ru: 'Order Block (OB)', en: 'Order Block (OB)' },
-            desc: { ru: 'Последняя противоположная свеча перед сильным импульсным движением.', en: 'The last opposite-direction candle before a strong impulsive move.' },
-            intro: { ru: 'Order Block — это свеча (часто последняя вниз перед сильным ростом), которую трейдеры связывают с зоной, откуда мог произойти вход крупных участников рынка.', en: 'An Order Block is a candle (often the last down candle before a strong rally) that traders associate with a zone where large participants may have entered.' },
-            body: { ru: `<p>OB отмечается как зона, к которой цена может вернуться перед продолжением движения в направлении импульса.</p>`, en: `<p>The OB is marked as a zone price may return to before continuing in the direction of the impulse.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                ${App.svgCandle(80, 60, 55, 50, 90)}
-                <rect x="112" y="70" width="36" height="30" fill="var(--accent-a15)" stroke="var(--brand-purple)" stroke-dasharray="3,3"/>
-                ${App.svgCandle(130, 70, 100, 65, 105)}
-                ${App.svgLabel(130, 130, 'OB')}
-                ${App.svgCandle(180, 95, 55, 45, 100)}
-                ${App.svgCandle(230, 55, 20, 15, 60)}
-                ${App.svgCandle(280, 20, 5, 2, 25)}
-            </svg>`,
-            mistakes: { ru: ['Отмечать OB на каждой мелкой свече без контекста импульса', 'Игнорировать таймфрейм анализа'], en: ['Marking an OB on every minor candle without impulse context', 'Ignoring the analysis timeframe'] },
-            warning: { ru: 'Order Block — предположение о зоне интереса, а не подтверждённый факт о реальных ордерах.', en: 'An Order Block is an inference about a zone of interest, not confirmed knowledge of real orders.' },
-            askCoach: { ru: 'Как определить Order Block на графике?', en: 'How do I identify an Order Block on a chart?' }
-        },
-        liquidity: {
-            icon: '💧', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
-            title: { ru: 'Ликвидность', en: 'Liquidity' },
-            desc: { ru: 'Скопления стоп-ордеров рядом с очевидными уровнями.', en: 'Clusters of stop orders resting near obvious levels.' },
-            intro: { ru: 'Ликвидность — это зоны, где, вероятно, скопились стоп-лоссы и отложенные ордера — часто около равных максимумов/минимумов.', en: 'Liquidity refers to zones where stop-losses and pending orders are likely clustered — often around equal highs/lows.' },
-            body: { ru: `<p>Равные максимумы (или минимумы) привлекают внимание, потому что многие трейдеры ставят стопы чуть выше/ниже них.</p>`, en: `<p>Equal highs (or lows) draw attention because many traders place stops just above or below them.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <line x1="60" y1="50" x2="340" y2="50" stroke="var(--brand-yellow)" stroke-dasharray="4,4" stroke-width="1.5"/>
-                ${App.svgLabel(365, 54, 'BSL', 'start')}
-                ${App.svgCandle(90, 90, 70, 50, 100)}
-                ${App.svgCandle(150, 80, 60, 50, 90)}
-                ${App.svgCandle(210, 85, 65, 50, 95)}
-                ${App.svgCandle(270, 75, 60, 50, 85)}
-            </svg>`,
-            mistakes: { ru: ['Считать, что ликвидность = гарантированное движение цены к ней', 'Игнорировать более крупные уровни на старшем таймфрейме'], en: ['Assuming liquidity guarantees price will move toward it', 'Ignoring bigger levels on a higher timeframe'] },
-            warning: { ru: 'Ликвидность объясняет, ГДЕ могут быть стопы — а не КОГДА цена туда пойдёт.', en: 'Liquidity explains WHERE stops may sit — not WHEN price will move there.' },
-            askCoach: { ru: 'Что такое ликвидность в трейдинге?', en: 'What is liquidity in trading?' }
-        },
-        liquidity_sweep: {
-            icon: '🌊', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
-            title: { ru: 'Liquidity Sweep', en: 'Liquidity Sweep' },
-            desc: { ru: 'Кратковременный прокол уровня ликвидности с последующим разворотом.', en: 'A brief poke through a liquidity level followed by a reversal.' },
-            intro: { ru: 'Sweep — это движение, которое ненадолго проходит за уровень (заберая стопы), а затем закрывается обратно внутри диапазона.', en: 'A sweep is a move that briefly trades through a level (taking out stops), then closes back inside the range.' },
-            body: { ru: `<p>Длинная тень за уровнем с закрытием обратно внутри — характерный признак sweep, в отличие от настоящего пробоя с закреплением цены.</p>`, en: `<p>A long wick beyond the level with a close back inside is the signature of a sweep, as opposed to a real breakout that holds.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <line x1="60" y1="60" x2="340" y2="60" stroke="var(--brand-yellow)" stroke-dasharray="4,4" stroke-width="1.5"/>
-                ${App.svgCandle(90, 95, 75, 60, 100)}
-                ${App.svgCandle(150, 85, 65, 60, 90)}
-                ${App.svgCandle(210, 78, 90, 40, 95)}
-                ${App.svgLabel(210, 30, 'Sweep')}
-                ${App.svgCandle(270, 90, 115, 85, 120)}
-                ${App.svgCandle(320, 115, 135, 110, 140)}
-            </svg>`,
-            mistakes: { ru: ['Входить сразу на проколе, не дожидаясь закрытия обратно внутри', 'Путать sweep с настоящим пробоем структуры'], en: ['Entering immediately on the poke, without waiting for a close back inside', 'Confusing a sweep with a real structural breakout'] },
-            warning: { ru: 'Не каждый прокол уровня — sweep. Настоящий пробой может просто продолжиться дальше.', en: 'Not every poke through a level is a sweep. A real breakout can simply continue.' },
-            askCoach: { ru: 'Как отличить sweep ликвидности от настоящего пробоя?', en: 'How do I tell a liquidity sweep apart from a real breakout?' }
-        },
-        bos: {
-            icon: '📈', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 3,
-            title: { ru: 'BOS (Break of Structure)', en: 'BOS (Break of Structure)' },
-            desc: { ru: 'Пробой предыдущего значимого максимума/минимума в сторону тренда.', en: 'A break of the previous significant high/low in the direction of the trend.' },
-            intro: { ru: 'BOS — это закрытие цены за пределами предыдущего важного свинг-максимума (в восходящем тренде) или минимума (в нисходящем), подтверждающее продолжение тренда.', en: 'A BOS is a close beyond the previous significant swing high (in an uptrend) or low (in a downtrend), confirming trend continuation.' },
-            body: { ru: `<p>BOS используется как подтверждение того, что структура рынка остаётся неизменной — тренд продолжается.</p>`, en: `<p>BOS is used to confirm that market structure remains intact — the trend is continuing.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <line x1="120" y1="55" x2="240" y2="55" stroke="var(--text-secondary)" stroke-dasharray="4,4"/>
-                ${App.svgCandle(80, 100, 80, 60, 110)}
-                ${App.svgCandle(130, 78, 60, 55, 85)}
-                ${App.svgCandle(180, 90, 70, 60, 95)}
-                ${App.svgCandle(230, 65, 40, 30, 70)}
-                ${App.svgLabel(255, 25, 'BOS')}
-                ${App.svgCandle(280, 45, 20, 15, 50)}
-            </svg>`,
-            mistakes: { ru: ['Путать BOS с MSS/CHOCH (сменой характера)', 'Игнорировать таймфрейм, на котором отмечена структура'], en: ['Confusing BOS with MSS/CHOCH (a character change)', 'Ignoring which timeframe the structure was marked on'] },
-            warning: { ru: 'BOS подтверждает продолжение существующего тренда — это не то же самое, что разворот.', en: 'A BOS confirms continuation of the existing trend — it is not the same thing as a reversal.' },
-            askCoach: { ru: 'Что такое BOS и чем он отличается от CHOCH?', en: 'What is BOS and how is it different from CHOCH?' }
-        },
-        mss_choch: {
-            icon: '🔀', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 4,
-            title: { ru: 'MSS / CHOCH', en: 'MSS / CHOCH' },
-            desc: { ru: 'Смена характера рынка — первый признак возможного разворота тренда.', en: 'A change of character — the first sign of a possible trend reversal.' },
-            intro: { ru: 'MSS (Market Structure Shift) / CHOCH (Change of Character) — это пробой структуры ПРОТИВ текущего тренда, в отличие от BOS, который идёт ПО тренду.', en: 'MSS (Market Structure Shift) / CHOCH (Change of Character) is a structure break AGAINST the current trend, unlike BOS which goes WITH the trend.' },
-            body: { ru: `<p>Например, в нисходящем тренде цена вдруг закрывается выше последнего значимого минорного максимума — это первый сигнал, что структура может меняться.</p>`, en: `<p>For example, in a downtrend, price suddenly closes above the last minor swing high — that's the first signal structure may be changing.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <line x1="150" y1="70" x2="260" y2="70" stroke="var(--text-secondary)" stroke-dasharray="4,4"/>
-                ${App.svgCandle(80, 40, 55, 35, 60)}
-                ${App.svgCandle(130, 60, 75, 55, 80)}
-                ${App.svgCandle(180, 80, 95, 75, 100)}
-                ${App.svgCandle(230, 90, 65, 60, 95)}
-                ${App.svgLabel(250, 40, 'CHOCH')}
-                ${App.svgCandle(280, 60, 35, 25, 65)}
-            </svg>`,
-            mistakes: { ru: ['Ждать полного разворота тренда сразу после первого CHOCH', 'Принимать любой мелкий откат за смену характера'], en: ['Expecting a full trend reversal immediately after the first CHOCH', 'Treating every minor pullback as a character change'] },
-            warning: { ru: 'MSS/CHOCH сигнализирует о ВОЗМОЖНОЙ смене тренда — а не гарантирует её.', en: 'MSS/CHOCH signals a POSSIBLE trend change — it does not guarantee one.' },
-            askCoach: { ru: 'Объясни разницу между MSS и CHOCH', en: 'Explain the difference between MSS and CHOCH' }
-        },
-        premium_discount: {
-            icon: '⚖️', difficulty: { ru: 'Средний', en: 'Intermediate' }, minutes: 3,
-            title: { ru: 'Premium / Discount', en: 'Premium / Discount' },
-            desc: { ru: 'Верхняя и нижняя половина диапазона относительно его середины.', en: 'The upper and lower half of a range relative to its midpoint.' },
-            intro: { ru: 'Разделив диапазон между значимым максимумом и минимумом пополам, верхнюю половину называют Premium (дорого), нижнюю — Discount (дёшево).', en: 'Splitting the range between a significant high and low in half, the upper half is called Premium (expensive), the lower half Discount (cheap).' },
-            body: { ru: `<p>Покупки чаще ищут в Discount-зоне, продажи — в Premium-зоне, относительно текущего диапазона.</p>`, en: `<p>Buys are more often sought in the Discount zone, sells in the Premium zone, relative to the current range.</p>` },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <rect x="40" y="20" width="320" height="60" fill="rgba(239,68,68,0.08)"/>
-                <rect x="40" y="80" width="320" height="60" fill="rgba(67,198,160,0.08)"/>
-                <line x1="40" y1="80" x2="360" y2="80" stroke="var(--text-secondary)" stroke-dasharray="4,4"/>
-                ${App.svgLabel(60, 35, 'Premium', 'start')}
-                ${App.svgLabel(60, 135, 'Discount', 'start')}
-                ${App.svgCandle(120, 60, 40, 30, 70)}
-                ${App.svgCandle(180, 100, 120, 90, 130)}
-                ${App.svgCandle(240, 70, 50, 40, 80)}
-                ${App.svgCandle(300, 110, 90, 85, 115)}
-            </svg>`,
-            mistakes: { ru: ['Использовать неверные точки для определения диапазона', 'Игнорировать общий тренд при оценке premium/discount'], en: ['Using the wrong points to define the range', 'Ignoring the overall trend when judging premium/discount'] },
-            warning: { ru: 'Premium/Discount — это относительная зона внутри выбранного диапазона, а не абсолютная оценка "дорого/дёшево".', en: 'Premium/Discount is a relative zone within a chosen range, not an absolute "expensive/cheap" judgment.' },
-            askCoach: { ru: 'Что такое Premium и Discount зоны?', en: 'What are Premium and Discount zones?' }
-        },
-        pin_bar: {
-            icon: '📍', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
-            title: { ru: 'Pin Bar', en: 'Pin Bar' },
-            desc: { ru: 'Свеча с маленьким телом и длинной тенью отказа от цены.', en: 'A candle with a small body and a long rejection wick.' },
-            intro: { ru: 'Pin Bar — это свеча с небольшим телом и заметно длинной тенью в одну сторону, показывающая, что цена была отвергнута на этом уровне.', en: 'A Pin Bar is a candle with a small body and a noticeably long wick on one side, showing price was rejected at that level.' },
-            body: {
-                ru: `<p>Бычий Pin Bar — длинная нижняя тень (отказ от продаж снизу). Медвежий — длинная верхняя тень (отказ от покупок сверху).</p>`,
-                en: `<p>A bullish Pin Bar has a long lower wick (rejection of selling below). A bearish Pin Bar has a long upper wick (rejection of buying above).</p>`
-            },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                ${App.svgCandle(110, 60, 55, 50, 130)}
-                ${App.svgLabel(110, 148, 'Bullish')}
-                ${App.svgCandle(290, 40, 45, 25, 100)}
-                ${App.svgLabel(290, 148, 'Bearish')}
-            </svg>`,
-            mistakes: { ru: ['Торговать Pin Bar как автоматический сигнал входа без контекста', 'Игнорировать, где именно на графике появился Pin Bar'], en: ['Trading a Pin Bar as an automatic entry signal without context', 'Ignoring where on the chart the Pin Bar appeared'] },
-            warning: { ru: 'Pin Bar — это не автоматический сигнал на вход. Контекст (уровень, тренд, структура) решает, имеет ли он значение.', en: 'A Pin Bar is not an automatic entry signal. Context (level, trend, structure) determines whether it matters.' },
-            askCoach: { ru: 'Что такое Pin Bar и как его правильно использовать?', en: 'What is a Pin Bar and how should I use it properly?' }
-        },
-        range: {
-            icon: '📏', difficulty: { ru: 'Начальный', en: 'Beginner' }, minutes: 3,
-            title: { ru: 'Range (Диапазон)', en: 'Range' },
-            desc: { ru: 'Консолидация цены между чётким максимумом и минимумом.', en: 'Price consolidating between a clear high and low.' },
-            intro: { ru: 'Range — это период, когда цена движется между относительно стабильными верхней (range high) и нижней (range low) границами.', en: 'A range is a period when price moves between relatively stable upper (range high) and lower (range low) boundaries.' },
-            body: {
-                ru: `<p>Вокруг границ диапазона часто скапливается ликвидность. Ложный пробой (sweep) одной из границ с возвратом внутрь — частый паттерн перед движением в противоположную сторону.</p>`,
-                en: `<p>Liquidity often clusters around the range boundaries. A false breakout (sweep) of one boundary followed by a return inside is a common pattern before a move the other way.</p>`
-            },
-            svg: () => `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
-                <line x1="40" y1="40" x2="360" y2="40" stroke="var(--brand-yellow)" stroke-dasharray="4,4"/>
-                <line x1="40" y1="120" x2="360" y2="120" stroke="var(--brand-yellow)" stroke-dasharray="4,4"/>
-                ${App.svgLabel(60, 33, 'Range High', 'start')}
-                ${App.svgLabel(60, 133, 'Range Low', 'start')}
-                ${App.svgCandle(90, 60, 45, 40, 65)}
-                ${App.svgCandle(140, 100, 115, 95, 120)}
-                ${App.svgCandle(190, 70, 90, 60, 95)}
-                ${App.svgCandle(240, 55, 30, 20, 60)}
-                ${App.svgLabel(240, 12, 'Sweep')}
-                ${App.svgCandle(290, 70, 95, 65, 100)}
-            </svg>`,
-            mistakes: { ru: ['Торговать пробой диапазона сразу, не дожидаясь подтверждения', 'Игнорировать возможность ложного пробоя (sweep) границы'], en: ['Trading a range breakout immediately without waiting for confirmation', 'Ignoring the possibility of a false breakout (sweep) at the boundary'] },
-            warning: { ru: 'Не каждый выход за границу диапазона — настоящий пробой. Проверяйте закрытие свечи и объём/контекст.', en: 'Not every move outside the range boundary is a real breakout. Check the candle close and volume/context.' },
-            askCoach: { ru: 'Как правильно торговать диапазон?', en: 'How should I approach trading a range?' }
-        }
-    },
-
     // ============================================================
     // v1.1.0 — AI SCANNER
     // No vision-AI backend exists in this build, so this never invents
@@ -3924,37 +3689,119 @@ const App = {
     },
 
     showScannerUpload() {
+        if (this.scannerObjectUrl) {
+            URL.revokeObjectURL(this.scannerObjectUrl);
+            this.scannerObjectUrl = null;
+        }
         this.scannerScreenshot = null;
         this.scannerDirection = 'long';
         if (this.scannerUploadView) this.scannerUploadView.style.display = 'block';
         if (this.scannerReviewView) this.scannerReviewView.style.display = 'none';
         if (this.scannerFileInput) this.scannerFileInput.value = '';
+        if (this.scannerAnalysisStatus) this.scannerAnalysisStatus.textContent = '';
+        if (this.scannerOcrText) this.scannerOcrText.textContent = '';
+        if (this.scannerPreviewImg) this.scannerPreviewImg.removeAttribute('src');
     },
 
-    handleScannerFile(file) {
+    async handleScannerFile(file) {
         if (!file) return;
         const en = this.currentLang === 'en';
-        if (!file.type.startsWith('image/')) { this.showToast(en ? 'Please choose an image file' : 'Пожалуйста, выберите файл изображения'); return; }
-        if (file.size > 5 * 1024 * 1024) { this.showToast(en ? 'Image must be under 5MB' : 'Изображение должно быть меньше 5МБ'); return; }
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            this.scannerScreenshot = ev.target.result;
+        if (!file.type || !file.type.startsWith('image/')) {
+            this.showToast(en ? 'Please choose a PNG, JPG or WEBP image.' : 'Выберите изображение PNG, JPG или WEBP.');
+            return;
+        }
+        if (file.size > 25 * 1024 * 1024) {
+            this.showToast(en ? 'Image must be under 25MB.' : 'Изображение должно быть меньше 25 МБ.');
+            return;
+        }
+
+        try {
+            const dataUrl = await this.prepareScannerImage(file);
+            this.scannerScreenshot = dataUrl;
             this.renderScannerReview();
-        };
-        reader.readAsDataURL(file);
+            this.showToast(en ? 'Screenshot loaded. Ready to analyze.' : 'Скриншот загружен. Можно запускать анализ.');
+        } catch (err) {
+            console.error('Scanner image load failed:', err);
+            // Last-resort FileReader path. This also handles unusual browser image decoders.
+            try {
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(reader.error || new Error('FileReader failed'));
+                    reader.readAsDataURL(file);
+                });
+                this.scannerScreenshot = dataUrl;
+                this.renderScannerReview();
+            } catch (fallbackErr) {
+                console.error('Scanner fallback failed:', fallbackErr);
+                this.showToast(en ? 'Could not read this image. Try another PNG/JPG.' : 'Не удалось прочитать изображение. Попробуйте другой PNG/JPG.');
+            }
+        }
+    },
+
+    prepareScannerImage(file) {
+        return new Promise((resolve, reject) => {
+            const objectUrl = URL.createObjectURL(file);
+            this.scannerObjectUrl = objectUrl;
+            const img = new Image();
+            img.decoding = 'async';
+            img.onload = () => {
+                try {
+                    const sourceW = img.naturalWidth || img.width;
+                    const sourceH = img.naturalHeight || img.height;
+                    if (!sourceW || !sourceH) throw new Error('Invalid image dimensions');
+                    const maxSide = 1800;
+                    const scale = Math.min(1, maxSide / Math.max(sourceW, sourceH));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(sourceW * scale));
+                    canvas.height = Math.max(1, Math.round(sourceH * scale));
+                    const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: false });
+                    if (!ctx) throw new Error('Canvas unavailable');
+                    ctx.fillStyle = '#0A0A0F';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const done = (dataUrl) => {
+                        URL.revokeObjectURL(objectUrl);
+                        if (this.scannerObjectUrl === objectUrl) this.scannerObjectUrl = null;
+                        resolve(dataUrl);
+                    };
+                    canvas.toBlob((blob) => {
+                        if (!blob) return done(canvas.toDataURL('image/jpeg', 0.78));
+                        const reader = new FileReader();
+                        reader.onload = () => done(reader.result);
+                        reader.onerror = () => done(canvas.toDataURL('image/jpeg', 0.78));
+                        reader.readAsDataURL(blob);
+                    }, 'image/jpeg', 0.78);
+                } catch (e) {
+                    URL.revokeObjectURL(objectUrl);
+                    if (this.scannerObjectUrl === objectUrl) this.scannerObjectUrl = null;
+                    reject(e);
+                }
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(objectUrl);
+                if (this.scannerObjectUrl === objectUrl) this.scannerObjectUrl = null;
+                reject(new Error('Browser could not decode image'));
+            };
+            img.src = objectUrl;
+        });
     },
 
     renderScannerReview() {
-        const en = this.currentLang === 'en';
+        if (!this.scannerScreenshot) return;
         if (this.scannerPreviewImg) this.scannerPreviewImg.src = this.scannerScreenshot;
         if (this.scannerConfidenceNote) this.scannerConfidenceNote.innerHTML = `<span class="scanner-confidence-badge">${this.t('scanner_confidence_label')}</span>`;
+        if (this.scannerAnalysisStatus) this.scannerAnalysisStatus.textContent = '';
+        if (this.scannerOcrText) this.scannerOcrText.textContent = '';
 
-        // Reset every field to genuinely empty ("not detected") — nothing
-        // here is ever pre-filled with a guessed value.
         [this.scannerAsset, this.scannerTimeframe, this.scannerEntry, this.scannerStopLoss, this.scannerTakeProfit, this.scannerSetup].forEach(el => { if (el) el.value = ''; });
         [this.scannerAsset, this.scannerTimeframe, this.scannerEntry, this.scannerStopLoss, this.scannerTakeProfit].forEach(el => { if (el) el.placeholder = this.t('scanner_not_detected'); });
         this.scannerDirection = 'long';
-        if (document.getElementById('scannerDirLong')) { document.getElementById('scannerDirLong').classList.add('active'); document.getElementById('scannerDirShort').classList.remove('active'); }
+        const longBtn = document.getElementById('scannerDirLong');
+        const shortBtn = document.getElementById('scannerDirShort');
+        if (longBtn && shortBtn) { longBtn.classList.add('active'); shortBtn.classList.remove('active'); }
 
         if (this.scannerStructuresGrid) {
             let html = '';
@@ -3962,22 +3809,103 @@ const App = {
                 html += `<label class="scanner-structure-chip" data-structure="${key}"><input type="checkbox" data-structure-cb="${key}"> ${this.scannerStructureLabels[key]} <a href="#" class="ms-learn-link" data-learn="${key}">${this.t('scanner_learn_more')} →</a></label>`;
             });
             this.scannerStructuresGrid.innerHTML = html;
-            this.scannerStructuresGrid.querySelectorAll('[data-structure-cb]').forEach(cb => {
-                cb.addEventListener('change', () => {
-                    cb.closest('.scanner-structure-chip').classList.toggle('checked', cb.checked);
-                });
-            });
-            this.scannerStructuresGrid.querySelectorAll('[data-learn]').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault(); e.stopPropagation();
-                    const lessonId = this.scannerStructureLessonMap[link.dataset.learn];
-                    if (lessonId) this.openMarketStructureLessonFromScanner(lessonId);
-                });
-            });
+            this.scannerStructuresGrid.querySelectorAll('[data-structure-cb]').forEach(cb => cb.addEventListener('change', () => cb.closest('.scanner-structure-chip').classList.toggle('checked', cb.checked)));
+            this.scannerStructuresGrid.querySelectorAll('[data-learn]').forEach(link => link.addEventListener('click', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                const lessonId = this.scannerStructureLessonMap[link.dataset.learn];
+                if (lessonId) this.openMarketStructureLessonFromScanner(lessonId);
+            }));
         }
-
         if (this.scannerUploadView) this.scannerUploadView.style.display = 'none';
         if (this.scannerReviewView) this.scannerReviewView.style.display = 'block';
+    },
+
+    async analyzeScannerImage() {
+        if (!this.scannerScreenshot) return;
+        const en = this.currentLang === 'en';
+        const status = (text) => { if (this.scannerAnalysisStatus) this.scannerAnalysisStatus.textContent = text; };
+        status(en ? 'Reading chart labels…' : 'Распознаю подписи на графике…');
+        if (this.scannerAnalyzeBtn) this.scannerAnalyzeBtn.disabled = true;
+        try {
+            const Tesseract = await this.loadScannerOCR();
+            const result = await Tesseract.recognize(this.scannerScreenshot, 'eng', {
+                logger: m => {
+                    if (m.status === 'recognizing text' && typeof m.progress === 'number') {
+                        status((en ? 'OCR: ' : 'OCR: ') + Math.round(m.progress * 100) + '%');
+                    }
+                }
+            });
+            const text = String(result?.data?.text || '').replace(/\s+/g, ' ').trim();
+            this.applyScannerOCR(text);
+            if (this.scannerOcrText) this.scannerOcrText.textContent = text || (en ? 'No readable labels found.' : 'Читаемых подписей не найдено.');
+            status(text ? (en ? 'Analysis complete. Review detected fields before saving.' : 'Анализ завершён. Проверь найденные поля перед сохранением.') : (en ? 'No readable labels found; manual review is required.' : 'Подписи не распознаны — проверь график вручную.'));
+        } catch (err) {
+            console.error('Scanner OCR failed:', err);
+            status(en ? 'OCR is unavailable. The screenshot is still loaded and can be filled manually.' : 'OCR недоступен. Скриншот загружен, поля можно заполнить вручную.');
+            this.showToast(en ? 'OCR could not be started. Check your internet connection.' : 'Не удалось запустить OCR. Проверьте интернет-соединение.');
+        } finally {
+            if (this.scannerAnalyzeBtn) this.scannerAnalyzeBtn.disabled = false;
+        }
+    },
+
+    async loadScannerOCR() {
+        if (window.Tesseract) return window.Tesseract;
+        if (this._scannerOCRPromise) return this._scannerOCRPromise;
+        this._scannerOCRPromise = new Promise((resolve, reject) => {
+            const existing = document.querySelector('script[data-scanner-ocr]');
+            if (existing) {
+                existing.addEventListener('load', () => window.Tesseract ? resolve(window.Tesseract) : reject(new Error('Tesseract missing')));
+                existing.addEventListener('error', reject);
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+            script.async = true;
+            script.dataset.scannerOcr = 'true';
+            script.onload = () => window.Tesseract ? resolve(window.Tesseract) : reject(new Error('Tesseract missing'));
+            script.onerror = () => reject(new Error('Tesseract CDN unavailable'));
+            document.head.appendChild(script);
+        });
+        return this._scannerOCRPromise;
+    },
+
+    applyScannerOCR(text) {
+        const upper = text.toUpperCase();
+        const compact = upper.replace(/[^A-Z0-9/.-]+/g, ' ');
+        const assets = ['BTCUSDT','BTC/USD','BTC','ETHUSDT','ETH/USD','ETH','SOLUSDT','SOL/USD','SOL','XAUUSD','XAU/USD','GOLD','EURUSD','EUR/USD','GBPUSD','GBP/USD','USDJPY','USD/JPY','AUDUSD','AUD/USD','USDCAD','USD/CAD','USDCHF','USD/CHF'];
+        const foundAsset = assets.find(a => compact.includes(a.replace('/', ' ')) || upper.includes(a));
+        if (foundAsset && this.scannerAsset) this.scannerAsset.value = foundAsset.replace('BTC/USD','BTCUSDT').replace('ETH/USD','ETHUSDT').replace('SOL/USD','SOLUSDT').replace('XAU/USD','XAUUSD').replace('EUR/USD','EURUSD').replace('GBP/USD','GBPUSD').replace('USD/JPY','USDJPY').replace('AUD/USD','AUDUSD').replace('USD/CAD','USDCAD').replace('USD/CHF','USDCHF');
+
+        const tf = upper.match(/(?:^|\s)(\d{1,3}\s?(?:S|SEC|M|MIN|H|HR|D|W))(?:\s|$)/i);
+        if (tf && this.scannerTimeframe) this.scannerTimeframe.value = tf[1].replace(/\s+/g,'').toUpperCase().replace('MIN','M').replace('HR','H');
+
+        if (/\bSHORT\b/.test(upper) && this.scannerDirection === 'long') this.setScannerDirection('short');
+        else if (/\bLONG\b/.test(upper)) this.setScannerDirection('long');
+
+        const structures = [
+            ['fvg', /FAIR\s*VALUE\s*GAP|\bFVG\b/], ['ifvg', /\bIFVG\b/], ['ob', /ORDER\s*BLOCK|\bOB\b/],
+            ['liquidity_sweep', /LIQUIDITY\s*SWEEP|SWEEP/], ['liquidity', /LIQUIDITY/], ['bos', /\bBOS\b|BREAK\s*OF\s*STRUCTURE/],
+            ['mss_choch', /\bMSS\b|\bCHOCH\b|CHANGE\s*OF\s*CHARACTER/], ['premium_discount', /PREMIUM|DISCOUNT/], ['pin_bar', /PIN\s*BAR/], ['range', /\bRANGE\b/]
+        ];
+        structures.forEach(([key, re]) => {
+            const cb = this.scannerStructuresGrid?.querySelector(`[data-structure-cb="${key}"]`);
+            if (cb && re.test(upper)) { cb.checked = true; cb.closest('.scanner-structure-chip')?.classList.add('checked'); }
+        });
+
+        const notes = [];
+        if (foundAsset) notes.push(`Asset: ${foundAsset}`);
+        if (tf) notes.push(`Timeframe: ${tf[1]}`);
+        const foundStructures = structures.filter(([,re]) => re.test(upper)).map(([key]) => this.scannerStructureLabels[key]);
+        if (foundStructures.length) notes.push((this.currentLang === 'en' ? 'OCR labels: ' : 'Метки OCR: ') + foundStructures.join(', '));
+        if (notes.length && this.scannerSetup) this.scannerSetup.value = notes.join(' | ');
+    },
+
+    setScannerDirection(direction) {
+        this.scannerDirection = direction === 'short' ? 'short' : 'long';
+        const longBtn = document.getElementById('scannerDirLong');
+        const shortBtn = document.getElementById('scannerDirShort');
+        if (longBtn) longBtn.classList.toggle('active', this.scannerDirection === 'long');
+        if (shortBtn) shortBtn.classList.toggle('active', this.scannerDirection === 'short');
     },
 
     openMarketStructureLessonFromScanner(lessonId) {
@@ -4040,14 +3968,10 @@ const App = {
         }).join('');
 
         this.academyGrid.innerHTML = cardsHtml(this.academyOrder, this.academyLessons);
-        if (this.academyGridMS) this.academyGridMS.innerHTML = cardsHtml(this.academyOrderMarketStructure, this.marketStructureLessons);
-
-        [this.academyGrid, this.academyGridMS].forEach(grid => {
-            if (!grid) return;
-            grid.querySelectorAll('[data-lesson]').forEach(btn => {
-                btn.addEventListener('click', () => this.openAcademyLesson(btn.dataset.lesson));
-            });
+        this.academyGrid.querySelectorAll('[data-lesson]').forEach(btn => {
+            btn.addEventListener('click', () => this.openAcademyLesson(btn.dataset.lesson));
         });
+
     },
 
     showAcademyGrid() {
@@ -4056,7 +3980,7 @@ const App = {
     },
 
     openAcademyLesson(id) {
-        const lesson = this.academyLessons[id] || this.marketStructureLessons[id];
+        const lesson = this.academyLessons[id];
         if (!lesson || !this.academyLessonBody) return;
         this.currentLessonId = id;
         const en = this.currentLang === 'en';

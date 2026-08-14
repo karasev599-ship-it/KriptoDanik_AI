@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    <link rel="stylesheet" href="style.css?v=1.8.2" />
+    <link rel="stylesheet" href="style.css?v=1.8.7" />
 
     <!-- Pinned to an exact Chart.js release (was the unpinned "/npm/chart.js" alias,
          which resolves to whatever build is "latest" at request time — that drift is
@@ -86,14 +86,6 @@
                     <button class="nav-item" data-section="marketpulse">
                         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
                         <span data-key="nav_marketpulse">Market Pulse</span>
-                    </button>
-                    <button class="nav-item" data-section="propintel">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="6" cy="16" r="1"/><circle cx="10" cy="11" r="1"/><circle cx="13" cy="14" r="1"/><circle cx="18" cy="7" r="1"/></svg>
-                        <span>Prop Intelligence</span>
-                    </button>
-                    <button class="nav-item" data-section="challenge">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M6 3h12v5a6 6 0 0 1-12 0V3z"/><path d="M6 6H3a3 3 0 0 0 3 3"/><path d="M18 6h3a3 3 0 0 1-3 3"/></svg>
-                        <span data-key="nav_challenge">Prop Challenge</span>
                     </button>
                 </nav>
 
@@ -1041,10 +1033,10 @@
                     </div>
                     <div class="scanner-honesty-note" data-key="scanner_honesty_note">This build doesn't have a connected vision-AI model yet, so nothing is auto-detected from your screenshot. You'll get a structured review form to fill in yourself, with the screenshot attached to the trade for later reference.</div>
                     <div class="scanner-dropzone glass-panel" id="scannerDropzone">
-                        <input type="file" id="scannerFileInput" accept="image/*" style="display:none;" />
+                        <input type="file" id="scannerFileInput" accept="image/png,image/jpeg,image/webp" capture="environment" style="display:none;" />
                         <div class="scanner-dropzone-icon">📊</div>
                         <p class="scanner-dropzone-title" data-key="scanner_upload_title">Upload a chart screenshot</p>
-                        <p class="scanner-dropzone-sub" data-key="scanner_upload_sub">PNG or JPG, up to 5MB</p>
+                        <p class="scanner-dropzone-sub" data-key="scanner_upload_sub">PNG, JPG or WEBP, up to 25MB · drag & drop or paste</p>
                         <button class="btn-primary" id="scannerUploadBtn" data-key="scanner_choose_file">Choose file</button>
                     </div>
                 </div>
@@ -1059,6 +1051,14 @@
                             <div class="scanner-review-form">
                                 <h3 data-key="scanner_result_title">Scan Result</h3>
                                 <p class="lesson-note" id="scannerConfidenceNote"></p>
+                                <div class="scanner-analysis-bar">
+                                    <button type="button" class="btn-secondary" id="scannerAnalyzeBtn">🔎 <span data-key="scanner_analyze">Analyze screenshot</span></button>
+                                    <span id="scannerAnalysisStatus" class="scanner-analysis-status" aria-live="polite"></span>
+                                </div>
+                                <div class="scanner-ocr-box" id="scannerOcrBox">
+                                    <div class="scanner-ocr-label" data-key="scanner_ocr_label">OCR text found on screenshot</div>
+                                    <div id="scannerOcrText" class="scanner-ocr-text"></div>
+                                </div>
 
                                 <div class="scanner-field-row">
                                     <div class="psc-field"><label data-key="scanner_asset">Asset</label><input type="text" class="form-input" id="scannerAsset" placeholder="BTCUSDT" /></div>
@@ -1117,11 +1117,6 @@
                     </div>
                     <div class="academy-grid" id="academyGrid"></div>
 
-                    <div class="academy-header" style="margin-top:28px;">
-                        <h2 data-key="academy_ms_title">Market Structure &amp; Smart Money Concepts</h2>
-                        <p class="academy-header-sub" data-key="academy_ms_sub">How to read the chart itself — gaps, order blocks, liquidity, breaks of structure, and more.</p>
-                    </div>
-                    <div class="academy-grid" id="academyGridMS"></div>
                 </div>
 
                 <div id="academyLessonView" style="display:none;">
@@ -1139,50 +1134,22 @@
                 <div id="strategyGrid" class="strategy-grid"></div><div id="strategyEmpty" class="module-empty glass-panel"><div class="module-empty-icon">♜</div><h3>Стратегий пока нет</h3><p>Создай первую стратегию: условия входа, стоп, выход, фильтры и правила дисциплины.</p><button class="btn-primary" id="strategyEmptyBtn">Создать стратегию</button></div>
             </div>
             <div id="section-marketpulse" class="section-content">
-                <div class="module-header glass-panel"><div><span class="module-eyebrow">MARKET CONTEXT · v1.2</span><h2>Market Pulse</h2><p>Актуальный рыночный контекст, торговые сессии и фактические данные — без сигналов и обещаний движения цены.</p></div><button class="btn-secondary" id="marketRefreshBtn">↻ Обновить</button></div>
+                <div class="module-header glass-panel marketpulse-header"><div><span class="module-eyebrow">MARKET PULSE · LIVE CONTEXT</span><h2>Market Pulse</h2><p>Экономический календарь, рыночные данные и новости. Красное — высокая важность, жёлтое — средняя, серое — низкая. Вкладка определяет, какие события сейчас важны для рынка.</p></div><button class="btn-secondary" id="marketRefreshBtn">↻ Обновить</button></div>
+                <div class="market-modebar glass-panel"><div><span class="module-eyebrow">РЫНОК</span><b>Что отслеживать</b></div><div class="market-mode-switch" role="tablist" aria-label="Рынок"><button class="market-mode-btn active" data-market-mode="crypto" role="tab">₿ Крипта</button><button class="market-mode-btn" data-market-mode="forex" role="tab">$ Форекс</button></div><div class="market-impact-legend"><span class="impact-dot high"></span> Важно <span class="impact-dot medium"></span> Средне <span class="impact-dot low"></span> Низко</div></div>
                 <div class="market-session-grid">
                     <article class="glass-panel market-session-card"><span class="module-eyebrow">CURRENT SESSION</span><div class="market-session-main"><b id="marketCurrentSession">—</b><span id="marketSessionStatus">—</span></div><div class="market-session-times"><span>UTC</span><b id="marketSessionClock">—</b></div><div class="market-session-note" id="marketPreviousSession">Предыдущая сессия: —</div></article>
-                    <article class="glass-panel market-context-card"><span class="module-eyebrow">TRADING CONTEXT</span><h3>Твоя стратегия</h3><p id="marketStrategyContext">Здесь появится связь Market Pulse с твоей стратегией.</p><div class="market-context-tags" id="marketStrategyTags"></div></article>
+                    <article class="glass-panel market-context-card"><span class="module-eyebrow">MARKET IMPACT</span><h3 id="marketContextTitle">Крипта</h3><p id="marketStrategyContext">Загрузка факторов, которые сейчас сильнее всего влияют на выбранный рынок.</p><div class="market-context-tags" id="marketStrategyTags"></div></article>
                 </div>
-                <div class="pulse-meta glass-panel"><div><span class="module-eyebrow">LIVE STATUS</span><b id="marketLiveStatus">Ожидание данных</b></div><div><span class="module-eyebrow">ОБНОВЛЕНО</span><b id="marketLastUpdated">—</b></div><div><span class="module-eyebrow">ЗАДЕРЖКА</span><b id="marketLatency">—</b></div><div><span class="module-eyebrow">ИСТОЧНИК</span><b>Binance public API</b></div></div><div class="pulse-grid" id="marketPulseGrid"></div>
+                <div class="pulse-meta glass-panel"><div><span class="module-eyebrow">LIVE STATUS</span><b id="marketLiveStatus">Ожидание данных</b></div><div><span class="module-eyebrow">ОБНОВЛЕНО</span><b id="marketLastUpdated">—</b></div><div><span class="module-eyebrow">ЗАДЕРЖКА</span><b id="marketLatency">—</b></div><div><span class="module-eyebrow">ИСТОЧНИК</span><b id="marketSourceLabel">Binance public API</b></div></div>
+                <div class="pulse-grid" id="marketPulseGrid"></div>
+                <div class="market-calendar-section glass-panel"><div class="market-section-head"><div><span class="module-eyebrow">ECONOMIC CALENDAR</span><h3>Экономические события</h3><p>Формат в стиле Forex Factory: важность события + страна + фактическое/прогноз/предыдущее значение.</p></div><span class="market-feed-badge" id="marketCalendarStatus">Загрузка…</span></div><div id="marketCalendar" class="market-calendar"></div></div>
+                <div class="market-news-section glass-panel"><div class="market-section-head"><div><span class="module-eyebrow">NEWS FLOW</span><h3>Новости и влияние</h3><p>Показываем только полученные публикации. Никаких придуманных новостей. Для каждой новости отмечаем, на что она потенциально влияет.</p></div><span class="market-feed-badge" id="marketNewsStatus">Загрузка…</span></div><div id="marketNews" class="market-news-list"></div></div>
                 <div class="market-analysis-grid">
-                    <article class="glass-panel market-analysis-card"><span class="module-eyebrow">AI MARKET ANALYSIS</span><h3>Что это значит</h3><div id="marketAiAnalysis"><p class="muted">Обнови данные, чтобы получить нейтральный разбор текущего контекста.</p></div></article>
-                    <article class="glass-panel market-links-card"><span class="module-eyebrow">NEWS SOURCES</span><h3>Проверяй первоисточник</h3><p>Новости не подменяются выдуманными событиями. Используй официальные источники и открывай их перед принятием решений.</p><div class="market-source-links"><a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener">Federal Reserve</a><a href="https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html" target="_blank" rel="noopener">ECB</a><a href="https://www.bls.gov/schedule/news_release/" target="_blank" rel="noopener">US Economic Calendar</a><a href="https://www.binance.com/en/support/announcement" target="_blank" rel="noopener">Binance Announcements</a></div></article>
+                    <article class="glass-panel market-analysis-card"><span class="module-eyebrow">AI MARKET ANALYSIS</span><h3>Что сейчас важно</h3><div id="marketAiAnalysis"><p class="muted">Обнови данные, чтобы получить нейтральный разбор текущего контекста.</p></div></article>
+                    <article class="glass-panel market-links-card"><span class="module-eyebrow">PRIMARY SOURCES</span><h3>Первоисточники</h3><p>Открывай источник перед принятием решений. Внешние данные помечаются временем получения.</p><div class="market-source-links"><a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener">Federal Reserve</a><a href="https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html" target="_blank" rel="noopener">ECB</a><a href="https://www.bls.gov/schedule/news_release/" target="_blank" rel="noopener">BLS</a><a href="https://www.binance.com/en/support/announcement" target="_blank" rel="noopener">Binance</a></div></article>
                 </div>
-                <div class="market-news-grid">
-                    <article class="glass-panel market-news-card"><span class="module-eyebrow">PROP FIRM NEWS</span><h3>Новости проп-компаний</h3><p>Блок подготовлен для подключения проверенных источников. Пока здесь нет выдуманных обновлений правил или челленджей.</p><span class="market-news-status">Источник не подключён</span></article>
-                    <article class="glass-panel market-news-card"><span class="module-eyebrow">KRIPTODANIK AI NEWS</span><h3>Новости продукта</h3><p>Версии и функции будут отображаться здесь только после фактического добавления обновления.</p><span class="market-news-status">Публикаций пока нет</span></article>
-                </div>
-                <div class="market-note glass-panel"><b>Важно:</b> Market Pulse не говорит «покупать» или «продавать». AI Market Analysis описывает только наблюдаемые данные и возможные области внимания; это не прогноз и не финансовый совет.</div>
+                <div class="market-note glass-panel"><b>Важно:</b> Market Pulse показывает фактические данные и отмечает важность событий. Он не говорит «покупать» или «продавать» и не заменяет торговый план.</div>
             </div>
-            <div id="section-propintel" class="section-content">
-                <div class="module-header glass-panel"><div><span class="module-eyebrow">MARKET PULSE · v1.2</span><h2>Prop Intelligence</h2><p>Рынок, сессии, новости, макроданные и правила проп-компаний в одном месте. Только проверяемые данные и явные статусы источников.</p></div><button class="btn-secondary" id="propIntelRefreshBtn">↻ Обновить</button></div>
-                <div class="intel-overview-grid">
-                    <article class="glass-panel intel-hero"><span class="module-eyebrow">MARKET OVERVIEW</span><h3 id="intelMarketState">Загрузка состояния рынка…</h3><div class="intel-big-row"><div><b id="intelFearGreed">—</b><span>Fear &amp; Greed</span></div><div><b id="intelBreadth">—</b><span>Наблюдаемые активы</span></div><div><b id="intelUpdated">—</b><span>Последнее обновление</span></div></div><p id="intelMarketSummary">Подключаем фактические данные BTC, ETH и SOL и индекс настроений.</p></article>
-                    <article class="glass-panel intel-ai"><span class="module-eyebrow">AI MARKET ANALYSIS</span><h3>Почему это важно</h3><div id="intelAiText"><p>AI разберёт только наблюдаемые данные: изменение цены, диапазон, настроение и сессии. Это не торговый сигнал.</p></div></article>
-                </div>
-                <div class="intel-section-head"><div><span class="module-eyebrow">MARKET SESSIONS</span><h3>24-HOUR SESSION TIMELINE</h3></div><span class="muted">Все времена — Москва (MSK)</span></div>
-                <div class="session-timeline glass-panel" id="sessionTimeline"></div>
-                <div class="intel-columns">
-                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">NEWS</span><h3>Актуальная лента</h3></div></div><div class="intel-tabs" id="intelNewsTabs"><button class="active" data-news-cat="crypto">Crypto</button><button data-news-cat="forex">Forex</button><button data-news-cat="stocks">Stocks</button></div><div id="intelNewsList" class="intel-news-list"></div></section>
-                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">ECONOMIC CALENDAR</span><h3>Экономический календарь</h3></div></div><div class="event-list" id="intelEconomicList"></div></section>
-                </div>
-                <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">IMPORTANT EVENTS</span><h3>События, за которыми стоит следить</h3></div></div><div class="important-events" id="intelImportantEvents"></div></section>
-                <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">PROP FIRMS</span><h3>Prop Firm Directory</h3></div><span class="muted">Проверяй официальный источник перед покупкой</span></div><div class="prop-directory" id="propDirectory"></div></section>
-                <div class="intel-columns">
-                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">RULES EXPLAINED</span><h3>Как не нарушить правила</h3></div></div><div id="propRulesExplained" class="rules-explained"></div></section>
-                    <section class="glass-panel"><div class="intel-section-head"><div><span class="module-eyebrow">PITFALLS</span><h3>Prop Firm Pitfalls</h3></div></div><div id="propPitfalls" class="pitfall-list"></div></section>
-                </div>
-                <section class="glass-panel guardian-prop-link"><div><span class="module-eyebrow">PROP FIRM → GUARDIAN</span><h3>Свяжи правила челленджа с контролем риска</h3><p>Выбери параметры в Prop Challenge — Guardian и Challenge используют реальные сделки Journal для контроля дневного лимита и просадки.</p></div><button class="btn-primary" id="intelOpenChallenge">Открыть Prop Challenge</button></section>
-            </div>
-            <div id="section-challenge" class="section-content">
-                <div class="module-header glass-panel"><div><span class="module-eyebrow">RISK &amp; DISCIPLINE</span><h2>Prop Challenge</h2><p>Отдельный трек для челленджа. Никаких выдуманных результатов — всё считается из твоих данных и заданных правил.</p></div><button class="btn-primary" id="challengeSettingsBtn">Настроить</button></div>
-                <div class="challenge-summary-grid" id="challengeSummary"></div>
-                <div class="challenge-progress-card glass-panel"><div class="challenge-progress-head"><b id="challengeStepTitle">Шаг 1</b><span id="challengeStatus">Не настроен</span></div><div class="challenge-track"><i id="challengeProgressBar"></i></div><div class="challenge-progress-meta"><span id="challengeProfitText">$0.00 прибыли</span><span id="challengeTargetText">Цель не задана</span></div></div>
-                <div class="challenge-layout"><div class="challenge-rules glass-panel"><h3>Правила челленджа</h3><div id="challengeRulesList"></div></div><div class="challenge-log glass-panel"><h3>Контроль</h3><p>Для расчёта используются только сделки из Journal. Добавь или измени сделку там — Challenge обновится автоматически.</p><div id="challengeChecks"></div></div></div>
-                <div id="challengeSettingsPanel" class="challenge-settings glass-panel" style="display:none;"><h3>Параметры</h3><div class="form-row-2"><div class="form-group"><label>Компания / челлендж</label><input id="challengeName" class="form-input" placeholder="Sweet Pepper 2-Step Challenge"/></div><div class="form-group"><label>Размер счёта</label><input id="challengeCapital" type="number" class="form-input" placeholder="6000"/></div></div><div class="form-row-2"><div class="form-group"><label>Цель шага 1, %</label><input id="challengeTarget1" type="number" class="form-input" step="0.1" placeholder="10"/></div><div class="form-group"><label>Цель шага 2, %</label><input id="challengeTarget2" type="number" class="form-input" step="0.1" placeholder="5"/></div></div><div class="form-row-2"><div class="form-group"><label>Дневной лимит, %</label><input id="challengeDaily" type="number" class="form-input" step="0.1" placeholder="5"/></div><div class="form-group"><label>Макс. просадка, %</label><input id="challengeMaxDD" type="number" class="form-input" step="0.1" placeholder="10"/></div></div><button class="btn-primary" id="challengeSaveBtn">Сохранить правила</button></div>
-            </div>
-
             <!-- ============================================================
             SETTINGS (ЭТАП 8)
             ============================================================ -->
@@ -1221,7 +1188,7 @@
                                         <div class="profile-avatar" id="settingsAvatar">T</div>
                                         <div class="avatar-badge">Pro</div>
                                         <button class="avatar-edit-btn" id="avatarEditBtn" title="Изменить фото">✎</button>
-                                        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" />
+                                        <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" capture="environment" style="display:none;" />
                                     </div>
                                     <div class="profile-info-list">
                                         <div class="info-row"><span>Никнейм</span><span id="settingsUsername">Загрузка...</span></div>
