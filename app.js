@@ -390,7 +390,7 @@ const App = {
     getCurrentBalance() {
         const start = parseFloat(this.userData.capital) || 0;
         const pnlSum = this.trades.reduce((sum, t) => sum + (typeof t.pnl === 'number' && !isNaN(t.pnl) ? t.pnl : (parseFloat(t.pnl) || 0)), 0);
-        return this.trades.length ? start + pnlSum : 0;
+        return start + pnlSum;
     },
 
     updateBalanceDisplay() {
