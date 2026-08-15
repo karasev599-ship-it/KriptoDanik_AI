@@ -1483,9 +1483,11 @@ const App = {
                 ? '(Bitcoin OR Ethereum OR Binance OR Solana OR crypto)'
                 : '(Federal Reserve OR ECB OR inflation OR jobs OR dollar OR euro)';
 
-            const url='https://api.gdeltproject.org/api/v2/doc/doc?query='+
+            const directUrl='https://api.gdeltproject.org/api/v2/doc/doc?query='+
                 encodeURIComponent(q)+
                 '&mode=artlist&format=json&maxrecords=30&sort=datedesc&timespan=24h';
+
+            const url='https://api.allorigins.win/raw?url='+encodeURIComponent(directUrl);
 
             const controller=new AbortController();
             const timer=setTimeout(()=>controller.abort(),12000);
