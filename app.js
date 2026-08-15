@@ -406,8 +406,20 @@ const App = {
 
     // ===== ACCOUNT BALANCE (dynamic, always derived from real trades) =====
     getCurrentBalance() {
-        const start = parseFloat(this.userData.capital) || 0;
-        const pnlSum = this.trades.reduce((sum, t) => sum + (typeof t.pnl === 'number' && !isNaN(t.pnl) ? t.pnl : (parseFloat(t.pnl) || 0)), 0);
+        const parsedCapital = Number.parseFloat(this.userData?.capital);
+
+        // Если старый профиль не содержит capital,
+        // используем стандартный стартовый депозит $10 000.
+        const start =
+            Number.isFinite(parsedCapital) && parsedCapital > 0
+                ? parsedCapital
+                : 10000;
+
+        const pnlSum = (this.trades || []).reduce((sum, t) => {
+            const pnl = Number.parseFloat(t?.pnl);
+            return sum + (Number.isFinite(pnl) ? pnl : 0);
+        }, 0);
+
         return start + pnlSum;
     },
 
