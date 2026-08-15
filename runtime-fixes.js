@@ -44,11 +44,64 @@ function fixProfile() {
             }
         }
     } catch (e) {
-        console.warn('KriptoDanik runtime fix:', e);
+        console.warn('KriptoDanik runtime profile fix:', e);
     }
 }
 
-document.addEventListener('DOMContentLoaded', fixProfile);
-setTimeout(fixProfile, 500);
-setTimeout(fixProfile, 1500);
+function ensureDashboardVisible() {
+    try {
+        if (typeof App === 'undefined') return;
+        if (typeof App.showSection !== 'function') return;
+
+        const active = document.querySelector('.section-content.active');
+
+        // Never interrupt normal navigation.
+        // Recover only when the application has no visible section at all.
+        if (!active) {
+            console.warn('KriptoDanik: no active section detected — restoring Dashboard.');
+
+            App.showSection('dashboard');
+        }
+    } catch (e) {
+        console.warn('KriptoDanik dashboard recovery:', e);
+
+        const dashboard = document.getElementById('section-dashboard');
+
+        if (dashboard) {
+            document.querySelectorAll('.section-content')
+                .forEach(section => section.classList.remove('active'));
+
+            dashboard.classList.add('active');
+
+            document.querySelectorAll('.nav-item')
+                .forEach(item => item.classList.toggle(
+                    'active',
+                    item.dataset.section === 'dashboard'
+                ));
+        }
+    }
+}
+
+function bootFixes() {
+    fixProfile();
+
+    // App.init() runs before this script, so this is the final safety net.
+    ensureDashboardVisible();
+
+    setTimeout(fixProfile, 500);
+    setTimeout(ensureDashboardVisible, 500);
+
+    setTimeout(fixProfile, 1500);
+    setTimeout(ensureDashboardVisible, 1500);
+}
+
+document.addEventListener('DOMContentLoaded', bootFixes);
+
+window.addEventListener('pageshow', event => {
+    // Only recover BFCache restores if the page came back with no section.
+    if (event.persisted) {
+        setTimeout(ensureDashboardVisible, 0);
+    }
+});
+
 })();

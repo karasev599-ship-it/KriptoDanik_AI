@@ -4,7 +4,7 @@
    KRIPTODANIK AI — RELEASE CANDIDATE (SPRINT 9)
    ============================================================ */
 
-const KD_BUILD_VERSION = '1.8.5';
+const KD_BUILD_VERSION = '1.8.9';
 
 const App = {
 
@@ -277,22 +277,40 @@ const App = {
         this.renderAll();
         this.updateGreeting();
 
+        // v1.8.9 — Dashboard is the guaranteed boot section.
+        // The HTML intentionally has no active section by default, so the
+        // application must establish one during boot regardless of onboarding
+        // state. Onboarding can safely appear above the Dashboard.
+        try {
+            this.applyUserData();
+
+            this.navItems.forEach(n => n.classList.remove('active'));
+
+            const dashNav = Array.from(this.navItems)
+                .find(n => n.dataset.section === 'dashboard');
+
+            if (dashNav) dashNav.classList.add('active');
+
+            this.showSection('dashboard');
+        } catch (err) {
+            console.error('KriptoDanik boot navigation failed:', err);
+
+            // Last-resort recovery: make Dashboard visible even if a chart
+            // or optional widget throws during initialization.
+            const dashboard = document.getElementById('section-dashboard');
+
+            if (dashboard) {
+                document.querySelectorAll('.section-content')
+                    .forEach(section => section.classList.remove('active'));
+
+                dashboard.classList.add('active');
+            }
+        }
+
         if (!this.onboardingDone) {
             this.showOnboarding();
-        } else {
-            this.applyUserData();
-            // v1.0.9 — Returning User UX: a returning user (onboarding already
-            // done) previously landed on a blank content area, because no
-            // section is marked `.active` by default in the HTML — showSection()
-            // is the only thing that ever sets it, and nothing called it here.
-            // Reuses the existing showSection()/nav-active logic exactly as the
-            // "Open Journal"/"Open Guardian" quick actions already do — no new
-            // navigation system, no new state.
-            this.navItems.forEach(n => n.classList.remove('active'));
-            const dashNav = Array.from(this.navItems).find(n => n.dataset.section === 'dashboard');
-            if (dashNav) dashNav.classList.add('active');
-            this.showSection('dashboard');
         }
+
         this.startMarketPulseAutoRefresh();
         console.log(`KriptoDanik AI ${KD_BUILD_VERSION} initialized.`);
     },
