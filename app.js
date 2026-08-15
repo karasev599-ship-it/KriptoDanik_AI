@@ -4,7 +4,7 @@
    KRIPTODANIK AI — RELEASE CANDIDATE (SPRINT 9)
    ============================================================ */
 
-const KD_BUILD_VERSION = '1.8.4';
+const KD_BUILD_VERSION = '1.8.5';
 
 const App = {
 
@@ -2063,6 +2063,12 @@ const App = {
         this.updateNotifBadge();
         if (this.perfEquityChart) { this.updatePerformanceStats(); this.initPerfEquityChart(); this.initPerfMonthlyChart(); this.initPerfSessionsChart(); }
         this.saveState();
+
+        // v1.8.5 — immediately refresh the custom branded Dashboard.
+        if (typeof window !== 'undefined' &&
+            typeof window.KDRefreshBrandDashboard === 'function') {
+            window.KDRefreshBrandDashboard();
+        }
     },
 
     openTradeModal(tradeId = null, fromScanner = false) {
@@ -2230,8 +2236,51 @@ const App = {
         // into a later, unrelated trade save.
         this.pendingScannerScreenshot = null;
 
-        this.syncAfterTradeChange();
+        // v1.8.5 — close the modal first so a rendering error can never
+        // leave the interface stuck in a half-updated state.
+        this.saveState();
         this.closeTradeModal();
+
+        try {
+            this.syncAfterTradeChange();
+        } catch (err) {
+            console.error('Trade UI sync failed:', err);
+        }
+
+        // Always return to Dashboard after a successful trade save.
+        this.navItems.forEach(n => n.classList.remove('active'));
+
+        const dashNav = Array.from(this.navItems)
+            .find(n => n.dataset.section === 'dashboard');
+
+        if (dashNav) dashNav.classList.add('active');
+
+        if (typeof this.showSection === 'function') {
+            this.showSection('dashboard');
+        }
+
+        if (typeof window !== 'undefined' &&
+            typeof window.KDRefreshBrandDashboard === 'function') {
+            window.KDRefreshBrandDashboard();
+        }
+
+        // One more render on the next browser frame.
+        // This makes the Dashboard update even if Chart.js or another
+        // visual component finishes rendering asynchronously.
+        requestAnimationFrame(() => {
+            try {
+                this.updateDashboardStats();
+                this.updateBalanceDisplay();
+                this.renderDashboardExtras();
+
+                if (typeof window !== 'undefined' &&
+                    typeof window.KDRefreshBrandDashboard === 'function') {
+                    window.KDRefreshBrandDashboard();
+                }
+            } catch (err) {
+                console.error('Dashboard refresh failed:', err);
+            }
+        });
 
         const violations = (this.guardianRules || []).filter(r => !r.passed).length;
         const baseMsg = isEdit ? 'Сделка обновлена!' : 'Сделка успешно добавлена!';
@@ -4470,6 +4519,10 @@ window.App = App;
     if(streak) streak.textContent=run+' '+(run===1?'день':'дн.');
     if(streakSub) streakSub.textContent=run ? 'Текущая серия' : 'Нет серии';
   }
+  // v1.8.5 — App can now refresh the branded Dashboard immediately
+  // after adding/editing/deleting a trade.
+  window.KDRefreshBrandDashboard=sync;
+
   document.addEventListener('DOMContentLoaded',()=>{bindBrand();sync();setTimeout(sync,700);setTimeout(sync,1800);});
   window.addEventListener('load',()=>{bindBrand();sync();});
 })();
