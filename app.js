@@ -1477,17 +1477,102 @@ const App = {
     async loadMarketNews(){
         const mode=this.marketMode==='forex'?'forex':'crypto';
         if(this.marketNewsStatus)this.marketNewsStatus.textContent='Обновление…';
+
         try{
-            const q=mode==='crypto'?'Bitcoin OR Ethereum OR Binance OR crypto market':'Federal Reserve OR ECB OR inflation OR jobs OR dollar OR euro';
-            const url='https://api.gdeltproject.org/api/v2/doc/doc?query='+encodeURIComponent(q)+'&mode=artlist&format=json&maxrecords=20&sort=datedesc';
-            const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('News '+r.status); const data=await r.json(); const arts=Array.isArray(data.articles)?data.articles:[];
+            const q=mode==='crypto'
+                ? '(Bitcoin OR Ethereum OR Binance OR Solana OR crypto)'
+                : '(Federal Reserve OR ECB OR inflation OR jobs OR dollar OR euro)';
+
+            const url='https://api.gdeltproject.org/api/v2/doc/doc?query='+
+                encodeURIComponent(q)+
+                '&mode=artlist&format=json&maxrecords=30&sort=datedesc&timespan=24h';
+
+            const controller=new AbortController();
+            const timer=setTimeout(()=>controller.abort(),12000);
+
+            const r=await fetch(url,{cache:'no-store',signal:controller.signal});
+            clearTimeout(timer);
+
+            if(!r.ok)throw new Error('News '+r.status);
+
+            const data=await r.json();
+            const arts=Array.isArray(data.articles)?data.articles:[];
+
             if(!arts.length)throw new Error('empty');
-            const rows=arts.slice(0,12).map(a=>{const text=((a.title||'')+' '+(a.snippet||'')).toLowerCase();let impact='low';if(/rate|fed|ecb|inflation|cpi|ppi|jobs|payroll|bitcoin|ethereum|binance|etf|sec|tariff|recession/.test(text))impact='high';else if(/market|currency|stocks|dollar|euro|yield/.test(text))impact='medium';return {a,impact};});
-            this.marketNews.innerHTML=rows.map(({a,impact})=>{const title=this.marketEscape(a.title||'Без заголовка'),source=this.marketEscape(a.domain||a.sourcecountry||'Источник'),url=this.escapeHtml(this.marketSafeUrl(a.url)),date=a.seendate?this.marketEscape(String(a.seendate).replace(/\d{2}(?=\d{4}$)/,'')):'—';const affects=mode==='crypto'?(impact==='high'?'BTC · ETH · риск-аппетит':'крипторынок'):(/fed|dollar|usd/.test((a.title||'').toLowerCase())?'USD · доходности':'валютный рынок');return `<article class="news-row impact-${impact}"><div class="news-impact"><span class="impact-dot ${impact}"></span><b>${this.marketImpactLabel(impact)}</b></div><div class="news-main"><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a><small>${source} · ${date}</small><span>Влияет на: ${this.marketEscape(affects)}</span></div></article>`;}).join('');
-            if(this.marketNewsStatus)this.marketNewsStatus.textContent=`${rows.length} публикаций · ${new Date().toLocaleTimeString()}`;
+
+            const rows=arts
+                .filter(a=>a && a.title && a.url)
+                .slice(0,12)
+                .map(a=>{
+                    const text=((a.title||'')+' '+(a.snippet||'')).toLowerCase();
+
+                    let impact='low';
+
+                    if(/fed|ecb|rate|inflation|cpi|ppi|jobs|payroll|bitcoin|ethereum|binance|solana|etf|sec|tariff|recession|hack|regulation/.test(text)){
+                        impact='high';
+                    }else if(/market|currency|stocks|dollar|euro|yield|crypto|trading/.test(text)){
+                        impact='medium';
+                    }
+
+                    return {a,impact};
+                });
+
+            if(!rows.length)throw new Error('empty');
+
+            this.marketNews.innerHTML=rows.map(({a,impact})=>{
+                const title=this.marketEscape(a.title||'Без заголовка');
+                const source=this.marketEscape(a.domain||a.sourcecountry||'Источник');
+                const safeUrl=this.marketEscape(this.marketSafeUrl(a.url));
+
+                let date='—';
+                if(a.seendate){
+                    const raw=String(a.seendate);
+                    const m=raw.match(/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})/);
+                    if(m){
+                        date=`${m[3]}.${m[2]}.${m[1]} ${m[4]}:${m[5]}`;
+                    }else{
+                        date=this.marketEscape(raw);
+                    }
+                }
+
+                const affects=mode==='crypto'
+                    ? (impact==='high'?'BTC · ETH · SOL · риск-аппетит':'крипторынок')
+                    : (/fed|dollar|usd/.test((a.title||'').toLowerCase())
+                        ? 'USD · доходности'
+                        : 'валютный рынок');
+
+                return `<article class="news-row impact-${impact}">
+                    <div class="news-impact">
+                        <span class="impact-dot ${impact}"></span>
+                        <b>${this.marketImpactLabel(impact)}</b>
+                    </div>
+                    <div class="news-main">
+                        <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${title}</a>
+                        <small>${source} · ${date}</small>
+                        <span>Влияет на: ${this.marketEscape(affects)}</span>
+                    </div>
+                </article>`;
+            }).join('');
+
+            if(this.marketNewsStatus){
+                this.marketNewsStatus.textContent=
+                    `${rows.length} свежих публикаций · обновлено ${new Date().toLocaleTimeString()}`;
+            }
+
         }catch(err){
-            if(this.marketNews)this.marketNews.innerHTML='<div class="market-feed-empty"><b>Лента новостей временно недоступна.</b><span>Не показываем выдуманные публикации. Календарь и первоисточники остаются доступны.</span></div>';
-            if(this.marketNewsStatus)this.marketNewsStatus.textContent='Нет соединения';
+            console.error('Market news error:',err);
+
+            if(this.marketNews){
+                this.marketNews.innerHTML=
+                    '<div class="market-feed-empty">'+
+                    '<b>Не удалось загрузить актуальные новости.</b>'+
+                    '<span>Источник новостей временно недоступен. Никаких выдуманных публикаций не показываем.</span>'+
+                    '</div>';
+            }
+
+            if(this.marketNewsStatus){
+                this.marketNewsStatus.textContent='Источник временно недоступен';
+            }
         }
     },
     async loadMarketPulse(silent=false){
