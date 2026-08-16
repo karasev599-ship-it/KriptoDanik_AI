@@ -1,12 +1,12 @@
-const CACHE="kriptodanik-v1.8.15";
+const CACHE="kriptodanik-v1.9.1";
 const CORE=[
   "./",
   "./index.html",
-  "./style.css?v=1.8.15",
-  "./brand-fallback.js?v=1.8.15",
+  "./style.css?v=1.9.1",
+  "./brand-fallback.js?v=1.9.1",
   "./runtime-fixes.js?v=1.0.2",
-  "./app.js?v=1.8.15",
-  "./chart.js?v=1.8.15",
+  "./app.js?v=1.9.1",
+  "./chart.js?v=1.9.1",
   "./manifest.webmanifest"
 ];
 
