@@ -1513,127 +1513,207 @@ const App = {
     async loadMarketCalendar(){
         const mode=this.marketMode==='forex'?'forex':'crypto';
         if(this.marketCalendarStatus)this.marketCalendarStatus.textContent='Обновление…';
+
+        const fetchJson=async(url)=>{
+            const candidates=[
+                url,
+                'https://api.allorigins.win/raw?url='+encodeURIComponent(url),
+                'https://r.jina.ai/http://'+url.replace(/^https:\/\//,'')
+            ];
+            for(const candidate of candidates){
+                const controller=new AbortController();
+                const timer=setTimeout(()=>controller.abort(),9000);
+                try{
+                    const r=await fetch(candidate,{cache:'no-store',signal:controller.signal});
+                    if(!r.ok)continue;
+                    const text=await r.text();
+                    try{return JSON.parse(text);}catch(_){
+                        const a=text.indexOf('['),b=text.lastIndexOf(']');
+                        if(a>=0&&b>a)return JSON.parse(text.slice(a,b+1));
+                    }
+                }catch(_){
+                }finally{clearTimeout(timer);}
+            }
+            return null;
+        };
+
+        const normalize=(raw,source)=>{
+            const list=Array.isArray(raw)?raw:(Array.isArray(raw?.events)?raw.events:[]);
+            return list.map(e=>({
+                title:e.title??e.Event??e.event??e.Category??'Economic event',
+                country:e.country??e.Country??e.currency??e.Currency??'',
+                date:e.date??e.Date??e.datetime??e.datetimeUTC??'',
+                impact:e.impact??e.Impact??e.importance??e.Importance??'',
+                actual:e.actual??e.Actual??'',
+                forecast:e.forecast??e.Forecast??'',
+                previous:e.previous??e.Previous??'',
+                source
+            })).filter(e=>e.title&&e.date);
+        };
+
         try{
-            const r=await fetch('https://nfs.faireconomy.media/ff_calendar_thisweek.json',{cache:'no-store'}); if(!r.ok)throw new Error('Calendar '+r.status); const all=await r.json();
-            const now=Date.now();
-            const allowed=mode==='forex'?new Set(['USD','EUR','GBP','JPY','CAD','AUD','NZD','CHF']):new Set(['USD','EUR','CNY','JPY','GBP','CAD','AUD']);
-            const rows=(Array.isArray(all)?all:[]).filter(e=>allowed.has(String(e.country||e.currency||'').toUpperCase())).filter(e=>{
-                const d=new Date(e.date||e.datetime||e.time||0); return !Number.isNaN(d.getTime()) && d.getTime()>=now-6*3600e3;
-            }).sort((a,b)=>new Date(a.date||a.datetime||a.time)-new Date(b.date||b.datetime||b.time)).slice(0,30);
-            if(!rows.length)throw new Error('empty');
+            // Primary source is our own static JSON. GitHub Actions refreshes it
+            // hourly from the public Forex Factory calendar feed, avoiding browser
+            // CORS/rate-limit problems and keeping the site usable as a static page.
+            let payload=await fetchJson('./data/calendar.json?v='+Date.now());
+            let source=payload?.source||'Forex Factory calendar · cached';
+            let rows=normalize(payload?.events??payload,source);
+
+            // Live fallback when the scheduled GitHub refresh has not happened yet.
+            if(!rows.length){
+                const urls=[
+                    'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
+                    'https://nfs.faireconomy.media/ff_calendar_nextweek.json'
+                ];
+                const live=await Promise.all(urls.map(fetchJson));
+                rows=live.flatMap((x,i)=>normalize(x,'Forex Factory · '+(i?'next week':'this week')));
+                source='Forex Factory · live';
+            }
+            if(!rows.length)throw new Error('Calendar feed returned no events');
+
+            const currencies=mode==='forex'
+                ? new Set(['USD','EUR','GBP','JPY','CAD','AUD','NZD','CHF','CNY'])
+                : new Set(['USD','EUR','GBP','JPY','CAD','AUD','NZD','CHF','CNY']);
+            const now=Date.now()-2*3600e3;
+            const until=Date.now()+8*24*3600e3;
+            const seen=new Set();
+
+            rows=rows.map(e=>({...e,_date:new Date(e.date)}));
+            rows=rows.filter(e=>{
+                const d=new Date(e.date);
+                return !Number.isNaN(d.getTime())&&d.getTime()>=now&&d.getTime()<=until&&currencies.has(String(e.country).toUpperCase());
+            }).filter(e=>{
+                const key=[e.country,e.title,new Date(e.date).toISOString()].join('|');
+                if(seen.has(key))return false;seen.add(key);return true;
+            }).sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(0,45);
+
+            if(!rows.length)throw new Error('No upcoming events in selected window');
+            const esc=v=>this.marketEscape(String(v??'—'));
+            const affects=e=>mode==='forex'
+                ? `${esc(e.country)} · валютный рынок`
+                : (String(e.country).toUpperCase()==='USD'?'BTC · ETH · риск-активы':'крипторынок');
+            const impactClass=e=>this.marketImpactClass(e.impact||'');
+            const impactLabel=e=>{
+                const c=impactClass(e);return e.impact?this.marketImpactLabel(e.impact):'ОЖИДАЕТСЯ';
+            };
+
             this.marketCalendar.innerHTML=rows.map(e=>{
-                const impact=this.marketImpactClass(e.impact); const d=new Date(e.date||e.datetime||e.time); const time=Number.isNaN(d.getTime())?'—':d.toLocaleString([], {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-                const c=this.marketEscape(e.country||e.currency||''); const title=this.marketEscape(e.title||e.event||'Economic event'); const actual=this.marketEscape(e.actual||'—'), forecast=this.marketEscape(e.forecast||'—'), previous=this.marketEscape(e.previous||'—');
-                const affects=mode==='crypto'?(c==='USD'?'BTC · ETH · весь risk-on':'BTC · ETH · risk assets'):(c+' · валюта страны');
-                return `<article class="calendar-row impact-${impact}"><div class="calendar-impact"><span class="impact-dot ${impact}"></span><b>${this.marketImpactLabel(e.impact)}</b></div><div class="calendar-time">${time}</div><div class="calendar-event"><strong>${title}</strong><small>${c} · Влияет на: ${this.marketEscape(affects)}</small></div><div class="calendar-values"><span>Факт <b>${actual}</b></span><span>Прогноз <b>${forecast}</b></span><span>Пред. <b>${previous}</b></span></div></article>`;
+                const d=new Date(e.date);
+                const time=d.toLocaleString([], {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+                const c=impactClass(e);
+                return `<article class="calendar-row impact-${c}">
+                    <div class="calendar-impact"><span class="impact-dot ${c}"></span><b>${impactLabel(e)}</b></div>
+                    <div class="calendar-time">${time}</div>
+                    <div class="calendar-event"><strong>${esc(e.title)}</strong><small>${esc(e.country)} · Влияет на: ${affects(e)}</small></div>
+                    <div class="calendar-values"><span>Факт <b>${esc(e.actual)}</b></span><span>Прогноз <b>${esc(e.forecast)}</b></span><span>Пред. <b>${esc(e.previous)}</b></span></div>
+                </article>`;
             }).join('');
-            if(this.marketCalendarStatus)this.marketCalendarStatus.textContent=`${rows.length} событий · обновлено ${new Date().toLocaleTimeString()}`;
+
+            if(this.marketCalendarStatus)this.marketCalendarStatus.textContent=`${rows.length} событий · ${source} · ${new Date().toLocaleTimeString()}`;
         }catch(err){
-            if(this.marketCalendar)this.marketCalendar.innerHTML='<div class="market-feed-empty"><b>Календарь временно недоступен.</b><span>Не показываем выдуманные события. Нажми «Обновить» или открой первоисточники ниже.</span></div>';
-            if(this.marketCalendarStatus)this.marketCalendarStatus.textContent='Нет соединения';
+            console.error('Market calendar error:',err);
+            if(this.marketCalendar)this.marketCalendar.innerHTML='<div class="market-feed-empty"><b>Календарь временно недоступен.</b><span>Не удалось получить актуальный источник. Реальные события не подменяем.</span></div>';
+            if(this.marketCalendarStatus)this.marketCalendarStatus.textContent='Календарь недоступен';
         }
     },
     async loadMarketNews(){
         const mode=this.marketMode==='forex'?'forex':'crypto';
         if(this.marketNewsStatus)this.marketNewsStatus.textContent='Обновление…';
 
-        try{
-            const q=mode==='crypto'
-                ? '(Bitcoin OR Ethereum OR Binance OR Solana OR crypto)'
-                : '(Federal Reserve OR ECB OR inflation OR jobs OR dollar OR euro)';
+        const feeds=mode==='forex'
+            ? [
+                {name:'FXStreet',url:'https://www.fxstreet.com/rss/news'},
+                {name:'Google News',url:'https://news.google.com/rss/search?q=forex%20OR%20%22EUR%2FUSD%22%20OR%20%22GBP%2FUSD%22%20OR%20%22USD%2FJPY%22%20OR%20%22Federal%20Reserve%22%20OR%20ECB%20OR%20%22Bank%20of%20England%22%20when%3A2d&hl=en-US&gl=US&ceid=US:en'}
+            ]
+            : [
+                {name:'CoinDesk',url:'https://www.coindesk.com/arc/outboundfeeds/rss/?outputType=xml'},
+                {name:'Google News',url:'https://news.google.com/rss/search?q=Bitcoin%20OR%20Ethereum%20OR%20Solana%20OR%20crypto%20when%3A2d&hl=en-US&gl=US&ceid=US:en'}
+            ];
 
-            const directUrl='https://api.gdeltproject.org/api/v2/doc/doc?query='+
-                encodeURIComponent(q)+
-                '&mode=artlist&format=json&maxrecords=30&sort=datedesc&timespan=24h';
+        const parseRSS=xml=>{
+            const doc=new DOMParser().parseFromString(xml,'text/xml');
+            if(doc.querySelector('parsererror'))return [];
+            return [...doc.querySelectorAll('item')].map(item=>({
+                title:item.querySelector('title')?.textContent?.trim()||'',
+                link:item.querySelector('link')?.textContent?.trim()||'',
+                date:item.querySelector('pubDate')?.textContent?.trim()||'',
+                source:item.querySelector('source')?.textContent?.trim()||''
+            })).filter(x=>x.title&&x.link);
+        };
 
-            const url='https://api.allorigins.win/raw?url='+encodeURIComponent(directUrl);
-
-            const controller=new AbortController();
-            const timer=setTimeout(()=>controller.abort(),12000);
-
-            const r=await fetch(url,{cache:'no-store',signal:controller.signal});
-            clearTimeout(timer);
-
-            if(!r.ok)throw new Error('News '+r.status);
-
-            const data=await r.json();
-            const arts=Array.isArray(data.articles)?data.articles:[];
-
-            if(!arts.length)throw new Error('empty');
-
-            const rows=arts
-                .filter(a=>a && a.title && a.url)
-                .slice(0,12)
-                .map(a=>{
-                    const text=((a.title||'')+' '+(a.snippet||'')).toLowerCase();
-
-                    let impact='low';
-
-                    if(/fed|ecb|rate|inflation|cpi|ppi|jobs|payroll|bitcoin|ethereum|binance|solana|etf|sec|tariff|recession|hack|regulation/.test(text)){
-                        impact='high';
-                    }else if(/market|currency|stocks|dollar|euro|yield|crypto|trading/.test(text)){
-                        impact='medium';
-                    }
-
-                    return {a,impact};
-                });
-
-            if(!rows.length)throw new Error('empty');
-
-            this.marketNews.innerHTML=rows.map(({a,impact})=>{
-                const title=this.marketEscape(a.title||'Без заголовка');
-                const source=this.marketEscape(a.domain||a.sourcecountry||'Источник');
-                const safeUrl=this.marketEscape(this.marketSafeUrl(a.url));
-
-                let date='—';
-                if(a.seendate){
-                    const raw=String(a.seendate);
-                    const m=raw.match(/^(\\d{4})(\\d{2})(\\d{2})T(\\d{2})(\\d{2})(\\d{2})/);
-                    if(m){
-                        date=`${m[3]}.${m[2]}.${m[1]} ${m[4]}:${m[5]}`;
-                    }else{
-                        date=this.marketEscape(raw);
-                    }
+        const fetchFeed=async feed=>{
+            const urls=[
+                'https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(feed.url),
+                'https://api.allorigins.win/raw?url='+encodeURIComponent(feed.url)
+            ];
+            for(const url of urls){
+                const controller=new AbortController();
+                const timer=setTimeout(()=>controller.abort(),10000);
+                try{
+                    const r=await fetch(url,{cache:'no-store',signal:controller.signal});
+                    if(!r.ok)continue;
+                    const text=await r.text();
+                    try{
+                        const json=JSON.parse(text);
+                        if(json.status==='ok'&&Array.isArray(json.items)){
+                            return json.items.map(x=>({title:x.title||'',link:x.link||'',date:x.pubDate||'',source:feed.name}));
+                        }
+                    }catch(_){}
+                    const parsed=parseRSS(text);
+                    if(parsed.length)return parsed.map(x=>({...x,source:x.source||feed.name}));
+                }catch(_){
+                    // try the next transport
+                }finally{
+                    clearTimeout(timer);
                 }
+            }
+            return [];
+        };
 
-                const affects=mode==='crypto'
-                    ? (impact==='high'?'BTC · ETH · SOL · риск-аппетит':'крипторынок')
-                    : (/fed|dollar|usd/.test((a.title||'').toLowerCase())
-                        ? 'USD · доходности'
-                        : 'валютный рынок');
+        try{
+            const collected=(await Promise.all(feeds.map(fetchFeed))).flat();
+            const seen=new Set();
+            const rows=collected
+                .filter(x=>{
+                    const key=x.title.toLowerCase().replace(/\s+/g,' ');
+                    if(seen.has(key))return false;
+                    seen.add(key); return true;
+                })
+                .map(x=>{
+                    const text=x.title.toLowerCase();
+                    let impact='low';
+                    if(/fed|ecb|boe|boj|rate|interest rate|inflation|cpi|ppi|nfp|payroll|unemployment|central bank|intervention|sec|etf|hack|exploit/.test(text))impact='high';
+                    else if(/forex|foreign exchange|currency|dollar|euro|pound|yen|bitcoin|ethereum|crypto|binance|solana|market/.test(text))impact='medium';
+                    return {x,impact};
+                })
+                .sort((a,b)=>new Date(b.x.date||0)-new Date(a.x.date||0))
+                .slice(0,12);
 
+            if(!rows.length)throw new Error('all news feeds failed');
+
+            this.marketNews.innerHTML=rows.map(({x,impact})=>{
+                const dt=x.date?new Date(x.date):null;
+                const date=dt&&!Number.isNaN(dt.getTime())
+                    ? dt.toLocaleString([], {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
+                    : '—';
+                const affects=mode==='forex'
+                    ? (impact==='high'?'USD · EUR · GBP · JPY · ставки':'валютный рынок')
+                    : (impact==='high'?'BTC · ETH · SOL · риск-аппетит':'крипторынок');
                 return `<article class="news-row impact-${impact}">
-                    <div class="news-impact">
-                        <span class="impact-dot ${impact}"></span>
-                        <b>${this.marketImpactLabel(impact)}</b>
-                    </div>
+                    <div class="news-impact"><span class="impact-dot ${impact}"></span><b>${this.marketImpactLabel(impact)}</b></div>
                     <div class="news-main">
-                        <a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${title}</a>
-                        <small>${source} · ${date}</small>
+                        <a href="${this.marketEscape(this.marketSafeUrl(x.link))}" target="_blank" rel="noopener noreferrer">${this.marketEscape(x.title)}</a>
+                        <small>${this.marketEscape(x.source||'Источник')} · ${date}</small>
                         <span>Влияет на: ${this.marketEscape(affects)}</span>
                     </div>
                 </article>`;
             }).join('');
 
-            if(this.marketNewsStatus){
-                this.marketNewsStatus.textContent=
-                    `${rows.length} свежих публикаций · обновлено ${new Date().toLocaleTimeString()}`;
-            }
-
+            if(this.marketNewsStatus)this.marketNewsStatus.textContent=`${rows.length} свежих публикаций · обновлено ${new Date().toLocaleTimeString()}`;
         }catch(err){
             console.error('Market news error:',err);
-
-            if(this.marketNews){
-                this.marketNews.innerHTML=
-                    '<div class="market-feed-empty">'+
-                    '<b>Не удалось загрузить актуальные новости.</b>'+
-                    '<span>Источник новостей временно недоступен. Никаких выдуманных публикаций не показываем.</span>'+
-                    '</div>';
-            }
-
-            if(this.marketNewsStatus){
-                this.marketNewsStatus.textContent='Источник временно недоступен';
-            }
+            if(this.marketNews)this.marketNews.innerHTML='<div class="market-feed-empty"><b>Новости временно недоступны.</b><span>Все внешние источники не ответили. Пустоту не заменяем выдуманными новостями.</span></div>';
+            if(this.marketNewsStatus)this.marketNewsStatus.textContent='Источники новостей недоступны';
         }
     },
     async loadMarketPulse(silent=false){

@@ -1,0 +1,29 @@
+{
+  "fetchedAt": "2026-08-16T00:00:00Z",
+  "source": "Forex Factory calendar · bootstrap",
+  "timezone": "Europe/London",
+  "events": [
+    {"title":"Rightmove HPI m/m","country":"GBP","date":"2026-08-17T00:01:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Prelim GDP q/q","country":"JPY","date":"2026-08-17T00:50:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Industrial Production y/y","country":"CNY","date":"2026-08-17T08:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Retail Sales y/y","country":"CNY","date":"2026-08-17T08:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"CPI m/m","country":"CAD","date":"2026-08-17T14:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Empire State Manufacturing Index","country":"USD","date":"2026-08-17T14:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"NAHB Housing Market Index","country":"USD","date":"2026-08-17T16:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Claimant Count Change","country":"GBP","date":"2026-08-18T08:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Unemployment Rate","country":"GBP","date":"2026-08-18T08:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"ZEW Economic Sentiment","country":"EUR","date":"2026-08-18T11:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Building Permits","country":"USD","date":"2026-08-18T15:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Housing Starts","country":"USD","date":"2026-08-18T15:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"FOMC Meeting Minutes","country":"USD","date":"2026-08-19T19:00:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Trade Balance","country":"JPY","date":"2026-08-20T01:50:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Employment Change","country":"AUD","date":"2026-08-20T03:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Unemployment Rate","country":"AUD","date":"2026-08-20T03:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"ECB Monetary Policy Meeting Accounts","country":"EUR","date":"2026-08-20T12:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Philly Fed Manufacturing Index","country":"USD","date":"2026-08-20T15:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Unemployment Claims","country":"USD","date":"2026-08-20T15:30:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Flash Manufacturing PMI","country":"USD","date":"2026-08-21T14:45:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Flash Services PMI","country":"USD","date":"2026-08-21T14:45:00+01:00","impact":"","actual":"","forecast":"","previous":""},
+    {"title":"Retail Sales m/m","country":"GBP","date":"2026-08-21T07:00:00+01:00","impact":"","actual":"","forecast":"","previous":""}
+  ]
+}
