@@ -4,7 +4,36 @@
    KRIPTODANIK AI — RELEASE CANDIDATE (SPRINT 9)
    ============================================================ */
 
-const KD_BUILD_VERSION = '1.8.9';
+const KD_BUILD_VERSION = '1.8.10';
+
+function kdLocalDateKey(date = new Date()) {
+    const d = date instanceof Date ? date : new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function kdMaxDrawdownPercent(trades, startingCapital) {
+    const start = Number(startingCapital);
+    const initial = Number.isFinite(start) && start > 0 ? start : 100000;
+    let equity = initial;
+    let peak = initial;
+    let maxDd = 0;
+
+    for (const trade of (Array.isArray(trades) ? [...trades].reverse() : [])) {
+        const pnl = Number.parseFloat(trade?.pnl);
+        if (!Number.isFinite(pnl)) continue;
+        equity += pnl;
+        if (equity > peak) peak = equity;
+        if (peak > 0) {
+            const dd = ((peak - equity) / peak) * 100;
+            if (dd > maxDd) maxDd = dd;
+        }
+    }
+    return maxDd;
+}
 
 const App = {
 
@@ -1368,7 +1397,7 @@ const App = {
     },
 
     renderTodaysProgress() {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = kdLocalDateKey();
         const todayPnl = this.trades
             .filter(t => t.date === today)
             .reduce((sum, t) => sum + (typeof t.pnl === 'number' && !isNaN(t.pnl) ? t.pnl : 0), 0);
@@ -1696,7 +1725,7 @@ const App = {
         if (this.dashTodayOverview) this.dashTodayOverview.style.opacity = total === 0 ? '0.5' : '1';
 
         // ----- Today Overview -----
-        const today = new Date().toISOString().slice(0, 10);
+        const today = kdLocalDateKey();
         const todayTrades = this.trades.filter(t => t.date === today);
         const todayPnl = todayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
         const todayWins = todayTrades.filter(t => t.status === 'win').length;
@@ -2069,7 +2098,10 @@ const App = {
         const winRate = total > 0 ? (wins / total * 100) : 0;
         const rrValues = this.filteredTrades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
         const avgRR = rrValues.length > 0 ? rrValues.reduce((a, b) => a + b, 0) / rrValues.length : 0;
-        const totalPnL = rrValues.reduce((a, b) => a + b, 0);
+        const pnlValues = this.filteredTrades.map(t => parseFloat(t.pnl)).filter(v => Number.isFinite(v));
+        const totalPnL = pnlValues.length
+            ? pnlValues.reduce((a, b) => a + b, 0)
+            : rrValues.reduce((a, b) => a + b, 0);
 
         if (this.jTotalTrades) this.jTotalTrades.textContent = total;
         if (this.jWinRate) { this.jWinRate.textContent = winRate.toFixed(1) + '%'; this.jWinRate.className = 'stat-number ' + (winRate >= 50 ? 'green' : 'red'); }
@@ -2135,7 +2167,7 @@ const App = {
             f.emotionAfter.value = trade.emotionAfter || 'calm';
             f.notes.value = trade.notes || '';
         } else {
-            if (this.tFields.date) this.tFields.date.value = new Date().toISOString().slice(0, 10);
+            if (this.tFields.date) this.tFields.date.value = kdLocalDateKey();
             if (this.tFields.emotionBefore) this.tFields.emotionBefore.value = 'calm';
             if (this.tFields.emotionAfter) this.tFields.emotionAfter.value = 'calm';
         }
@@ -2401,7 +2433,7 @@ const App = {
     getNotifications() {
         const notifications = [];
         const en = this.currentLang === 'en';
-        const today = new Date().toISOString().slice(0, 10);
+        const today = kdLocalDateKey();
         const todayTrades = this.trades.filter(t => t.date === today);
         const lossesToday = todayTrades.filter(t => t.status === 'loss').length;
 
@@ -2651,9 +2683,14 @@ const App = {
         const wins = this.trades.filter(t => t.status === 'win').length;
         const losses = this.trades.filter(t => t.status === 'loss').length;
         const rrValues = this.trades.map(t => parseFloat(t.rr)).filter(v => !isNaN(v));
-        const totalPnL = rrValues.reduce((a, b) => a + b, 0);
+        const pnlValues = this.trades.map(t => parseFloat(t.pnl)).filter(v => Number.isFinite(v));
+        const totalPnL = pnlValues.length
+            ? pnlValues.reduce((a, b) => a + b, 0)
+            : rrValues.reduce((a, b) => a + b, 0);
         const winRate = (wins / total * 100);
-        const avgRR = rrValues.reduce((a, b) => a + b, 0) / rrValues.length;
+        const avgRR = rrValues.length
+            ? rrValues.reduce((a, b) => a + b, 0) / rrValues.length
+            : 0;
         const profitFactor = rrValues.filter(v => v > 0).reduce((a, b) => a + b, 0) / Math.abs(rrValues.filter(v => v < 0).reduce((a, b) => a + b, 0) || 1);
         const avgWin = rrValues.filter(v => v > 0).length > 0 ? rrValues.filter(v => v > 0).reduce((a, b) => a + b, 0) / rrValues.filter(v => v > 0).length : 0;
         const avgLoss = rrValues.filter(v => v < 0).length > 0 ? rrValues.filter(v => v < 0).reduce((a, b) => a + b, 0) / rrValues.filter(v => v < 0).length : 0;
@@ -2856,7 +2893,7 @@ const App = {
         if (!this.aiMessages) return;
         const name = this.userData.name || 'Трейдер';
         const en = this.currentLang === 'en';
-        const today = new Date().toISOString().slice(0, 10);
+        const today = kdLocalDateKey();
         const todayTrades = this.trades.filter(t => t.date === today);
         const totalToday = todayTrades.length;
         const winsToday = todayTrades.filter(t => t.status === 'win').length;
@@ -3000,7 +3037,7 @@ const App = {
         }
         const m = c.market?.[0];
         const marketText = m ? `${m.symbol} ${m.change24h >= 0 ? '+' : ''}${m.change24h.toFixed(2)}% 24h` : 'рынок не синхронизирован';
-        el.innerHTML = `<span>Journal: <b>${c.stats.total}</b> сделок</span><span>Win Rate: <b>${c.stats.winRate ?? '—'}%</b></span><span>Avg RR: <b>${c.stats.avgRR === null ? '—' : (c.stats.avgRR >= 0 ? '+' : '') + c.stats.avgRR.toFixed(2) + 'R'}</b></span><span>Max DD: <b>${dd.toFixed(2)}%</b></span><span>Market: <b>${marketText}</b></span>`;
+        el.innerHTML = `<span>Journal: <b>${c.stats.total}</b> сделок</span><span>Win Rate: <b>${c.stats.winRate ?? '—'}%</b></span><span>Avg RR: <b>${c.stats.avgRR === null ? '—' : (c.stats.avgRR >= 0 ? '+' : '') + c.stats.avgRR.toFixed(2) + 'R'}</b></span><span>Max DD: <b>${kdMaxDrawdownPercent(this.trades, this.userData?.capital).toFixed(2)}%</b></span><span>Market: <b>${marketText}</b></span>`;
     },
 
     // Very small keyword-based intent classifier. Order matters — first match wins.
@@ -3482,7 +3519,7 @@ const App = {
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().slice(0, 10);
+            const dateStr = kdLocalDateKey(d);
             days.push(dateStr.slice(5, 10));
             const dayTrades = this.trades.filter(t => t.date === dateStr);
             // Days with no real trades are plotted as `null` (a gap in the
@@ -4537,7 +4574,7 @@ window.App = App;
     if(balanceSub) balanceSub.textContent='По данным Journal';
     if(guardianStatus){ guardianStatus.textContent='● Отслеживается'; guardianStatus.classList.remove('is-empty'); guardianStatus.classList.add('is-good'); }
     if(guardianList){
-      const violations=(window.App.guardianRules||[]).filter(r=>r.state==='fail').length;
+      const violations=(window.App.guardianRules||[]).filter(r=>r.state==='failed').length;
       guardianList.innerHTML=violations
         ? `<span>● Нарушений сейчас: ${violations}</span><span>● Проверь Guardian перед следующей сделкой</span><span>● Все показатели основаны на Journal</span>`
         : '<span>● Активных нарушений не найдено</span><span>● Проверка основана на реальных сделках</span><span>● Добавляй сделки — Guardian будет обновляться</span>';
