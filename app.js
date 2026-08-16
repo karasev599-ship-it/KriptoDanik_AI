@@ -3232,19 +3232,92 @@ const App = {
         }
     },
 
-    handleAIQuery() {
+    // ============================================================
+    // AI COACH — REAL LLM GATEWAY
+    // ------------------------------------------------------------
+    // The browser never receives the OpenAI API key. It calls our
+    // same-origin /api/coach endpoint, which keeps the key server-side.
+    // The existing rule-based engine remains as a safe local fallback.
+    // ============================================================
+    getCoachClientId() {
+        try {
+            let id = localStorage.getItem('kriptodanik_ai_client_id');
+            if (!id) {
+                id = (globalThis.crypto?.randomUUID?.() || ('kd-' + Date.now() + '-' + Math.random().toString(36).slice(2)));
+                localStorage.setItem('kriptodanik_ai_client_id', id);
+            }
+            return id;
+        } catch (_) {
+            return 'kd-anonymous';
+        }
+    },
+
+    getCoachApiPayload(question) {
+        const context = this.getIntegratedContext();
+        const history = (this.aiHistory || []).slice(-16).map(m => ({
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: String(m.content || '').slice(0, 5000)
+        }));
+        return {
+            message: question.slice(0, 8000),
+            history,
+            context: {
+                language: this.currentLang,
+                user: {
+                    name: this.userData?.name || null,
+                    strategy: this.userData?.strategy || null,
+                    capital: Number(this.userData?.capital) || null,
+                    risk: Number(this.userData?.risk) || null,
+                    dailyLoss: Number(this.userData?.dailyLoss) || null,
+                    dailyTarget: Number(this.userData?.dailyTarget) || null,
+                    rr: Number(this.userData?.rr) || null,
+                    session: this.userData?.session || null,
+                    markets: this.userData?.markets || null,
+                    assets: this.userData?.assets || null
+                },
+                journal: context.stats,
+                recentTrades: context.recent,
+                market: context.market || []
+            },
+            clientId: this.getCoachClientId()
+        };
+    },
+
+    async requestRealCoach(question) {
+        const response = await fetch('/api/coach', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(this.getCoachApiPayload(question))
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data?.error || `AI Coach API error (${response.status})`);
+        }
+        if (!data?.reply) throw new Error('AI Coach вернул пустой ответ.');
+        return data.reply;
+    },
+
+    async handleAIQuery() {
         const question = this.aiInput?.value?.trim();
         if (!question) return;
         this.appendMessage('user', question);
         this.aiInput.value = '';
         this.showTypingIndicator();
 
-        const reply = this.generateCoachReply(question);
-
-        setTimeout(() => {
+        try {
+            const reply = await this.requestRealCoach(question);
             this.hideTypingIndicator();
             this.appendMessage('ai', reply);
-        }, 700 + Math.random() * 500);
+        } catch (error) {
+            console.warn('Real AI Coach unavailable:', error);
+            const fallback = this.generateCoachReply(question);
+            const en = this.currentLang === 'en';
+            const notice = en
+                ? `<div class=\"coach-api-notice\">Local Coach mode: the AI gateway is temporarily unavailable.</div>`
+                : `<div class=\"coach-api-notice\">Локальный режим: AI-шлюз временно недоступен. После подключения backend ответы будут генерироваться реальной моделью.</div>`;
+            this.hideTypingIndicator();
+            this.appendMessage('ai', notice + fallback);
+        }
     },
 
     appendMessage(role, content) {

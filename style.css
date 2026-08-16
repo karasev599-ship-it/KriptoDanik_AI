@@ -1295,3 +1295,7 @@ body{background:#05040a!important;color:#f7f5ff}
 .scanner-ocr-text{font-size:12px;line-height:1.5;color:var(--text-primary);max-height:90px;overflow:auto;word-break:break-word}
 #scannerReviewView .scanner-ocr-box:has(.scanner-ocr-text:not(:empty)){display:block}
 @media(max-width:720px){.scanner-analysis-bar{align-items:flex-start;flex-direction:column}.scanner-analysis-bar .btn-secondary{width:100%}}
+
+
+/* v1.9.0 — AI Coach API fallback notice */
+.coach-api-notice{margin-bottom:10px;padding:8px 10px;border:1px solid rgba(124,92,252,.35);border-radius:10px;color:var(--text-secondary);font-size:12px;background:rgba(124,92,252,.06)}
