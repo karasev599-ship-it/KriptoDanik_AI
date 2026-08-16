@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-16T19:56:48.379692+00:00",
+  "fetchedAt": "2026-08-16T20:56:30.011176+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
@@ -58,51 +58,6 @@
       "previous": "-0.15%"
     },
     {
-      "title": "Fixed Asset Investment ytd/y",
-      "country": "CNY",
-      "date": "2026-08-16T22:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-6.2%",
-      "previous": "-5.7%"
-    },
-    {
-      "title": "Industrial Production y/y",
-      "country": "CNY",
-      "date": "2026-08-16T22:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "5.0%",
-      "previous": "5.3%"
-    },
-    {
-      "title": "NBS Press Conference",
-      "country": "CNY",
-      "date": "2026-08-16T22:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": ""
-    },
-    {
-      "title": "Retail Sales y/y",
-      "country": "CNY",
-      "date": "2026-08-16T22:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "1.5%",
-      "previous": "1.0%"
-    },
-    {
-      "title": "Unemployment Rate",
-      "country": "CNY",
-      "date": "2026-08-16T22:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "5.1%",
-      "previous": "5.0%"
-    },
-    {
       "title": "Revised Industrial Production m/m",
       "country": "JPY",
       "date": "2026-08-17T00:30:00-04:00",
@@ -128,6 +83,51 @@
       "actual": "",
       "forecast": "",
       "previous": "-5.0%"
+    },
+    {
+      "title": "Fixed Asset Investment ytd/y",
+      "country": "CNY",
+      "date": "2026-08-17T03:00:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "-6.2%",
+      "previous": "-5.7%"
+    },
+    {
+      "title": "Industrial Production y/y",
+      "country": "CNY",
+      "date": "2026-08-17T03:00:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "5.0%",
+      "previous": "5.3%"
+    },
+    {
+      "title": "NBS Press Conference",
+      "country": "CNY",
+      "date": "2026-08-17T03:00:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "",
+      "previous": ""
+    },
+    {
+      "title": "Retail Sales y/y",
+      "country": "CNY",
+      "date": "2026-08-17T03:00:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "1.5%",
+      "previous": "1.0%"
+    },
+    {
+      "title": "Unemployment Rate",
+      "country": "CNY",
+      "date": "2026-08-17T03:00:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "5.1%",
+      "previous": "5.0%"
     },
     {
       "title": "CPI m/m",
