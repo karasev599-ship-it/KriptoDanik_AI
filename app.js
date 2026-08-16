@@ -442,7 +442,7 @@ const App = {
         const start =
             Number.isFinite(parsedCapital) && parsedCapital > 0
                 ? parsedCapital
-                : 10000;
+                : 100000;
 
         const pnlSum = (this.trades || []).reduce((sum, t) => {
             const pnl = Number.parseFloat(t?.pnl);
@@ -4541,7 +4541,14 @@ window.App = App;
     const legend=document.getElementById('brandLegend');
     const chartWrap=document.getElementById('brandChartWrap');
 
-    if (b) b.textContent = total === 0 ? '$ 0.00' : ((balance && balance.textContent) || '$ 0.00');
+    if (b) {
+      const currentBalance = window.App && typeof window.App.getCurrentBalance === 'function'
+        ? Number(window.App.getCurrentBalance())
+        : NaN;
+      b.textContent = Number.isFinite(currentBalance)
+        ? '$ ' + currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        : ((balance && balance.textContent) || '$ 100,000.00');
+    }
     if (t) t.textContent=String(total);
     if (w) w.textContent=total ? ((window.App && window.App.winRateDisplay && window.App.winRateDisplay.textContent) || '—') : '—';
     if (donutTotal) donutTotal.textContent=String(total);
@@ -4552,7 +4559,7 @@ window.App = App;
       if(streak) streak.textContent='0 дней';
       if(streakSub) streakSub.textContent='Начните журнал';
       const balanceSub=document.getElementById('brandBalanceSub');
-      if(balanceSub) balanceSub.textContent='Пока нет данных';
+      if(balanceSub) balanceSub.textContent='Стартовый капитал';
       if(donut) donut.classList.add('is-empty');
       if(legend) legend.innerHTML='<div class="brand-empty-distribution">Нет сделок — распределение появится после первой сделки.</div>';
       if(chartWrap) chartWrap.classList.add('is-empty');
