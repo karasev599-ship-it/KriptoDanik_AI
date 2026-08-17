@@ -1,62 +1,8 @@
 {
-  "fetchedAt": "2026-08-16T23:52:31.221891+00:00",
+  "fetchedAt": "2026-08-17T03:29:59.039664+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "BusinessNZ Services Index",
-      "country": "NZD",
-      "date": "2026-08-16T18:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "50.6"
-    },
-    {
-      "title": "FPI m/m",
-      "country": "NZD",
-      "date": "2026-08-16T18:45:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "0.6%"
-    },
-    {
-      "title": "Rightmove HPI m/m",
-      "country": "GBP",
-      "date": "2026-08-16T19:01:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "-1.0%"
-    },
-    {
-      "title": "Prelim GDP Price Index y/y",
-      "country": "JPY",
-      "date": "2026-08-16T19:50:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "2.3%",
-      "previous": "3.4%"
-    },
-    {
-      "title": "Prelim GDP q/q",
-      "country": "JPY",
-      "date": "2026-08-16T19:50:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.5%",
-      "previous": "0.5%"
-    },
-    {
-      "title": "New Home Prices m/m",
-      "country": "CNY",
-      "date": "2026-08-16T21:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "-0.15%"
-    },
     {
       "title": "Revised Industrial Production m/m",
       "country": "JPY",
@@ -110,6 +56,15 @@
       "actual": "",
       "forecast": "",
       "previous": ""
+    },
+    {
+      "title": "New Home Prices m/m",
+      "country": "CNY",
+      "date": "2026-08-17T03:00:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "",
+      "previous": "-0.15%"
     },
     {
       "title": "Retail Sales y/y",
