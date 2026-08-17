@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-17T03:29:59.039664+00:00",
+  "fetchedAt": "2026-08-17T05:59:22.668667+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
@@ -20,15 +20,6 @@
       "actual": "",
       "forecast": "-0.9%",
       "previous": "1.1%"
-    },
-    {
-      "title": "Foreign Direct Investment ytd/y",
-      "country": "CNY",
-      "date": "2026-08-17T02:02:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "-5.0%"
     },
     {
       "title": "Fixed Asset Investment ytd/y",
@@ -200,6 +191,15 @@
       "actual": "",
       "forecast": "4.8%",
       "previous": "4.9%"
+    },
+    {
+      "title": "Foreign Direct Investment ytd/y",
+      "country": "CNY",
+      "date": "2026-08-18T02:02:00-04:00",
+      "impact": "Low",
+      "actual": "",
+      "forecast": "",
+      "previous": "-5.0%"
     },
     {
       "title": "ZEW Economic Sentiment",
