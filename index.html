@@ -103,17 +103,6 @@
                     </button>
                 </nav>
 
-                <div class="nav-group-label">Администрирование</div>
-                <nav>
-                    <a class="nav-item admin-link" href="/admin/" aria-label="Открыть админ-панель">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7l7-4z"/>
-                            <path d="M9 12l2 2 4-4"/>
-                        </svg>
-                        <span>Админ-панель</span>
-                    </a>
-                </nav>
-
                 <div class="nav-group-label">Прочее</div>
                 <nav>
                     <button class="nav-item" data-section="scanner">
@@ -132,6 +121,11 @@
             </div>
 
             <div class="sidebar-bottom">
+                <button class="kd-account-button" id="kdAccountButton" type="button">
+                    <span class="kd-account-avatar" id="kdAccountAvatar">G</span>
+                    <span class="kd-account-copy"><b id="kdAccountName">Гость</b><small id="kdAccountPlan">FREE</small></span>
+                    <span class="kd-account-arrow">›</span>
+                </button>
                 <div class="online-status">
                     <span class="online-dot"></span>
                     <span data-key="online">AI Connected</span>
@@ -1211,7 +1205,7 @@
                                 <div class="settings-profile-card glass-panel">
                                     <div class="profile-avatar-wrapper">
                                         <div class="profile-avatar" id="settingsAvatar">T</div>
-                                        <div class="avatar-badge">Pro</div>
+                                        <div class="avatar-badge" id="settingsPlanBadge">Free</div>
                                         <button class="avatar-edit-btn" id="avatarEditBtn" title="Изменить фото">✎</button>
                                         <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" capture="environment" style="display:none;" />
                                     </div>
@@ -1219,7 +1213,7 @@
                                         <div class="info-row"><span>Никнейм</span><span id="settingsUsername">Загрузка...</span></div>
                                         <div class="info-row"><span>Email</span><span id="settingsEmail">user@kriptodanik.ai</span></div>
                                         <div class="info-row"><span>Дата регистрации</span><span id="settingsMemberSince">—</span></div>
-                                        <div class="info-row"><span>Тип аккаунта</span><span class="badge-pro" id="settingsPlan">Pro</span></div>
+                                        <div class="info-row"><span>Тип аккаунта</span><span class="badge-pro" id="settingsPlan">FREE</span></div>
                                         <div class="info-row"><span>Версия</span><span>v1.3.0</span></div>
                                     </div>
                                     <button class="btn-primary" id="saveProfileBtn" style="width:100%;margin-top:16px;justify-content:center;">Сохранить профиль</button>
@@ -1378,5 +1372,35 @@
 
 <script src="runtime-fixes.js?v=1.0.2"></script>
     <script src="scanner-pro.js?v=1.9.1"></script>
+
+<div class="kd-auth-overlay" id="kdAuthOverlay" hidden>
+  <div class="kd-auth-modal" role="dialog" aria-modal="true" aria-labelledby="kdAuthTitle">
+    <button class="kd-auth-close" id="kdAuthClose" type="button" aria-label="Закрыть">×</button>
+    <div class="kd-auth-brand">KD</div>
+    <span class="module-eyebrow">KRIPTODANIK AI</span>
+    <h2 id="kdAuthTitle">Твой аккаунт</h2>
+    <p class="kd-auth-subtitle" id="kdAuthSubtitle">Сохрани профиль, получи Pro и используй KriptoDanik AI с любого устройства.</p>
+    <div class="kd-auth-tabs"><button class="active" data-auth-tab="login">Войти</button><button data-auth-tab="signup">Регистрация</button></div>
+    <form id="kdLoginForm" class="kd-auth-form">
+      <label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
+      <label>Пароль<input type="password" name="password" required autocomplete="current-password" placeholder="••••••••"></label>
+      <button class="kd-auth-submit" type="submit">Войти</button>
+    </form>
+    <form id="kdSignupForm" class="kd-auth-form" hidden>
+      <label>Имя<input type="text" name="name" autocomplete="name" placeholder="Даниил"></label>
+      <label>Никнейм<input type="text" name="username" autocomplete="username" placeholder="kriptodanik"></label>
+      <label>Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
+      <label>Пароль<input type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="минимум 8 символов"></label>
+      <button class="kd-auth-submit" type="submit">Создать аккаунт FREE</button>
+    </form>
+    <div class="kd-auth-error" id="kdAuthError" role="alert"></div>
+    <div class="kd-account-panel" id="kdAccountPanel" hidden>
+      <div class="kd-plan-card"><span>Текущий тариф</span><strong id="kdPanelPlan">FREE</strong><small id="kdPanelUntil">Базовый доступ</small></div>
+      <button class="kd-pro-button" id="kdUpgradeButton" type="button">👑 Перейти на PRO</button>
+      <button class="kd-logout-button" id="kdLogoutButton" type="button">Выйти из аккаунта</button>
+    </div>
+  </div>
+</div>
+<script src="auth.js?v=2.0.0"></script>
 </body>
 </html>
