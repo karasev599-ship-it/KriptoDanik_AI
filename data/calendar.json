@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-17T15:58:47.093496+00:00",
+  "fetchedAt": "2026-08-17T17:13:31.802836+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "NAHB Housing Market Index",
-      "country": "USD",
-      "date": "2026-08-17T10:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "33",
-      "previous": "34"
-    },
     {
       "title": "TIC Long-Term Purchases",
       "country": "USD",
