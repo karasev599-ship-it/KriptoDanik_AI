@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-17T21:58:51.264415+00:00",
+  "fetchedAt": "2026-08-17T22:59:34.295008+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "TIC Long-Term Purchases",
-      "country": "USD",
-      "date": "2026-08-17T16:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "151.4B",
-      "previous": "232.7B"
-    },
     {
       "title": "Westpac Consumer Sentiment",
       "country": "AUD",
