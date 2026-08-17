@@ -1,26 +1,8 @@
 {
-  "fetchedAt": "2026-08-17T05:59:22.668667+00:00",
+  "fetchedAt": "2026-08-17T08:26:20.741685+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Revised Industrial Production m/m",
-      "country": "JPY",
-      "date": "2026-08-17T00:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "1.3%",
-      "previous": "1.3%"
-    },
-    {
-      "title": "Tertiary Industry Activity m/m",
-      "country": "JPY",
-      "date": "2026-08-17T00:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-0.9%",
-      "previous": "1.1%"
-    },
     {
       "title": "Fixed Asset Investment ytd/y",
       "country": "CNY",
