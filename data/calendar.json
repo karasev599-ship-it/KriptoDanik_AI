@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-17T23:56:30.647810+00:00",
+  "fetchedAt": "2026-08-18T03:13:23.243974+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Westpac Consumer Sentiment",
-      "country": "AUD",
-      "date": "2026-08-17T20:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "4.1%"
-    },
     {
       "title": "Claimant Count Change",
       "country": "GBP",
