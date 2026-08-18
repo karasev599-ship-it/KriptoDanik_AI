@@ -1,71 +1,8 @@
 {
-  "fetchedAt": "2026-08-18T14:09:06.896515+00:00",
+  "fetchedAt": "2026-08-18T15:51:59.525639+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Housing Starts",
-      "country": "CAD",
-      "date": "2026-08-18T08:15:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "249K",
-      "previous": "239K"
-    },
-    {
-      "title": "ADP Weekly Employment Change",
-      "country": "USD",
-      "date": "2026-08-18T08:15:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "8.3K"
-    },
-    {
-      "title": "Building Permits",
-      "country": "USD",
-      "date": "2026-08-18T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "1.37M",
-      "previous": "1.37M"
-    },
-    {
-      "title": "Housing Starts",
-      "country": "USD",
-      "date": "2026-08-18T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "1.34M",
-      "previous": "1.43M"
-    },
-    {
-      "title": "Import Prices m/m",
-      "country": "USD",
-      "date": "2026-08-18T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.1%",
-      "previous": "0.3%"
-    },
-    {
-      "title": "Capacity Utilization Rate",
-      "country": "USD",
-      "date": "2026-08-18T09:15:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "76.3%",
-      "previous": "76.1%"
-    },
-    {
-      "title": "Industrial Production m/m",
-      "country": "USD",
-      "date": "2026-08-18T09:15:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.3%",
-      "previous": "0.1%"
-    },
     {
       "title": "Pending Home Sales m/m",
       "country": "USD",
@@ -78,7 +15,7 @@
     {
       "title": "GDT Price Index",
       "country": "NZD",
-      "date": "2026-08-18T10:51:00-04:00",
+      "date": "2026-08-18T11:31:00-04:00",
       "impact": "Low",
       "actual": "",
       "forecast": "",
