@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-18T12:01:04.193321+00:00",
+  "fetchedAt": "2026-08-18T14:09:06.896515+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
@@ -78,7 +78,7 @@
     {
       "title": "GDT Price Index",
       "country": "NZD",
-      "date": "2026-08-18T10:50:00-04:00",
+      "date": "2026-08-18T10:51:00-04:00",
       "impact": "Low",
       "actual": "",
       "forecast": "",
