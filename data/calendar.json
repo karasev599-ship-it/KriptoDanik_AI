@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-18T19:40:20.885641+00:00",
+  "fetchedAt": "2026-08-18T20:59:57.384248+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
@@ -171,7 +171,7 @@
       "date": "2026-08-19T10:30:00-04:00",
       "impact": "Low",
       "actual": "",
-      "forecast": "",
+      "forecast": "0.2M",
       "previous": "17.4M"
     },
     {
@@ -324,7 +324,7 @@
       "date": "2026-08-20T10:30:00-04:00",
       "impact": "Low",
       "actual": "",
-      "forecast": "",
+      "forecast": "15B",
       "previous": "36B"
     },
     {
