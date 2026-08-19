@@ -1,26 +1,8 @@
 {
-  "fetchedAt": "2026-08-19T03:25:55.866193+00:00",
+  "fetchedAt": "2026-08-19T05:51:21.437991+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Wage Price Index q/q",
-      "country": "AUD",
-      "date": "2026-08-18T21:30:00-04:00",
-      "impact": "Medium",
-      "actual": "",
-      "forecast": "0.8%",
-      "previous": "0.8%"
-    },
-    {
-      "title": "RBA Deputy Gov Hauser Speaks",
-      "country": "AUD",
-      "date": "2026-08-18T22:45:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": ""
-    },
     {
       "title": "CPI y/y",
       "country": "GBP",
