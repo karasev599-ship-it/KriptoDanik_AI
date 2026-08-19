@@ -1,44 +1,8 @@
 {
-  "fetchedAt": "2026-08-19T09:55:08.383588+00:00",
+  "fetchedAt": "2026-08-19T11:03:57.548129+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Current Account",
-      "country": "EUR",
-      "date": "2026-08-19T04:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "26.8B",
-      "previous": "25.1B"
-    },
-    {
-      "title": "HPI y/y",
-      "country": "GBP",
-      "date": "2026-08-19T04:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "1.9%",
-      "previous": "2.7%"
-    },
-    {
-      "title": "Final Core CPI y/y",
-      "country": "EUR",
-      "date": "2026-08-19T05:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "2.5%",
-      "previous": "2.5%"
-    },
-    {
-      "title": "Final CPI y/y",
-      "country": "EUR",
-      "date": "2026-08-19T05:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "2.9%",
-      "previous": "2.9%"
-    },
     {
       "title": "German 10-y Bond Auction",
       "country": "EUR",
