@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-19T11:03:57.548129+00:00",
+  "fetchedAt": "2026-08-19T12:00:53.662626+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "German 10-y Bond Auction",
-      "country": "EUR",
-      "date": "2026-08-19T05:34:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "3.13|1.1"
-    },
     {
       "title": "ECB President Lagarde Speaks",
       "country": "EUR",
