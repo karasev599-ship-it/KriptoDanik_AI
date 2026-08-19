@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-19T15:52:10.492540+00:00",
+  "fetchedAt": "2026-08-19T17:14:01.750556+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Crude Oil Inventories",
-      "country": "USD",
-      "date": "2026-08-19T10:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.2M",
-      "previous": "17.4M"
-    },
     {
       "title": "FOMC Meeting Minutes",
       "country": "USD",
