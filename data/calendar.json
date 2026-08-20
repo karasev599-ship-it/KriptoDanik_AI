@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-20T17:00:46.987212+00:00",
+  "fetchedAt": "2026-08-20T19:18:10.416736+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "FOMC Member Musalem Speaks",
-      "country": "USD",
-      "date": "2026-08-20T11:10:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": ""
-    },
     {
       "title": "Trade Balance",
       "country": "NZD",
