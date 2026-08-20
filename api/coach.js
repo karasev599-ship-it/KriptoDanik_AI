@@ -1,5 +1,7 @@
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 const MODEL = process.env.COACH_MODEL || "gpt-5.6";
+import { sbJson } from './_supabase.js';
+import { currentUser } from './auth.js';
 
 const SYSTEM_PROMPT = `
 You are KriptoDanik AI Coach, the intelligence layer of a premium trading workspace.
@@ -38,88 +40,30 @@ function json(res, status, body) {
   res.setHeader("Cache-Control", "no-store");
   res.end(JSON.stringify(body));
 }
-
-function shouldUseWebSearch(message) {
-  return /\b(сейчас|сегодня|вчера|завтра|последн|новост|актуаль|текущ|цена|курс|ставк|инфляц|фрс|fed|ecb|bitcoin|btc|ethereum|eth|solana|sol|crypto|крипт|рынок|market|latest|today|current|news|price|rate)\b/i.test(message);
-}
-
+function shouldUseWebSearch(message) { return /\b(сейчас|сегодня|вчера|завтра|последн|новост|актуаль|текущ|цена|курс|ставк|инфляц|фрс|fed|ecb|bitcoin|btc|ethereum|eth|solana|sol|crypto|крипт|рынок|market|latest|today|current|news|price|rate)\b/i.test(message); }
 function buildInput(message, history, context) {
   const safeHistory = Array.isArray(history) ? history.slice(-16) : [];
-  const transcript = safeHistory.map(m => {
-    const role = m?.role === "assistant" ? "Assistant" : "User";
-    return `${role}: ${String(m?.content || "").slice(0, 5000)}`;
-  }).join("\n\n");
-
-  return [
-    {
-      role: "developer",
-      content: SYSTEM_PROMPT
-    },
-    {
-      role: "developer",
-      content: `APPLICATION CONTEXT (JSON)\n${JSON.stringify(context || {}, null, 2)}`
-    },
-    ...(transcript ? [{ role: "developer", content: `RECENT CHAT HISTORY\n${transcript}` }] : []),
-    {
-      role: "user",
-      content: String(message || "").slice(0, 8000)
-    }
-  ];
+  const transcript = safeHistory.map(m => `${m?.role === "assistant" ? "Assistant" : "User"}: ${String(m?.content || "").slice(0, 5000)}`).join("\n\n");
+  return [{role:"developer",content:SYSTEM_PROMPT},{role:"developer",content:`APPLICATION CONTEXT (JSON)\n${JSON.stringify(context || {}, null, 2)}`},...(transcript?[{role:"developer",content:`RECENT CHAT HISTORY\n${transcript}`}]:[]),{role:"user",content:String(message || "").slice(0,8000)}];
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return json(res, 405, { error: "Method not allowed" });
-  }
-
-  if (!process.env.OPENAI_API_KEY) {
-    return json(res, 500, { error: "OPENAI_API_KEY is not configured on the server." });
-  }
-
+  if (req.method !== "POST") return json(res, 405, { error: "Method not allowed" });
+  if (!process.env.OPENAI_API_KEY) return json(res, 500, { error: "OPENAI_API_KEY is not configured on the server." });
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
     const message = String(body.message || "").trim();
     if (!message) return json(res, 400, { error: "Message is required." });
     if (message.length > 8000) return json(res, 413, { error: "Message is too long." });
-
     const useWeb = shouldUseWebSearch(message);
-    const payload = {
-      model: MODEL,
-      input: buildInput(message, body.history, body.context),
-      reasoning: { effort: "medium" },
-      max_output_tokens: 2500,
-      store: false
-    };
-
-    if (useWeb) {
-      payload.tools = [{ type: "web_search" }];
-    }
-
-    const upstream = await fetch(OPENAI_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-      },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await upstream.json().catch(() => ({}));
-    if (!upstream.ok) {
-      const message = data?.error?.message || `OpenAI API returned ${upstream.status}`;
-      return json(res, upstream.status >= 500 ? 502 : upstream.status, { error: message });
-    }
-
-    const reply = String(data?.output_text || "").trim();
-    if (!reply) return json(res, 502, { error: "OpenAI returned an empty response." });
-
-    return json(res, 200, {
-      reply,
-      model: MODEL,
-      webSearch: useWeb
-    });
-  } catch (error) {
-    console.error("AI Coach gateway error:", error);
-    return json(res, 500, { error: "AI Coach gateway failed." });
-  }
+    const payload = {model:MODEL,input:buildInput(message,body.history,body.context),reasoning:{effort:"medium"},max_output_tokens:2500,store:false};
+    if (useWeb) payload.tools=[{type:"web_search"}];
+    const upstream = await fetch(OPENAI_URL,{method:"POST",headers:{"Content-Type":"application/json",Authorization:`Bearer ${process.env.OPENAI_API_KEY}`},body:JSON.stringify(payload)});
+    const data = await upstream.json().catch(()=>({}));
+    if (!upstream.ok) { const msg=data?.error?.message||`OpenAI API returned ${upstream.status}`; return json(res,upstream.status>=500?502:upstream.status,{error:msg}); }
+    const reply=String(data?.output_text||"").trim();
+    if(!reply)return json(res,502,{error:"OpenAI returned an empty response."});
+    try { const user=await currentUser(req); await sbJson('ai_usage',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({user_id:user?.id||null,kind:'coach',model:MODEL})}); } catch(e) { console.warn('AI usage logging skipped:',e?.message||e); }
+    return json(res,200,{reply,model:MODEL,webSearch:useWeb});
+  } catch(error) { console.error("AI Coach gateway error:",error); return json(res,500,{error:"AI Coach gateway failed."}); }
 }
