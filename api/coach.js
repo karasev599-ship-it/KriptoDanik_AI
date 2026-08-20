@@ -1,5 +1,6 @@
 const OPENAI_URL = "https://api.openai.com/v1/responses";
-const MODEL = process.env.COACH_MODEL || "gpt-5.6";
+// Cost-efficient production default for a $4.99 subscription. Override with COACH_MODEL in Vercel when needed.
+const MODEL = process.env.COACH_MODEL || "gpt-5.6-luna";
 import { sbJson } from './_supabase.js';
 import { currentUser } from './auth.js';
 
