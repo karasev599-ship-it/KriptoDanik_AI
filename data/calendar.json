@@ -1,26 +1,8 @@
 {
-  "fetchedAt": "2026-08-20T11:13:53.392379+00:00",
+  "fetchedAt": "2026-08-20T12:04:16.807226+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "German Buba Monthly Report",
-      "country": "EUR",
-      "date": "2026-08-20T06:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": ""
-    },
-    {
-      "title": "CBI Industrial Order Expectations",
-      "country": "GBP",
-      "date": "2026-08-20T06:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-40",
-      "previous": "-45"
-    },
     {
       "title": "IPPI m/m",
       "country": "CAD",
