@@ -1,26 +1,8 @@
 {
-  "fetchedAt": "2026-08-20T03:14:42.091147+00:00",
+  "fetchedAt": "2026-08-20T05:06:10.992110+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Employment Change",
-      "country": "AUD",
-      "date": "2026-08-19T21:30:00-04:00",
-      "impact": "High",
-      "actual": "",
-      "forecast": "11.7K",
-      "previous": "76.3K"
-    },
-    {
-      "title": "Unemployment Rate",
-      "country": "AUD",
-      "date": "2026-08-19T21:30:00-04:00",
-      "impact": "High",
-      "actual": "",
-      "forecast": "4.4%",
-      "previous": "4.4%"
-    },
     {
       "title": "German PPI m/m",
       "country": "EUR",
