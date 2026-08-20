@@ -1,4 +1,4 @@
-/* KriptoDanik AI — runtime fixes v1.0.2 */
+/* KriptoDanik AI — runtime fixes v1.0.3 */
 (function () {
   'use strict';
 
@@ -50,6 +50,82 @@
     } catch (_) {}
   }
 
+  function fixAICoachWorkspace() {
+    const app = window.App;
+    const messages = document.getElementById('aiMessages');
+    const section = document.getElementById('section-intelligence');
+
+    if (!app || !messages || !section) return;
+
+    // The AI Coach already has a complete renderer in app.js. Re-run it when
+    // the workspace was mounted empty (this is what caused the giant blank
+    // area seen after navigation in some builds).
+    if (!messages.children.length) {
+      try {
+        if (Array.isArray(app.aiHistory) && app.aiHistory.length) {
+          if (typeof app.renderAIHistory === 'function') app.renderAIHistory();
+        } else if (typeof app.renderAIWelcome === 'function') {
+          app.renderAIWelcome();
+        }
+      } catch (error) {
+        console.warn('KriptoDanik AI Coach render fix:', error);
+      }
+    }
+
+    // Last-resort visual fallback: never leave the Coach completely empty.
+    if (!messages.children.length) {
+      const name = app.userData && app.userData.name ? app.userData.name : 'Трейдер';
+      const safeName = String(name).replace(/[&<>"']/g, function (c) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+      });
+      messages.innerHTML = `
+        <div class="ai-msg-wrapper ai-coach-fallback" style="opacity:1;transform:none;">
+          <div class="ai-msg-avatar">AI</div>
+          <div class="ai-msg-bubble">
+            <div class="ai-welcome-card">
+              <h2>Добро пожаловать, <strong>${safeName}</strong> 👋</h2>
+              <p style="color:var(--text-secondary);font-size:14px;">Ваш персональный AI-коуч готов помочь.</p>
+              <div class="stats-grid">
+                <div class="stat-line"><span>📊 Сделок сегодня</span><span>${Array.isArray(app.trades) ? app.trades.filter(t => t.date === new Date().toISOString().slice(0,10)).length : 0}</span></div>
+                <div class="stat-line"><span>🎯 Win Rate</span><span class="highlight">—</span></div>
+                <div class="stat-line"><span>⚡ Дисциплина</span><span style="color:var(--text-secondary);">Пока нет данных</span></div>
+                <div class="stat-line"><span>🚀 Последняя сделка</span><span class="highlight">—</span></div>
+              </div>
+              <p style="color:var(--text-secondary);font-size:13px;margin-top:12px;">Выберите действие ниже или задайте вопрос.</p>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    messages.querySelectorAll('.ai-msg-wrapper').forEach(function (el) {
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    });
+
+    try {
+      if (typeof app.scrollToBottom === 'function') app.scrollToBottom();
+    } catch (_) {}
+  }
+
+  function bindAICoachFix() {
+    fixAICoachWorkspace();
+
+    document.querySelectorAll('.nav-item[data-section="intelligence"]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        window.setTimeout(fixAICoachWorkspace, 30);
+        window.setTimeout(fixAICoachWorkspace, 250);
+      });
+    });
+
+    const section = document.getElementById('section-intelligence');
+    if (section && window.MutationObserver) {
+      const observer = new MutationObserver(function () {
+        if (section.classList.contains('active')) fixAICoachWorkspace();
+      });
+      observer.observe(section, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
+
   function run() {
     fixDashboardBalance();
 
@@ -60,6 +136,10 @@
       // Поэтому восстанавливаем реальный баланс ещё раз.
       fixDashboardBalance();
     }
+
+    bindAICoachFix();
+    window.setTimeout(fixAICoachWorkspace, 150);
+    window.setTimeout(fixAICoachWorkspace, 700);
   }
 
   if (document.readyState === 'loading') {
