@@ -1,44 +1,8 @@
 {
-  "fetchedAt": "2026-08-19T23:57:04.797318+00:00",
+  "fetchedAt": "2026-08-20T03:14:42.091147+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Trade Balance",
-      "country": "JPY",
-      "date": "2026-08-19T19:50:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-0.44T",
-      "previous": "-0.88T"
-    },
-    {
-      "title": "MI Inflation Expectations",
-      "country": "AUD",
-      "date": "2026-08-19T21:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "4.7%"
-    },
-    {
-      "title": "1-y Loan Prime Rate",
-      "country": "CNY",
-      "date": "2026-08-19T21:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "3.00%",
-      "previous": "3.00%"
-    },
-    {
-      "title": "5-y Loan Prime Rate",
-      "country": "CNY",
-      "date": "2026-08-19T21:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "3.50%",
-      "previous": "3.50%"
-    },
     {
       "title": "Employment Change",
       "country": "AUD",
