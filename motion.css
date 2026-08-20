@@ -1,16 +1,38 @@
-/* KriptoDanik AI — unified motion layer */
-:root{--kd-ease:cubic-bezier(.22,1,.36,1);--kd-glow:rgba(139,92,246,.22)}
-@keyframes kdFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* KriptoDanik AI — visible motion layer */
+:root{--kd-ease:cubic-bezier(.22,1,.36,1);--kd-glow:rgba(139,92,246,.28)}
+
+/* Ambient purple light that is actually visible across the workspace */
+.main{position:relative;isolation:isolate}
+.main::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 72% 12%,rgba(124,92,252,.13),transparent 28%),radial-gradient(circle at 35% 72%,rgba(168,85,247,.08),transparent 30%);animation:kdAmbient 8s ease-in-out infinite alternate}
+
+@keyframes kdAmbient{0%{opacity:.45;transform:scale(1)}100%{opacity:1;transform:scale(1.06)}}
+@keyframes kdFadeUp{from{opacity:0;transform:translateY(18px) scale(.985);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
 @keyframes kdFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-5px,0)}}
-@keyframes kdGlow{0%,100%{box-shadow:0 0 0 rgba(139,92,246,0)}50%{box-shadow:0 0 28px var(--kd-glow)}}
-@keyframes kdShimmer{from{background-position:200% 0}to{background-position:-200% 0}}
-.kd-motion-ready>*{animation:kdFadeUp .55s var(--kd-ease) both}
-.kd-motion-ready>*:nth-child(2){animation-delay:.05s}.kd-motion-ready>*:nth-child(3){animation-delay:.1s}.kd-motion-ready>*:nth-child(4){animation-delay:.15s}.kd-motion-ready>*:nth-child(5){animation-delay:.2s}
-.kd-card,.card,.dashboard-card,.stat-card{transition:transform .35s var(--kd-ease),box-shadow .35s var(--kd-ease),border-color .35s ease}
-.kd-card:hover,.card:hover,.dashboard-card:hover,.stat-card:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.18)}
-.kd-ai-glow,.ai-coach,.ai-card{animation:kdGlow 3.8s ease-in-out infinite}
-.kd-live,.live-indicator{animation:kdFloat 3.2s ease-in-out infinite}
-button,.btn,.nav-item,a{transition:transform .22s var(--kd-ease),opacity .22s ease,filter .22s ease}
-button:hover,.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
-.kd-shimmer{background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.08) 40%,transparent 60%);background-size:200% 100%;animation:kdShimmer 2.8s linear infinite}
+@keyframes kdGlow{0%,100%{box-shadow:0 0 0 rgba(139,92,246,0)}50%{box-shadow:0 0 34px var(--kd-glow)}}
+@keyframes kdShimmer{from{background-position:220% 0}to{background-position:-220% 0}}
+@keyframes kdPulseBorder{0%,100%{border-color:rgba(124,92,252,.18)}50%{border-color:rgba(124,92,252,.52)}}
+
+/* The dashboard on this build uses direct children rather than the old .cards classes. */
+.main>header,.main>section,.main>.dashboard,.main>.dashboard-content,.main>.content,.main>div:not(.mobile-nav-scrim){animation:kdFadeUp .65s var(--kd-ease) both}
+.main>header{animation-delay:.04s}
+.main>section:nth-of-type(2),.main>.dashboard:nth-child(2),.main>.dashboard-content:nth-child(2){animation-delay:.10s}
+.main>section:nth-of-type(3),.main>.dashboard:nth-child(3),.main>.dashboard-content:nth-child(3){animation-delay:.16s}
+.main>section:nth-of-type(4),.main>.dashboard:nth-child(4),.main>.dashboard-content:nth-child(4){animation-delay:.22s}
+
+/* Catch the real card/panel naming used in the current app without touching form fields. */
+.main [class*="card"],.main [class*="panel"],.main [class*="stat"]{transition:transform .35s var(--kd-ease),box-shadow .35s var(--kd-ease),border-color .35s ease}
+.main [class*="card"]:hover,.main [class*="panel"]:hover,.main [class*="stat"]:hover{transform:translateY(-4px);box-shadow:0 16px 44px rgba(0,0,0,.25),0 0 24px rgba(124,92,252,.08)}
+
+/* AI / hero areas get a gentle breathing glow. */
+.main [class*="ai"],.main [class*="hero"]{animation:kdGlow 4.2s ease-in-out infinite}
+
+/* Buttons feel alive but remain restrained. */
+button,.btn,a.icon-btn{transition:transform .22s var(--kd-ease),opacity .22s ease,filter .22s ease,box-shadow .3s ease}
+button:hover,.btn:hover{transform:translateY(-2px);filter:brightness(1.1);box-shadow:0 8px 24px rgba(124,92,252,.16)}
+button:active,.btn:active{transform:translateY(0) scale(.98)}
+
+/* Optional shimmer class for branded elements. */
+.kd-shimmer{background-image:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.10) 42%,transparent 64%);background-size:220% 100%;animation:kdShimmer 2.8s linear infinite}
+
+/* Respect accessibility settings. */
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
