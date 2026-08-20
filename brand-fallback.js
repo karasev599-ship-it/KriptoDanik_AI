@@ -7,6 +7,11 @@
     link.rel = 'stylesheet';
     link.href = '/motion.css?v=1';
     document.head.appendChild(link);
+    var premium = document.createElement('link');
+    premium.id = 'kd-premium-dashboard-link';
+    premium.rel = 'stylesheet';
+    premium.href = '/premium-dashboard.css?v=1';
+    document.head.appendChild(premium);
     function ready() {
         document.documentElement.classList.add('kd-motion-ready');
         document.querySelectorAll('.dashboard, .dashboard-content, main, .content, .cards, .stats-grid').forEach(function (el) { el.classList.add('kd-motion-ready'); });
