@@ -5,6 +5,34 @@
   let me=null;
   const planLabel = u => u?.plan === 'pro' ? 'PRO' : 'FREE';
 
+  function ensureAdminShortcut(isAdmin){
+    const bottom=document.querySelector('.sidebar-bottom');
+    if(!bottom) return;
+    let btn=document.getElementById('kdAdminShortcut');
+    if(isAdmin){
+      if(!btn){
+        btn=document.createElement('a');
+        btn.id='kdAdminShortcut';
+        btn.href='/admin/';
+        btn.innerHTML='<span class="kd-admin-shortcut-icon">♛</span><span>ADMIN</span><span class="kd-admin-shortcut-arrow">›</span>';
+        const style=document.createElement('style');
+        style.id='kdAdminShortcutStyles';
+        style.textContent=`
+          #kdAdminShortcut{display:flex;align-items:center;gap:10px;width:100%;box-sizing:border-box;margin:0 0 10px;padding:11px 12px;border:1px solid rgba(168,85,247,.42);border-radius:12px;background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(245,158,11,.08));color:#e9d5ff;text-decoration:none;font-size:12px;font-weight:800;letter-spacing:.08em;transition:.2s ease;}
+          #kdAdminShortcut:hover{transform:translateY(-1px);border-color:rgba(192,132,252,.75);background:linear-gradient(135deg,rgba(124,58,237,.28),rgba(245,158,11,.12));}
+          .kd-admin-shortcut-icon{font-size:17px;color:#fbbf24;line-height:1;}
+          .kd-admin-shortcut-arrow{margin-left:auto;font-size:20px;color:#c4b5fd;line-height:1;}
+        `;
+        document.head.appendChild(style);
+        const account=bottom.querySelector('#kdAccountButton');
+        if(account) bottom.insertBefore(btn,account); else bottom.prepend(btn);
+      }
+      btn.hidden=false;
+    }else if(btn){
+      btn.hidden=true;
+    }
+  }
+
   // Clear explanation of the Free trial and PRO value, shown directly in registration.
   function injectPlanInfo(){
     if(!signupForm || document.getElementById('kdPlanInfo')) return;
@@ -67,8 +95,6 @@
         memberSince: u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU') : (App.userData?.memberSince || '')
       };
 
-      // If this is a new account, skip the duplicate "Ваше имя" onboarding
-      // step and start directly with the useful trading parameters.
       if(!App.onboardingDone && App.onboardingOverlay){
         if(App.onboardingName) App.onboardingName.value = identity;
         if(typeof App.goToWizardStep === 'function') App.goToWizardStep(2);
@@ -82,7 +108,7 @@
 
   function open(){overlay.hidden=false; document.body.classList.add('kd-auth-open'); error.textContent=''; injectPlanInfo(); if(me){loginForm.hidden=true;signupForm.hidden=true;accountPanel.hidden=false;$('kdAuthTitle').textContent='Твой аккаунт';$('kdPanelPlan').textContent=planLabel(me);$('kdPanelUntil').textContent=me.pro_until?`Pro до ${new Date(me.pro_until).toLocaleDateString('ru-RU')}`:'Базовый доступ';}else{loginForm.hidden=false;signupForm.hidden=true;accountPanel.hidden=true;}}
   function closeModal(){overlay.hidden=true;document.body.classList.remove('kd-auth-open');}
-  function update(u){me=u||null; const name=u?.username||u?.name||u?.email?.split('@')[0]||'Гость'; $('kdAccountName').textContent=name; $('kdAccountPlan').textContent=planLabel(u); $('kdAccountAvatar').textContent=name[0].toUpperCase(); $('kdAccountAvatar').classList.toggle('pro',u?.plan==='pro'); const badge=document.getElementById('settingsPlan'); if(badge){badge.textContent=planLabel(u);badge.classList.toggle('badge-pro',u?.plan==='pro');} const p=document.getElementById('settingsEmail');if(p)p.textContent=u?.email||'—'; const n=document.getElementById('settingsUsername');if(n)n.textContent=name; const ms=document.getElementById('settingsMemberSince');if(ms)ms.textContent=u?.created_at?new Date(u.created_at).toLocaleDateString('ru-RU'):'—'; const av=document.getElementById('settingsAvatar');if(av)av.textContent=name[0].toUpperCase(); if(u) syncAppProfile(u);}
+  function update(u){me=u||null; const name=u?.username||u?.name||u?.email?.split('@')[0]||'Гость'; $('kdAccountName').textContent=name; $('kdAccountPlan').textContent=planLabel(u); $('kdAccountAvatar').textContent=name[0].toUpperCase(); $('kdAccountAvatar').classList.toggle('pro',u?.plan==='pro'); const badge=document.getElementById('settingsPlan'); if(badge){badge.textContent=planLabel(u);badge.classList.toggle('badge-pro',u?.plan==='pro');} const p=document.getElementById('settingsEmail');if(p)p.textContent=u?.email||'—'; const n=document.getElementById('settingsUsername');if(n) n.textContent=name; const ms=document.getElementById('settingsMemberSince');if(ms)ms.textContent=u?.created_at?new Date(u.created_at).toLocaleDateString('ru-RU'):'—'; const av=document.getElementById('settingsAvatar');if(av)av.textContent=name[0].toUpperCase(); ensureAdminShortcut(Boolean(u?.is_admin)); if(u) syncAppProfile(u);}
   async function call(action, method='GET', body){const r=await fetch(`/api/auth?action=${action}`,{method,headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,credentials:'same-origin',cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Ошибка авторизации');return d;}
   accountBtn?.addEventListener('click',open);close?.addEventListener('click',closeModal);overlay?.addEventListener('click',e=>{if(e.target===overlay)closeModal();});
   document.querySelectorAll('[data-auth-tab]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-auth-tab]').forEach(b=>b.classList.toggle('active',b===btn));const signup=btn.dataset.authTab==='signup';loginForm.hidden=signup;signupForm.hidden=!signup;accountPanel.hidden=true;error.textContent='';if(signup)injectPlanInfo();}));
