@@ -5,13 +5,18 @@
     var link = document.createElement('link');
     link.id = 'kd-motion-link';
     link.rel = 'stylesheet';
-    link.href = '/motion.css?v=1';
+    link.href = '/motion.css?v=2';
     document.head.appendChild(link);
     var premium = document.createElement('link');
     premium.id = 'kd-premium-dashboard-link';
     premium.rel = 'stylesheet';
-    premium.href = '/premium-dashboard.css?v=1';
+    premium.href = '/premium-dashboard.css?v=2';
     document.head.appendChild(premium);
+    var living = document.createElement('link');
+    living.id = 'kd-living-ui-link';
+    living.rel = 'stylesheet';
+    living.href = '/animated-ui.css?v=2';
+    document.head.appendChild(living);
     function ready() {
         document.documentElement.classList.add('kd-motion-ready');
         document.querySelectorAll('.dashboard, .dashboard-content, main, .content, .cards, .stats-grid').forEach(function (el) { el.classList.add('kd-motion-ready'); });
