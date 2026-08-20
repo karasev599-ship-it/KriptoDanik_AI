@@ -1,25 +1,15 @@
 (() => {
-  const views = [...document.querySelectorAll('.view')];
-  const nav = [...document.querySelectorAll('.nav-item')];
-  const title = document.getElementById('viewTitle');
-  const titles = {overview:'Обзор',users:'Пользователи',subscriptions:'Подписки',ai:'AI',market:'Market Pulse',system:'Система'};
-  function show(name){
-    views.forEach(v=>v.classList.toggle('active',v.id===name));
-    nav.forEach(n=>n.classList.toggle('active',n.dataset.view===name));
-    title.textContent=titles[name]||name;
-    history.replaceState(null,'','#'+name);
-  }
+  const views=[...document.querySelectorAll('.view')], nav=[...document.querySelectorAll('.nav-item')], title=document.getElementById('viewTitle');
+  const titles={overview:'Обзор',users:'Пользователи',subscriptions:'Подписки',ai:'AI',market:'Market Pulse',system:'Система'};
+  const $=id=>document.getElementById(id);
+  function show(name){views.forEach(v=>v.classList.toggle('active',v.id===name));nav.forEach(n=>n.classList.toggle('active',n.dataset.view===name));title.textContent=titles[name]||name;history.replaceState(null,'','#'+name);if(name==='users')loadUsers();}
   nav.forEach(n=>n.addEventListener('click',()=>show(n.dataset.view)));
-  show(location.hash.slice(1) || 'overview');
-  async function health(){
-    const api=document.getElementById('apiHealth'), coach=document.getElementById('coachHealth'), market=document.getElementById('marketHealth');
-    try{
-      const r=await fetch('../api/coach',{method:'OPTIONS',cache:'no-store'});
-      api.textContent=r.ok?'● доступен':'● ответ '+r.status; api.className=r.ok?'ok':'';
-      coach.textContent=r.ok?'● endpoint доступен':'● проверь API'; coach.className=r.ok?'ok':'';
-    }catch(e){api.textContent='● ошибка';coach.textContent='● ошибка';}
-    market.textContent='● клиентский feed';
-  }
-  document.getElementById('refreshBtn')?.addEventListener('click',health);
-  health();
+  async function api(action,opts={}){const r=await fetch(`/api/admin?action=${action}`,{...opts,credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json',...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||`API ${r.status}`);return d;}
+  async function loadStats(){try{const d=await api('stats');$('usersCount').textContent=d.total??'0';$('activeCount').textContent=d.active30d??d.activeToday??'0';$('proCount').textContent=d.pro??'0';$('aiCount').textContent=d.aiRequests??'0';}catch(e){$('usersCount').textContent='—';$('activeCount').textContent='—';$('proCount').textContent='—';$('aiCount').textContent='—';console.warn(e);}}
+  async function loadUsers(){const box=document.querySelector('#users .panel');if(!box)return;try{const d=await api(`users${$('userSearch')?.value?`&q=${encodeURIComponent($('userSearch').value)}`:''}`);const rows=d.users||[];const old=box.querySelector('.user-table');if(old)old.remove();const empty=box.querySelector('.empty');if(empty)empty.remove();const wrap=document.createElement('div');wrap.className='user-table';wrap.style.cssText='overflow:auto;margin-top:18px';wrap.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="text-align:left;padding:10px">Пользователь</th><th style="padding:10px">Тариф</th><th style="padding:10px">Регистрация</th><th style="padding:10px">PRO до</th><th style="padding:10px">Статус</th><th style="padding:10px"></th></tr></thead><tbody>${rows.map(u=>`<tr><td style="padding:10px;border-top:1px solid #242431"><b>${esc(u.username||u.name||'—')}</b><br><span style="color:#888895">${esc(u.email||'')}</span></td><td style="padding:10px;border-top:1px solid #242431;text-align:center">${u.plan==='pro'?'👑 PRO':'FREE'}</td><td style="padding:10px;border-top:1px solid #242431;text-align:center">${fmt(u.created_at)}</td><td style="padding:10px;border-top:1px solid #242431;text-align:center">${fmt(u.pro_until)}</td><td style="padding:10px;border-top:1px solid #242431;text-align:center">${u.blocked?'🚫':'●'}</td><td style="padding:10px;border-top:1px solid #242431;text-align:right"><button class="btn user-action" data-id="${esc(u.id)}" data-op="${u.blocked?'unblock':'block'}">${u.blocked?'Разблокировать':'Заблокировать'}</button> <button class="btn user-action" data-id="${esc(u.id)}" data-op="${u.plan==='pro'?'free':'pro'}">${u.plan==='pro'?'Снять PRO':'Дать PRO 30д'}</button></td></tr>`).join('')}</tbody></table>`;box.appendChild(wrap);wrap.querySelectorAll('.user-action').forEach(b=>b.addEventListener('click',async()=>{try{const op=b.dataset.op;const body=op==='block'||op==='unblock'?{blocked:op==='block'}:op==='pro'?{plan:'pro',pro_until:new Date(Date.now()+30*86400000).toISOString()}:{plan:'free',pro_until:null};await api(`user&id=${encodeURIComponent(b.dataset.id)}`,{method:'PATCH',body:JSON.stringify(body)});await loadUsers();await loadStats();}catch(e){alert(e.message);}}));}catch(e){console.warn(e);}}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function fmt(v){return v?new Date(v).toLocaleDateString('ru-RU'):'—';}
+  async function health(){const apiEl=$('apiHealth'),coach=$('coachHealth');try{const r=await fetch('../api/coach',{method:'OPTIONS',cache:'no-store'});apiEl.textContent=r.ok?'● доступен':'● ответ '+r.status;apiEl.className=r.ok?'ok':'';coach.textContent=r.ok?'● endpoint доступен':'● проверь API';coach.className=r.ok?'ok':'';}catch{apiEl.textContent='● ошибка';coach.textContent='● ошибка';}$('marketHealth').textContent='● клиентский feed';}
+  $('refreshBtn')?.addEventListener('click',()=>{health();loadStats();});$('userSearch')?.addEventListener('input',()=>loadUsers());
+  loadStats();health();show(location.hash.slice(1)||'overview');
 })();
