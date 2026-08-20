@@ -1,70 +1,16 @@
 {
-  "fetchedAt": "2026-08-20T14:20:52.545360+00:00",
+  "fetchedAt": "2026-08-20T17:00:46.987212+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
     {
-      "title": "IPPI m/m",
-      "country": "CAD",
-      "date": "2026-08-20T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-0.4%",
-      "previous": "-1.4%"
-    },
-    {
-      "title": "NHPI m/m",
-      "country": "CAD",
-      "date": "2026-08-20T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.0%",
-      "previous": "-0.1%"
-    },
-    {
-      "title": "RMPI m/m",
-      "country": "CAD",
-      "date": "2026-08-20T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-1.8%",
-      "previous": "-6.9%"
-    },
-    {
-      "title": "Philly Fed Manufacturing Index",
+      "title": "FOMC Member Musalem Speaks",
       "country": "USD",
-      "date": "2026-08-20T08:30:00-04:00",
-      "impact": "Medium",
-      "actual": "",
-      "forecast": "24.1",
-      "previous": "41.4"
-    },
-    {
-      "title": "Unemployment Claims",
-      "country": "USD",
-      "date": "2026-08-20T08:30:00-04:00",
-      "impact": "Medium",
-      "actual": "",
-      "forecast": "210K",
-      "previous": "209K"
-    },
-    {
-      "title": "CB Leading Index m/m",
-      "country": "USD",
-      "date": "2026-08-20T10:00:00-04:00",
+      "date": "2026-08-20T11:10:00-04:00",
       "impact": "Low",
       "actual": "",
-      "forecast": "0.1%",
-      "previous": "-0.2%"
-    },
-    {
-      "title": "Natural Gas Storage",
-      "country": "USD",
-      "date": "2026-08-20T10:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "15B",
-      "previous": "36B"
+      "forecast": "",
+      "previous": ""
     },
     {
       "title": "Trade Balance",
