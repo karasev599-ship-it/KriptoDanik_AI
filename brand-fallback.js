@@ -1,94 +1,29 @@
 (function () {
 'use strict';
-
-/* Safe dashboard fallback */
-window.KDRefreshBrandDashboard =
-    window.KDRefreshBrandDashboard ||
-    function () {
-        try {
-            if (window.App && typeof window.App.updateDashboardStats === 'function') {
-                window.App.updateDashboardStats();
-            }
-        } catch (e) {
-            console.warn('KriptoDanik brand fallback:', e);
-        }
-    };
-
-/* First-entry onboarding: registration/login -> short KriptoDanik introduction -> app */
 (function () {
-    var KEY = 'kd_onboarding_done_v1';
-    var gate, style;
-
-    function css() {
-        style = document.createElement('style');
-        style.id = 'kd-entry-style';
-        style.textContent = `
-            html.kd-entry-lock, html.kd-entry-lock body { overflow:hidden !important; }
-            #kdEntryGate { position:fixed; inset:0; z-index:2147483647; display:flex; align-items:center; justify-content:center; padding:20px; background:radial-gradient(circle at 50% 0%,rgba(124,92,252,.18),transparent 45%),#09090d; color:#fff; font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-            .kd-entry-card { width:min(440px,100%); background:rgba(24,24,30,.96); border:1px solid #30303a; border-radius:26px; padding:28px; box-shadow:0 25px 80px #0009; }
-            .kd-entry-logo { width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#8b5cf6,#5b21b6);font-weight:900;font-size:20px;box-shadow:0 10px 35px #7c3aed55;margin-bottom:18px; }
-            .kd-entry-card h1{margin:0 0 8px;font-size:27px}.kd-entry-card p{color:#a9a9b3;line-height:1.5;margin:0 0 20px}.kd-entry-field{width:100%;box-sizing:border-box;padding:14px 15px;margin:6px 0;border-radius:14px;border:1px solid #383842;background:#202027;color:#fff;font-size:16px;outline:none}.kd-entry-field:focus{border-color:#8b5cf6}.kd-entry-btn{width:100%;padding:15px;border:0;border-radius:14px;background:#8b5cf6;color:#fff;font-size:16px;font-weight:800;margin-top:10px}.kd-entry-link{display:block;text-align:center;color:#b8a7ff;margin-top:15px;font-size:14px;cursor:pointer}.kd-entry-error{min-height:20px;color:#fb7185;font-size:14px;margin-top:8px}.kd-entry-bullets{display:grid;gap:10px;margin:18px 0}.kd-entry-bullet{padding:13px 14px;border-radius:14px;background:#222229;border:1px solid #30303a}.kd-entry-next{margin-top:16px}.kd-entry-dots{text-align:center;color:#777;margin-top:13px;font-size:13px}
-        `;
-        document.head.appendChild(style);
+    if (document.getElementById('kd-motion-link')) return;
+    var link = document.createElement('link');
+    link.id = 'kd-motion-link';
+    link.rel = 'stylesheet';
+    link.href = '/motion.css?v=1';
+    document.head.appendChild(link);
+    function ready() {
+        document.documentElement.classList.add('kd-motion-ready');
+        document.querySelectorAll('.dashboard, .dashboard-content, main, .content, .cards, .stats-grid').forEach(function (el) { el.classList.add('kd-motion-ready'); });
     }
-
-    function lock() {
-        document.documentElement.classList.add('kd-entry-lock');
-    }
-    function unlock() {
-        document.documentElement.classList.remove('kd-entry-lock');
-        if (gate) gate.remove();
-        if (style) style.remove();
-    }
-    function callAuth(action, body) {
-        return fetch('/api/auth?action=' + action, {
-            method: body ? 'POST' : 'GET',
-            headers: body ? {'Content-Type':'application/json'} : undefined,
-            body: body ? JSON.stringify(body) : undefined,
-            credentials:'same-origin', cache:'no-store'
-        }).then(function(r){ return r.json().catch(function(){return {};}).then(function(d){ if(!r.ok) throw new Error(d.error || 'Ошибка авторизации'); return d; }); });
-    }
-    function show(html) { gate.innerHTML = '<div class="kd-entry-card">' + html + '</div>'; }
-
-    function intro() {
-        var step = 0;
-        var slides = [
-            ['Добро пожаловать в KriptoDanik AI 👋','Твой личный трейдинг-журнал и AI-коуч. Сервис создан не для обещаний лёгких денег, а для системной работы над собой.'],
-            ['AI-коуч 🧠','Он помогает анализировать сделки, замечать повторяющиеся ошибки и держаться собственных правил. Он не предсказывает рынок и не гарантирует прибыль.'],
-            ['Дисциплина прежде всего 🛡️','Журнал, аналитика, Guardian и другие инструменты помогают превратить торговлю в понятный процесс. Начинаем?']
-        ];
-        function render(){
-            var s=slides[step];
-            show('<div class="kd-entry-logo">KD</div><h1>'+s[0]+'</h1><p>'+s[1]+'</p><div class="kd-entry-bullets">'+(step===0?'<div class="kd-entry-bullet">📓 Веди журнал сделок</div><div class="kd-entry-bullet">🧠 Разбирай ошибки</div><div class="kd-entry-bullet">📊 Смотри статистику</div>':'')+'</div><button class="kd-entry-btn kd-entry-next" id="kdIntroNext">'+(step===slides.length-1?'🚀 Перейти в KriptoDanik AI':'Далее →')+'</button><div class="kd-entry-dots">'+(step+1)+' / '+slides.length+'</div>');
-            document.getElementById('kdIntroNext').onclick=function(){ if(step===slides.length-1){localStorage.setItem(KEY,'1');unlock();}else{step++;render();} };
-        }
-        render();
-    }
-
-    function register() {
-        show('<div class="kd-entry-logo">KD</div><h1>Создай аккаунт</h1><p>Сначала регистрация — затем короткое знакомство с KriptoDanik AI.</p><form id="kdEntryForm"><input class="kd-entry-field" name="username" placeholder="Имя пользователя" autocomplete="username" required><input class="kd-entry-field" name="email" type="email" placeholder="Email" autocomplete="email" required><input class="kd-entry-field" name="password" type="password" placeholder="Пароль" autocomplete="new-password" minlength="6" required><div class="kd-entry-error" id="kdEntryError"></div><button class="kd-entry-btn">Создать аккаунт</button></form><span class="kd-entry-link" id="kdEntryLogin">Уже есть аккаунт? Войти</span>');
-        document.getElementById('kdEntryForm').onsubmit=function(e){
-            e.preventDefault(); var fd=new FormData(e.target), data=Object.fromEntries(fd); var err=document.getElementById('kdEntryError'); err.textContent='Создаём аккаунт…';
-            callAuth('signup',data).then(function(){intro();}).catch(function(x){err.textContent=x.message;});
-        };
-        document.getElementById('kdEntryLogin').onclick=login;
-    }
-    function login() {
-        show('<div class="kd-entry-logo">KD</div><h1>С возвращением</h1><p>Войди в аккаунт, чтобы продолжить.</p><form id="kdEntryForm"><input class="kd-entry-field" name="email" type="email" placeholder="Email" autocomplete="email" required><input class="kd-entry-field" name="password" type="password" placeholder="Пароль" autocomplete="current-password" required><div class="kd-entry-error" id="kdEntryError"></div><button class="kd-entry-btn">Войти</button></form><span class="kd-entry-link" id="kdEntrySignup">Нет аккаунта? Зарегистрироваться</span>');
-        document.getElementById('kdEntryForm').onsubmit=function(e){
-            e.preventDefault(); var fd=new FormData(e.target), data=Object.fromEntries(fd); var err=document.getElementById('kdEntryError'); err.textContent='Входим…';
-            callAuth('login',data).then(function(){intro();}).catch(function(x){err.textContent=x.message;});
-        };
-        document.getElementById('kdEntrySignup').onclick=register;
-    }
-
-    function boot(){
-        if (window.location.pathname.endsWith('/exam.html')) return;
-        if (localStorage.getItem(KEY)==='1') return;
-        css(); lock();
-        gate=document.createElement('div'); gate.id='kdEntryGate'; document.body.appendChild(gate);
-        callAuth('me').then(function(d){ if(d && d.user){ intro(); } else { register(); } }).catch(function(){ register(); });
-    }
-    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+})();
+window.KDRefreshBrandDashboard = window.KDRefreshBrandDashboard || function () { try { if (window.App && typeof window.App.updateDashboardStats === 'function') window.App.updateDashboardStats(); } catch (e) { console.warn('KriptoDanik brand fallback:', e); } };
+(function () {
+    var KEY = 'kd_onboarding_done_v1', gate, style;
+    function css() { style = document.createElement('style'); style.id = 'kd-entry-style'; style.textContent = 'html.kd-entry-lock,html.kd-entry-lock body{overflow:hidden!important}#kdEntryGate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 0%,rgba(124,92,252,.18),transparent 45%),#09090d;color:#fff;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.kd-entry-card{width:min(440px,100%);background:rgba(24,24,30,.96);border:1px solid #30303a;border-radius:26px;padding:28px;box-shadow:0 25px 80px #0009}.kd-entry-logo{width:58px;height:58px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(135deg,#8b5cf6,#5b21b6);font-weight:900;font-size:20px;box-shadow:0 10px 35px #7c3aed55;margin-bottom:18px}.kd-entry-card h1{margin:0 0 8px;font-size:27px}.kd-entry-card p{color:#a9a9b3;line-height:1.5;margin:0 0 20px}.kd-entry-field{width:100%;box-sizing:border-box;padding:14px 15px;margin:6px 0;border-radius:14px;border:1px solid #383842;background:#202027;color:#fff;font-size:16px;outline:none}.kd-entry-field:focus{border-color:#8b5cf6}.kd-entry-btn{width:100%;padding:15px;border:0;border-radius:14px;background:#8b5cf6;color:#fff;font-size:16px;font-weight:800;margin-top:10px}.kd-entry-link{display:block;text-align:center;color:#b8a7ff;margin-top:15px;font-size:14px;cursor:pointer}.kd-entry-error{min-height:20px;color:#fb7185;font-size:14px;margin-top:8px}.kd-entry-bullets{display:grid;gap:10px;margin:18px 0}.kd-entry-bullet{padding:13px 14px;border-radius:14px;background:#222229;border:1px solid #30303a}.kd-entry-next{margin-top:16px}.kd-entry-dots{text-align:center;color:#777;margin-top:13px;font-size:13px}'; document.head.appendChild(style); }
+    function lock(){document.documentElement.classList.add('kd-entry-lock')} function unlock(){document.documentElement.classList.remove('kd-entry-lock');if(gate)gate.remove();if(style)style.remove()}
+    function callAuth(action,body){return fetch('/api/auth?action='+action,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error(d.error||'Ошибка авторизации');return d})})}
+    function show(html){gate.innerHTML='<div class="kd-entry-card">'+html+'</div>'}
+    function intro(){var step=0,slides=[['Добро пожаловать в KriptoDanik AI 👋','Твой личный трейдинг-журнал и AI-коуч. Сервис создан не для обещаний лёгких денег, а для системной работы над собой.'],['AI-коуч 🧠','Он помогает анализировать сделки, замечать повторяющиеся ошибки и держаться собственных правил. Он не предсказывает рынок и не гарантирует прибыль.'],['Дисциплина прежде всего 🛡️','Журнал, аналитика, Guardian и другие инструменты помогают превратить торговлю в понятный процесс. Начинаем?']];function render(){var s=slides[step];show('<div class="kd-entry-logo">KD</div><h1>'+s[0]+'</h1><p>'+s[1]+'</p><div class="kd-entry-bullets">'+(step===0?'<div class="kd-entry-bullet">📓 Веди журнал сделок</div><div class="kd-entry-bullet">🧠 Разбирай ошибки</div><div class="kd-entry-bullet">📊 Смотри статистику</div>':'')+'</div><button class="kd-entry-btn kd-entry-next" id="kdIntroNext">'+(step===slides.length-1?'🚀 Перейти в KriptoDanik AI':'Далее →')+'</button><div class="kd-entry-dots">'+(step+1)+' / '+slides.length+'</div>');document.getElementById('kdIntroNext').onclick=function(){if(step===slides.length-1){localStorage.setItem(KEY,'1');unlock()}else{step++;render()}}}render()}
+    function register(){show('<div class="kd-entry-logo">KD</div><h1>Создай аккаунт</h1><p>Сначала регистрация — затем короткое знакомство с KriptoDanik AI.</p><form id="kdEntryForm"><input class="kd-entry-field" name="username" placeholder="Имя пользователя" autocomplete="username" required><input class="kd-entry-field" name="email" type="email" placeholder="Email" autocomplete="email" required><input class="kd-entry-field" name="password" type="password" placeholder="Пароль" autocomplete="new-password" minlength="6" required><div class="kd-entry-error" id="kdEntryError"></div><button class="kd-entry-btn">Создать аккаунт</button></form><span class="kd-entry-link" id="kdEntryLogin">Уже есть аккаунт? Войти</span>');document.getElementById('kdEntryForm').onsubmit=function(e){e.preventDefault();var data=Object.fromEntries(new FormData(e.target)),err=document.getElementById('kdEntryError');err.textContent='Создаём аккаунт…';callAuth('signup',data).then(function(){intro()}).catch(function(x){err.textContent=x.message})};document.getElementById('kdEntryLogin').onclick=login}
+    function login(){show('<div class="kd-entry-logo">KD</div><h1>С возвращением</h1><p>Войди в аккаунт, чтобы продолжить.</p><form id="kdEntryForm"><input class="kd-entry-field" name="email" type="email" placeholder="Email" autocomplete="email" required><input class="kd-entry-field" name="password" type="password" placeholder="Пароль" autocomplete="current-password" required><div class="kd-entry-error" id="kdEntryError"></div><button class="kd-entry-btn">Войти</button></form><span class="kd-entry-link" id="kdEntrySignup">Нет аккаунта? Зарегистрироваться</span>');document.getElementById('kdEntryForm').onsubmit=function(e){e.preventDefault();var data=Object.fromEntries(new FormData(e.target)),err=document.getElementById('kdEntryError');err.textContent='Входим…';callAuth('login',data).then(function(){intro()}).catch(function(x){err.textContent=x.message})};document.getElementById('kdEntrySignup').onclick=register}
+    function boot(){if(window.location.pathname.endsWith('/exam.html'))return;if(localStorage.getItem(KEY)==='1')return;css();lock();gate=document.createElement('div');gate.id='kdEntryGate';document.body.appendChild(gate);callAuth('me').then(function(d){if(d&&d.user)intro();else register()}).catch(function(){register()})}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 })();
