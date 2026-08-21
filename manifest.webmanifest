@@ -1,11 +1,11 @@
 {
-  "name": "KriptoDanik AI",
-  "short_name": "KriptoDanik",
+  "name": "KD Intelligence — Trading Intelligence",
+  "short_name": "KD Intelligence",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0A0A0F",
   "theme_color": "#0A0A0F",
-  "description": "Аналитика, журнал сделок, дисциплина и AI-коуч.",
+  "description": "AI-интеллект для трейдинга. Анализ сделок, журнал, контроль риска и развитие торговой дисциплины.",
   "icons": [
     {"src":"assets/logo-brand.png","sizes":"192x192","type":"image/png","purpose":"any"},
     {"src":"assets/logo-brand.png","sizes":"512x512","type":"image/png","purpose":"any"}
