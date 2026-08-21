@@ -1,62 +1,8 @@
 {
-  "fetchedAt": "2026-08-20T23:59:33.947783+00:00",
+  "fetchedAt": "2026-08-21T03:33:28.266299+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Trade Balance",
-      "country": "NZD",
-      "date": "2026-08-20T18:45:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-175M",
-      "previous": "23M"
-    },
-    {
-      "title": "Flash Manufacturing PMI",
-      "country": "AUD",
-      "date": "2026-08-20T19:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "51.7"
-    },
-    {
-      "title": "Flash Services PMI",
-      "country": "AUD",
-      "date": "2026-08-20T19:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "53.0"
-    },
-    {
-      "title": "GfK Consumer Confidence",
-      "country": "GBP",
-      "date": "2026-08-20T19:01:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "-18",
-      "previous": "-17"
-    },
-    {
-      "title": "National Core CPI y/y",
-      "country": "JPY",
-      "date": "2026-08-20T19:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "1.8%",
-      "previous": "1.6%"
-    },
-    {
-      "title": "Flash Manufacturing PMI",
-      "country": "JPY",
-      "date": "2026-08-20T20:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "55.1",
-      "previous": "54.7"
-    },
     {
       "title": "Credit Card Spending y/y",
       "country": "NZD",
@@ -209,6 +155,15 @@
       "actual": "",
       "forecast": "-16",
       "previous": "-16"
+    },
+    {
+      "title": "President Trump Speaks",
+      "country": "USD",
+      "date": "2026-08-21T19:00:00-04:00",
+      "impact": "Medium",
+      "actual": "",
+      "forecast": "",
+      "previous": ""
     }
   ]
 }
