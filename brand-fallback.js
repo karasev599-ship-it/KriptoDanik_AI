@@ -1,4 +1,4 @@
-/* KriptoDanik AI — brand fallback + feature upgrade loader. */
+/* KriptoDanik AI — compatibility loader. User-facing branding is provided by kd-rebrand.js. */
 (function () {
   'use strict';
 
@@ -16,10 +16,12 @@
     } catch (error) { console.warn('KD loader:', error); }
   }
 
+  function loadRebrand() {
+    loadScript('kd-rebrand.js?v=1.9.0', 'kdRebrandLoaded');
+  }
   function loadScannerFrontendFix() {
     loadScript('scanner-frontend-fix.js?v=1.9.3', 'kdScannerFrontendFixLoaded');
   }
-
   function loadTradeImport() {
     if (window.KDTradeImport) return window.KDTradeImport.init();
     loadScript('trade-import.js?v=1.0.0', 'kdTradeImportLoaded', () => window.KDTradeImport && window.KDTradeImport.init());
@@ -39,13 +41,14 @@
       script.onload = () => { try { window.KDRefreshAIUpgrades && window.KDRefreshAIUpgrades(); } catch (e) { console.warn('AI upgrades init:', e); } loadScannerFrontendFix(); loadTradeImport(); };
       script.onerror = error => { console.warn('AI upgrades loader:', error); loadScannerFrontendFix(); loadTradeImport(); };
       document.head.appendChild(script);
-    } catch (error) { console.warn('KriptoDanik AI feature loader:', error); loadScannerFrontendFix(); loadTradeImport(); }
+    } catch (error) { console.warn('KD Intelligence feature loader:', error); loadScannerFrontendFix(); loadTradeImport(); }
   }
 
   function boot() {
-    try { if (window.App && typeof window.App.initAIChat === 'function') window.App.initAIChat(); } catch (error) { console.warn('KriptoDanik AI Coach init:', error); }
+    loadRebrand();
+    try { if (window.App && typeof window.App.initAIChat === 'function') window.App.initAIChat(); } catch (error) { console.warn('AI Coach init:', error); }
     setTimeout(loadUpgrades, 0); setTimeout(loadScannerFrontendFix, 500); setTimeout(loadTradeImport, 700);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
-  window.addEventListener('load', loadUpgrades); window.addEventListener('load', loadScannerFrontendFix); window.addEventListener('load', loadTradeImport);
+  window.addEventListener('load', loadRebrand); window.addEventListener('load', loadUpgrades); window.addEventListener('load', loadScannerFrontendFix); window.addEventListener('load', loadTradeImport);
 })();
