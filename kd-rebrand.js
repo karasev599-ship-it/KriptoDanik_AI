@@ -9,7 +9,6 @@
   const DESC = 'Trading Intelligence';
   const TAGLINE = 'AI-интеллект для анализа, дисциплины и контроля риска.';
   const EN_TAGLINE = 'AI-powered trading intelligence for disciplined traders.';
-  const VERSION = 'AI v1.9.0';
 
   const replacements = [
     ['KriptoDanik AI · AI Коуч', 'KD Intelligence · AI Коуч'],
@@ -19,8 +18,7 @@
     ['KriptoDanik AI', BRAND],
     ['KriptoDanik', BRAND],
     ['AI-проводник в трейдинге.', TAGLINE],
-    ['AI-проводник', 'AI-интеллект'],
-    ['kriptodanik.ai', 'kdintelligence.ai']
+    ['AI-проводник', 'AI-интеллект']
   ];
 
   function replaceText(value) {
@@ -82,14 +80,9 @@
       setCoreBranding();
       rewriteVisibleText(document.body);
       rewriteAttributes(document.body);
-
-      // Keep the product philosophy explicit in onboarding and Coach disclaimer.
-      document.querySelectorAll('.wizard-philosophy,[data-key="ai_disclaimer"]').forEach(el => {
-        if (el.classList.contains('wizard-philosophy')) {
-          el.textContent = 'KD Intelligence не является поставщиком сигналов и не предсказывает рынок. Наша задача — помочь вам соблюдать дисциплину, организовать рабочее пространство и следовать вашей собственной торговой стратегии.';
-        }
+      document.querySelectorAll('.wizard-philosophy').forEach(el => {
+        el.textContent = 'KD Intelligence не является поставщиком сигналов и не предсказывает рынок. Наша задача — помочь вам соблюдать дисциплину, организовать рабочее пространство и следовать вашей собственной торговой стратегии.';
       });
-
       document.documentElement.dataset.kdBrand = 'kd-intelligence';
       window.KD_BRAND = { name: BRAND, descriptor: DESC, version: '1.9.0' };
     } catch (error) {
@@ -101,8 +94,6 @@
   else apply();
   window.addEventListener('load', apply, { once: true });
 
-  // app.js can render onboarding/settings dynamically after boot, so observe only
-  // for a short period and disconnect afterwards to avoid unnecessary work.
   const startObserver = () => {
     if (!document.body || window.__kdRebrandObserver) return;
     const observer = new MutationObserver(() => apply());
