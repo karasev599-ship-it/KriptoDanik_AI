@@ -36,4 +36,62 @@ window.KDRefreshBrandDashboard = window.KDRefreshBrandDashboard || function () {
     function boot(){if(window.location.pathname.endsWith('/exam.html'))return;if(localStorage.getItem(KEY)==='1')return;css();lock();gate=document.createElement('div');gate.id='kdEntryGate';document.body.appendChild(gate);callAuth('me').then(function(d){if(d&&d.user)intro();else register()}).catch(function(){register()})}
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
+
+// v1.9.2 — AI Coach live-render fix.
+// The main app caches #aiMessages during init. Some navigation/brand rendering
+// paths can replace that node, leaving the cached reference detached. The chat
+// history is still saved correctly, which is why a page reload makes the reply
+// suddenly appear. Re-resolve the live DOM node before every chat render and
+// force a history render after each message so no reload is ever required.
+(function () {
+    function patchCoach() {
+        if (!window.App || window.App.__kdCoachLiveFix) return;
+        var App = window.App;
+        App.__kdCoachLiveFix = true;
+
+        var originalAppend = App.appendMessage;
+        App.appendMessage = function (role, content) {
+            var liveMessages = document.getElementById('aiMessages');
+            if (liveMessages) this.aiMessages = liveMessages;
+            try {
+                originalAppend.call(this, role, content);
+            } catch (err) {
+                console.warn('AI Coach live append recovered:', err);
+                var target = document.getElementById('aiMessages');
+                if (!target) return;
+                this.aiMessages = target;
+                this.hideTypingIndicator();
+                this.renderAIHistory();
+            }
+            // The persisted history is the source of truth. Re-render on the
+            // current DOM node so the result is visible immediately.
+            liveMessages = document.getElementById('aiMessages');
+            if (liveMessages) {
+                this.aiMessages = liveMessages;
+                this.renderAIHistory();
+            }
+        };
+
+        var originalTyping = App.showTypingIndicator;
+        App.showTypingIndicator = function () {
+            var liveMessages = document.getElementById('aiMessages');
+            if (liveMessages) this.aiMessages = liveMessages;
+            return originalTyping.call(this);
+        };
+
+        var originalHide = App.hideTypingIndicator;
+        App.hideTypingIndicator = function () {
+            return originalHide.call(this);
+        };
+
+        // Re-cache once after all initial DOM rendering has completed.
+        var live = document.getElementById('aiMessages');
+        if (live) App.aiMessages = live;
+    }
+
+    window.addEventListener('load', function () {
+        patchCoach();
+        setTimeout(patchCoach, 100);
+    });
+})();
 })();
