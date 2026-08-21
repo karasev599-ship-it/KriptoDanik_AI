@@ -1,17 +1,8 @@
 {
-  "fetchedAt": "2026-08-21T03:33:28.266299+00:00",
+  "fetchedAt": "2026-08-21T05:52:50.262555+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Credit Card Spending y/y",
-      "country": "NZD",
-      "date": "2026-08-20T23:00:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "3.1%"
-    },
     {
       "title": "Retail Sales m/m",
       "country": "GBP",
@@ -29,15 +20,6 @@
       "actual": "",
       "forecast": "0.0B",
       "previous": "16.0B"
-    },
-    {
-      "title": "Foreign Direct Investment ytd/y",
-      "country": "CNY",
-      "date": "2026-08-21T02:02:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "",
-      "previous": "-5.0%"
     },
     {
       "title": "French Flash Manufacturing PMI",
