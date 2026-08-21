@@ -28,6 +28,8 @@ index = index.replace(/<meta property="og:description" content="[^"]*">/, '<meta
 index = index.replace(/<meta property="og:image:alt" content="[^"]*">/, '<meta property="og:image:alt" content="KD Intelligence">');
 index = index.replace(/<meta name="twitter:title" content="[^"]*">/, '<meta name="twitter:title" content="KD Intelligence — Trading Intelligence">');
 index = index.replace(/<meta name="twitter:description" content="[^"]*">/, '<meta name="twitter:description" content="AI-powered trading intelligence for disciplined traders.">');
+index = index.replace(/AI v\d+\.\d+\.\d+/, 'AI v1.9.0');
+index = index.replace(/(<div class="info-row"><span>Версия<\/span><span>)v\d+\.\d+(?:\.\d+)?(<\/span>)/, '$1v1.9.0$2');
 index = index.replace(/const BUILD = '[^']*';/, "const BUILD = '1.9.0';");
 fs.writeFileSync(indexPath, index);
 
