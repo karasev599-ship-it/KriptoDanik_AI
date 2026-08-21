@@ -20,6 +20,7 @@ function replaceAll(value) {
 const indexPath = path.join(root, 'index.html');
 let index = fs.readFileSync(indexPath, 'utf8');
 index = replaceAll(index);
+index = index.replace(/\?v=1\.9\.1/g, '?v=1.9.0');
 index = index.replace(/<meta name="application-version" content="[^"]*">/, '<meta name="application-version" content="1.9.0">');
 index = index.replace(/<title>[^<]*<\/title>/, '<title>KD Intelligence — Trading Intelligence</title>');
 index = index.replace(/<meta name="description" content="[^"]*">/, '<meta name="description" content="KD Intelligence — AI-интеллект для трейдинга. Анализ сделок, журнал, контроль риска и развитие торговой дисциплины.">');
