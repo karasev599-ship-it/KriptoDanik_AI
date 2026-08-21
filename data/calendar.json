@@ -1,44 +1,8 @@
 {
-  "fetchedAt": "2026-08-21T14:09:48.162648+00:00",
+  "fetchedAt": "2026-08-21T15:55:02.441074+00:00",
   "source": "Forex Factory weekly calendar feed",
   "timezone": "source feed timezone",
   "events": [
-    {
-      "title": "Core Retail Sales m/m",
-      "country": "CAD",
-      "date": "2026-08-21T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.2%",
-      "previous": "1.2%"
-    },
-    {
-      "title": "Retail Sales m/m",
-      "country": "CAD",
-      "date": "2026-08-21T08:30:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "0.4%",
-      "previous": "1.0%"
-    },
-    {
-      "title": "Flash Manufacturing PMI",
-      "country": "USD",
-      "date": "2026-08-21T09:45:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "53.9",
-      "previous": "53.8"
-    },
-    {
-      "title": "Flash Services PMI",
-      "country": "USD",
-      "date": "2026-08-21T09:45:00-04:00",
-      "impact": "Low",
-      "actual": "",
-      "forecast": "54.0",
-      "previous": "53.6"
-    },
     {
       "title": "Consumer Confidence",
       "country": "EUR",
