@@ -71,8 +71,12 @@
     if (appName) appName.textContent = BRAND;
     if (appSub) appSub.textContent = DESC;
 
-    const settingsVersion = document.querySelector('#settings-about .info-row span:last-child');
-    if (settingsVersion && /v\d+\.\d+\.\d+/.test(settingsVersion.textContent)) settingsVersion.textContent = 'v1.9.0';
+    document.querySelectorAll('#settings-about span').forEach(el => {
+      if (/AI v\d+\.\d+\.\d+/.test(el.textContent)) el.textContent = 'AI v1.9.0';
+    });
+    document.querySelectorAll('#settings-profile .info-row span').forEach(el => {
+      if (/^v\d+\.\d+\.\d+$/.test(el.textContent.trim())) el.textContent = 'v1.9.0';
+    });
   }
 
   function apply() {
