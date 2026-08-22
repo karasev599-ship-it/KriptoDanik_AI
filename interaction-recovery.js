@@ -1,6 +1,6 @@
 /* KD Intelligence — interaction recovery layer.
- * Restores basic navigation if an optional runtime module fails and
- * prevents inactive fullscreen layers from swallowing pointer events.
+ * Restores navigation and click handling when an optional runtime module
+ * or a stale fullscreen layer interferes with the normal UI.
  */
 (() => {
   'use strict';
@@ -14,18 +14,18 @@
     '#mobileNavScrim:not(.active)'
   ];
 
+  const activeModal = () => document.querySelector(
+    '#kdAuthOverlay:not([hidden]), #onboardingOverlay.active, #tradeModalOverlay.active, #screenshotLightbox.active, #coachTourOverlay.active'
+  );
+
   function cleanInactiveLayers() {
     inactiveSelectors.forEach(selector => {
       document.querySelectorAll(selector).forEach(el => {
         el.style.setProperty('pointer-events', 'none', 'important');
-        if (selector.includes('[hidden]') || !el.classList.contains('active')) {
-          el.style.setProperty('display', 'none', 'important');
-        }
+        el.style.setProperty('display', 'none', 'important');
       });
     });
 
-    // Never allow decorative fixed/absolute backdrops with zero visual
-    // presence to become click targets.
     document.querySelectorAll('body *').forEach(el => {
       if (!(el instanceof HTMLElement)) return;
       const cs = getComputedStyle(el);
@@ -55,8 +55,6 @@
   function bind() {
     cleanInactiveLayers();
 
-    // Capture navigation so it still works if another optional listener
-    // fails during the normal application boot sequence.
     document.addEventListener('click', event => {
       const nav = event.target?.closest?.('.nav-item[data-section]');
       if (!nav) return;
@@ -78,6 +76,21 @@
       event.preventDefault();
       event.stopPropagation();
       navigate(section);
+    }, true);
+
+    // Last-resort hit testing: if a stale transparent layer becomes the
+    // event target, elementsFromPoint() still exposes the real button under
+    // it. Forward the click only when no legitimate modal is open.
+    document.addEventListener('click', event => {
+      if (activeModal()) return;
+      const direct = event.target?.closest?.('button,a,input,select,textarea,[role="button"]');
+      if (direct) return;
+      const stack = document.elementsFromPoint(event.clientX, event.clientY);
+      const hit = stack.find(el => el instanceof HTMLElement && el.matches('button,a,input,select,textarea,[role="button"]'));
+      if (!hit) return;
+      event.preventDefault();
+      event.stopPropagation();
+      try { hit.click(); } catch (_) {}
     }, true);
 
     const style = document.createElement('style');
