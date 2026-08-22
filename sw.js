@@ -1,4 +1,4 @@
-const CACHE="kd-intelligence-v1.9.9";
+const CACHE="kd-intelligence-v1.10.0";
 const CORE=[
   "./",
   "./index.html",
@@ -56,15 +56,38 @@ const COACH_FIX=`
 })();
 `;
 
+async function rewriteIndex(response){
+  try{
+    const source=await response.text();
+    let html=source;
+    html=html.replace('runtime-fixes.js?v=1.0.2','runtime-fixes.js?v=1.1.1');
+    if(!html.includes('economic-calendar.js?v=1.0.0')){
+      html=html.replace('</head>','<script src="economic-calendar.js?v=1.0.0" data-kd-economic-calendar></script>\\n</head>');
+    }
+    return new Response(html,{status:response.status,statusText:response.statusText,headers:response.headers});
+  }catch(e){
+    console.warn('KD index runtime rewrite failed',e);
+    return response;
+  }
+}
+
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener("activate",event=>event.waitUntil(
+  caches.keys()
+    .then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+    .then(()=>self.clients.claim())
+    .then(()=>self.clients.matchAll({type:'window',includeUncontrolled:true}))
+    .then(clients=>Promise.all(clients.map(client=>client.navigate(client.url).catch(()=>null))))
+));
 self.addEventListener("fetch",event=>{
   const url=new URL(event.request.url);
   if(url.origin!==location.origin||event.request.method!=="GET") return;
   event.respondWith(fetch(event.request,{cache:"no-store"}).then(async response=>{
     if(!response.ok) return response;
     let outgoing=response;
-    if(url.pathname.endsWith('/app.js')){
+    if(url.pathname==='/' || url.pathname.endsWith('/index.html')){
+      outgoing=await rewriteIndex(response);
+    }else if(url.pathname.endsWith('/app.js')){
       const source=await response.text();
       outgoing=new Response(source+'\n'+COACH_FIX,{status:response.status,headers:response.headers});
     }
