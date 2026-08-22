@@ -16,6 +16,30 @@
     } catch (error) { console.warn('KD loader:', error); }
   }
 
+  function applyKDFavicon() {
+    try {
+      const href = 'assets/favicon.svg?v=2';
+      let icon = document.querySelector('link[data-kd-favicon]');
+      if (!icon) {
+        icon = document.createElement('link');
+        icon.rel = 'icon';
+        icon.type = 'image/svg+xml';
+        icon.dataset.kdFavicon = 'true';
+        document.head.appendChild(icon);
+      }
+      icon.href = href;
+
+      let apple = document.querySelector('link[data-kd-apple-icon]');
+      if (!apple) {
+        apple = document.createElement('link');
+        apple.rel = 'apple-touch-icon';
+        apple.dataset.kdAppleIcon = 'true';
+        document.head.appendChild(apple);
+      }
+      apple.href = href;
+    } catch (error) { console.warn('KD favicon:', error); }
+  }
+
   function loadRebrand() {
     loadScript('kd-rebrand.js?v=1.9.0', 'kdRebrandLoaded');
   }
@@ -45,10 +69,11 @@
   }
 
   function boot() {
+    applyKDFavicon();
     loadRebrand();
     try { if (window.App && typeof window.App.initAIChat === 'function') window.App.initAIChat(); } catch (error) { console.warn('AI Coach init:', error); }
     setTimeout(loadUpgrades, 0); setTimeout(loadScannerFrontendFix, 500); setTimeout(loadTradeImport, 700);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
-  window.addEventListener('load', loadRebrand); window.addEventListener('load', loadUpgrades); window.addEventListener('load', loadScannerFrontendFix); window.addEventListener('load', loadTradeImport);
+  window.addEventListener('load', applyKDFavicon); window.addEventListener('load', loadRebrand); window.addEventListener('load', loadUpgrades); window.addEventListener('load', loadScannerFrontendFix); window.addEventListener('load', loadTradeImport);
 })();
