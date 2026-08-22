@@ -1,4 +1,4 @@
-/* KriptoDanik AI — runtime fixes v1.1.0 */
+/* KriptoDanik AI — runtime fixes v1.1.1 */
 (function () {
   'use strict';
 
@@ -106,6 +106,19 @@
     try { app.saveState(); } catch (_) {}
   }
 
+  function loadEconomicCalendarFix() {
+    if (document.querySelector('script[data-kd-economic-calendar]')) return;
+    const script = document.createElement('script');
+    script.src = 'economic-calendar.js?v=1.0.0';
+    script.async = true;
+    script.dataset.kdEconomicCalendar = 'true';
+    script.onload = () => {
+      try { window.App?.loadEconomicCalendar?.(); } catch (_) {}
+    };
+    script.onerror = () => console.warn('KriptoDanik economic calendar integration failed to load.');
+    document.head.appendChild(script);
+  }
+
   function bindNavigationRefresh() {
     document.querySelectorAll('.nav-item[data-section="intelligence"]').forEach(button => {
       if (button.dataset.kdCoachRefreshBound === '1') return;
@@ -123,6 +136,7 @@
     if (!app) return;
     patchCoachDom();
     fixDashboardBalance();
+    loadEconomicCalendarFix();
     if (typeof window.KDRefreshBrandDashboard === 'function') {
       try { window.KDRefreshBrandDashboard(); } catch (_) {}
     }
