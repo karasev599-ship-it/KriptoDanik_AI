@@ -6,40 +6,47 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "calendar.json"
-URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+URLS = [
+    "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
+    "https://nfs.faireconomy.media/ff_calendar_nextweek.json",
+]
 CURRENCIES = {"USD", "EUR", "GBP", "JPY", "CAD", "AUD", "NZD", "CHF", "CNY"}
 
 
 def fetch(url: str):
-    req = urllib.request.Request(
+    request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "KriptoDanik-AI-calendar/1.1",
+            "User-Agent": "KriptoDanik-AI-calendar/1.2",
             "Accept": "application/json",
         },
     )
-    with urllib.request.urlopen(req, timeout=20) as response:
-        return json.load(response)
+    with urllib.request.urlopen(request, timeout=20) as response:
+        data = json.load(response)
+    if not isinstance(data, list):
+        raise ValueError("Forex Factory returned an unexpected JSON structure")
+    return data
 
 
 def main() -> None:
-    try:
-        events = fetch(URL)
-        if not isinstance(events, list):
-            raise ValueError("Forex Factory returned an unexpected JSON structure")
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError) as exc:
-        if OUT.exists():
-            print(f"WARNING: calendar feed unavailable: {exc}")
-            print("Keeping the existing calendar cache.")
-            return
-        raise SystemExit(f"Calendar feed unavailable and no cache exists: {exc}")
+    events = []
+    errors = []
+
+    for url in URLS:
+        try:
+            events.extend(fetch(url))
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"{url}: {exc}")
 
     now = dt.datetime.now(dt.timezone.utc)
-    until = now + dt.timedelta(days=8)
+    until = now + dt.timedelta(days=9)
     seen = set()
     clean = []
 
     for event in events:
+        if not isinstance(event, dict):
+            continue
+
         try:
             event_date = str(event.get("date", ""))
             event_dt = dt.datetime.fromisoformat(event_date.replace("Z", "+00:00"))
@@ -56,13 +63,13 @@ def main() -> None:
             continue
 
         item = {
-            "title": event.get("title", ""),
+            "title": str(event.get("title", "")),
             "country": country,
-            "date": event.get("date", ""),
-            "impact": event.get("impact", ""),
-            "actual": event.get("actual", ""),
-            "forecast": event.get("forecast", ""),
-            "previous": event.get("previous", ""),
+            "date": str(event.get("date", "")),
+            "impact": str(event.get("impact", "")),
+            "actual": str(event.get("actual", "")),
+            "forecast": str(event.get("forecast", "")),
+            "previous": str(event.get("previous", "")),
         }
         key = (country, item["title"], item["date"])
         if key not in seen:
@@ -73,9 +80,12 @@ def main() -> None:
 
     if not clean:
         if OUT.exists():
-            print("No upcoming events in the current feed; keeping existing calendar cache.")
+            print("Calendar feed unavailable or empty; keeping existing calendar cache.")
+            if errors:
+                print("\n".join(errors))
             return
-        raise SystemExit("Calendar update produced no events and no cache exists.")
+        details = "; ".join(errors) if errors else "no valid upcoming events"
+        raise SystemExit(f"Calendar update produced no usable events and no cache exists: {details}")
 
     payload = {
         "fetchedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -83,8 +93,15 @@ def main() -> None:
         "timezone": "source feed timezone",
         "events": clean,
     }
-    OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    temporary = OUT.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    temporary.replace(OUT)
+
     print(f"Wrote {len(clean)} events to {OUT}")
+    if errors:
+        print("Some calendar feeds were unavailable:")
+        print("\n".join(errors))
 
 
 if __name__ == "__main__":
