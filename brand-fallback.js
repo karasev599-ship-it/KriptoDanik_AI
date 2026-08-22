@@ -18,7 +18,7 @@
 
   function applyKDFavicon() {
     try {
-      const href = 'assets/favicon.svg?v=2';
+      const href = 'assets/favicon.svg?v=3';
       let icon = document.querySelector('link[data-kd-favicon]');
       if (!icon) {
         icon = document.createElement('link');
@@ -44,9 +44,10 @@
     loadScript('kd-rebrand.js?v=1.9.0', 'kdRebrandLoaded');
   }
 
-  // Restores the account/auth layer that was lost from the rolled-back interface.
-  // auth.js owns the login/signup modal, session check, trial badge and admin shortcut.
+  // auth.js is already included by index.html. Do not inject a second copy:
+  // duplicate listeners can reset the account UI and run the session check twice.
   function loadAuth() {
+    if (document.querySelector('script[src^="auth.js"]')) return;
     loadScript('auth.js?v=2.0.0', 'kdAuthLoaded');
   }
 
