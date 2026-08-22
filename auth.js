@@ -57,7 +57,7 @@
 
   function open(){
     overlay.hidden=false; document.body.classList.add('kd-auth-open'); error.textContent=''; injectPlanInfo();
-    if(me){loginForm.hidden=true;signupForm.hidden=true;accountPanel.hidden=false;$('kdAuthTitle').textContent='Твой аккаунт';$('kdPanelPlan').textContent=planLabel(me);$('kdPanelUntil').textContent=planDetail(me);const up=$('kdUpgradeButton');if(up){up.hidden=!!me.pro_active;up.textContent=me.trial_active?'Перейти на PRO · 4,99 $':'Подключить PRO · 4,99 $';}}else{loginForm.hidden=false;signupForm.hidden=true;accountPanel.hidden=true;}
+    if(me){loginForm.hidden=true;signupForm.hidden=true;accountPanel.hidden=false;$('kdAuthTitle').textContent='Твой аккаунт';$('kdPanelPlan').textContent=planLabel(me);$('kdPanelUntil').textContent=planDetail(me);const up=$('kdUpgradeButton');if(up){up.hidden=!!me.pro_active;up.textContent=me.trial_active?'Перейти на PRO · 4,99 $':'Подключить PRO · 4,99 $';}}else{loginForm.hidden=false;signupForm.hidden=true;accountPanel.hidden=true;$('kdAuthTitle').textContent='Вход в KriptoDanik AI';$('kdAuthSubtitle').textContent='Войди или зарегистрируйся, чтобы открыть свой торговый профиль.';}
   }
   function closeModal(){overlay.hidden=true;document.body.classList.remove('kd-auth-open');}
   function update(u){
@@ -93,5 +93,5 @@
   $('kdLogoutButton')?.addEventListener('click',async()=>{try{await call('logout','POST',{});}catch{}update(null);open();});
   $('kdUpgradeButton')?.addEventListener('click',startCheckout);
   injectPlanInfo();
-  (async()=>{try{const d=await call('me');update(d.user);await confirmCheckoutFromUrl();}catch{update(null);await confirmCheckoutFromUrl();}})();
+  (async()=>{try{const d=await call('me');if(d.user){update(d.user);await confirmCheckoutFromUrl();}else{update(null);open();await confirmCheckoutFromUrl();}}catch{update(null);open();await confirmCheckoutFromUrl();}})();
 })();
