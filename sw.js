@@ -1,13 +1,12 @@
-const CACHE="kd-intelligence-v1.9.0";
+const CACHE="kd-intelligence-v1.9.7";
 const CORE=[
   "./",
   "./index.html",
-  "./style.css?v=1.9.0",
-  "./brand-fallback.js?v=1.9.0",
+  "./style.css?v=1.9.1",
+  "./brand-fallback.js?v=1.9.1",
   "./kd-rebrand.js?v=1.9.0",
   "./runtime-fixes.js?v=1.1.0",
-  "./app.js?v=1.9.0",
-  "./chart.js?v=1.9.0",
+  "./app.js?v=1.9.1",
   "./manifest.webmanifest"
 ];
 
@@ -65,7 +64,7 @@ self.addEventListener("fetch",event=>{
     let outgoing=response;
     if(url.pathname.endsWith('/app.js')){
       const source=await response.text();
-      outgoing=new Response(source+'\\n'+COACH_FIX,{status:response.status,headers:response.headers});
+      outgoing=new Response(source+'\n'+COACH_FIX,{status:response.status,headers:response.headers});
     }
     caches.open(CACHE).then(cache=>cache.put(event.request,outgoing.clone()));
     return outgoing;
