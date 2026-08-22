@@ -112,9 +112,6 @@
     script.src = 'economic-calendar.js?v=1.0.0';
     script.async = true;
     script.dataset.kdEconomicCalendar = 'true';
-    script.onload = () => {
-      try { window.App?.loadEconomicCalendar?.(); } catch (_) {}
-    };
     script.onerror = () => console.warn('KriptoDanik economic calendar integration failed to load.');
     document.head.appendChild(script);
   }
