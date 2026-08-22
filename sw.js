@@ -1,4 +1,4 @@
-const CACHE="kd-intelligence-v1.9.7";
+const CACHE="kd-intelligence-v1.9.8";
 const CORE=[
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const CORE=[
   "./kd-rebrand.js?v=1.9.0",
   "./runtime-fixes.js?v=1.1.0",
   "./app.js?v=1.9.1",
+  "./auth.js?v=2.0.0",
   "./manifest.webmanifest"
 ];
 
