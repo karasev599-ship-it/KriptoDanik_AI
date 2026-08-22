@@ -55,11 +55,24 @@
     try{const App=window.App;if(!App||!u)return;const identity=u.username||u.name||u.email?.split('@')[0]||'Трейдер';App.userData={...(App.userData||{}),name:identity,username:u.username||identity,email:u.email||'',plan:planLabel(u),memberSince:u.created_at?new Date(u.created_at).toLocaleDateString('ru-RU'):(App.userData?.memberSince||''),trialDaysLeft:u.trial_days_left,freeUntil:u.free_until};if(!App.onboardingDone&&App.onboardingOverlay){if(App.onboardingName)App.onboardingName.value=identity;if(typeof App.goToWizardStep==='function')App.goToWizardStep(2);App.onboardingOverlay.classList.add('active');App.saveState?.();}else App.applyUserData?.();}catch(e){console.warn('Could not sync account with Trading Profile:',e);}
   }
 
+  function showTradingProfileAfterAuth(){
+    try{
+      const App=window.App;
+      if(!App || App.onboardingDone) return;
+      if(typeof App.showOnboarding==='function') App.showOnboarding();
+    }catch(e){console.warn('Could not open Trading Profile onboarding:',e);}
+  }
+
   function open(){
+    if(!overlay) return;
+    const onboarding=$('onboardingOverlay');
+    const coach=$('coachTourOverlay');
+    if(onboarding) onboarding.classList.remove('active');
+    if(coach){coach.classList.remove('active');coach.setAttribute('aria-hidden','true');}
     overlay.hidden=false; document.body.classList.add('kd-auth-open'); error.textContent=''; injectPlanInfo();
     if(me){loginForm.hidden=true;signupForm.hidden=true;accountPanel.hidden=false;$('kdAuthTitle').textContent='Твой аккаунт';$('kdPanelPlan').textContent=planLabel(me);$('kdPanelUntil').textContent=planDetail(me);const up=$('kdUpgradeButton');if(up){up.hidden=!!me.pro_active;up.textContent=me.trial_active?'Перейти на PRO · 4,99 $':'Подключить PRO · 4,99 $';}}else{loginForm.hidden=false;signupForm.hidden=true;accountPanel.hidden=true;$('kdAuthTitle').textContent='Вход в KriptoDanik AI';$('kdAuthSubtitle').textContent='Войди или зарегистрируйся, чтобы открыть свой торговый профиль.';}
   }
-  function closeModal(){overlay.hidden=true;document.body.classList.remove('kd-auth-open');}
+  function closeModal(){if(!overlay)return;overlay.hidden=true;document.body.classList.remove('kd-auth-open');}
   function update(u){
     me=u||null; const name=u?.username||u?.name||u?.email?.split('@')[0]||'Гость';
     $('kdAccountName').textContent=name;$('kdAccountPlan').textContent=planLabel(u);$('kdAccountAvatar').textContent=name[0].toUpperCase();$('kdAccountAvatar').classList.toggle('pro',u?.pro_active);
@@ -88,23 +101,31 @@
 
   accountBtn?.addEventListener('click',open);close?.addEventListener('click',closeModal);overlay?.addEventListener('click',e=>{if(e.target===overlay)closeModal();});
   document.querySelectorAll('[data-auth-tab]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-auth-tab]').forEach(b=>b.classList.toggle('active',b===btn));const signup=btn.dataset.authTab==='signup';loginForm.hidden=signup;signupForm.hidden=!signup;accountPanel.hidden=true;error.textContent='';if(signup)injectPlanInfo();}));
-  loginForm?.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';const fd=new FormData(loginForm);try{const d=await call('login','POST',Object.fromEntries(fd));update(d.user);open();}catch(x){error.textContent=x.message;}});
-  signupForm?.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';const fd=new FormData(signupForm);try{const d=await call('signup','POST',Object.fromEntries(fd));update(d.user);open();}catch(x){error.textContent=x.message;}});
-  $('kdLogoutButton')?.addEventListener('click',async()=>{try{await call('logout','POST',{});}catch{}update(null);closeModal();});
+  loginForm?.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';const fd=new FormData(loginForm);try{const d=await call('login','POST',Object.fromEntries(fd));update(d.user);closeModal();showTradingProfileAfterAuth();}catch(x){error.textContent=x.message;}});
+  signupForm?.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';const fd=new FormData(signupForm);try{const d=await call('signup','POST',Object.fromEntries(fd));update(d.user);closeModal();showTradingProfileAfterAuth();}catch(x){error.textContent=x.message;}});
+  $('kdLogoutButton')?.addEventListener('click',async()=>{try{await call('logout','POST',{});}catch{}update(null);closeModal();if(overlay){open();}});
   $('kdUpgradeButton')?.addEventListener('click',startCheckout);
   injectPlanInfo();
 
-  // Authentication is optional for browsing the app. Do not open a full-screen
-  // modal on first load: an unavailable auth endpoint must never make the entire
-  // dashboard look present-but-unclickable. The account button can still open it.
+  // First visit: authentication is the real entry point again.
+  // The account modal contains both Войти and Регистрация. Only after a
+  // successful login/registration do we open the Trading Profile onboarding.
   (async()=>{
     try{
       const d=await call('me');
-      if(d.user){ update(d.user); await confirmCheckoutFromUrl(); }
-      else { update(null); await confirmCheckoutFromUrl(); }
+      if(d.user){
+        update(d.user);
+        await confirmCheckoutFromUrl();
+        showTradingProfileAfterAuth();
+      }else{
+        update(null);
+        await confirmCheckoutFromUrl();
+        open();
+      }
     }catch{
       update(null);
       await confirmCheckoutFromUrl();
+      open();
     }
   })();
 })();
