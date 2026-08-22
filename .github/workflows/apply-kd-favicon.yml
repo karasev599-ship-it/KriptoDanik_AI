@@ -3,13 +3,13 @@ name: Apply KD Intelligence favicon
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   favicon:
-    if: ${{ !contains(github.event.head_commit.message, 'chore: apply KD Intelligence favicon') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -24,13 +24,12 @@ jobs:
           index = Path('index.html')
           text = index.read_text(encoding='utf-8')
 
-          # KD Intelligence favicon (variant 2)
+          # KD Intelligence favicon — variant 2.
           text = text.replace('assets/favicon.png?v=1', 'assets/favicon.svg?v=3')
 
-          # Make Vercel serve the current KD Intelligence preview instead of the old
-          # GitHub Pages KriptoDanik AI preview. The version query also busts old caches.
+          # Keep social previews on the real OG image, not the favicon.
           old_og = 'https://karasev599-ship-it.github.io/KriptoDanik_AI/og-image.png?v=2'
-          new_og = 'https://kripto-danik-5tyxppors-kripto-danik-ai.vercel.app/assets/favicon.svg?v=3'
+          new_og = 'https://kripto-danik-5tyxppors-kripto-danik-ai.vercel.app/assets/og-image.png?v=3'
           text = text.replace(old_og, new_og)
 
           index.write_text(text, encoding='utf-8')
