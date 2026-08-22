@@ -1,4 +1,4 @@
-const CACHE="kd-intelligence-v1.10.4";
+const CACHE="kd-intelligence-v1.10.5";
 const CORE=[
   "./",
   "./index.html",
@@ -9,7 +9,6 @@ const CORE=[
   "./economic-calendar.js?v=1.0.0",
   "./app.js?v=1.9.1",
   "./auth.js?v=2.0.0",
-  "./interaction-recovery.js?v=1.1.1",
   "./manifest.webmanifest"
 ];
 
@@ -70,12 +69,8 @@ async function rewriteIndex(response){
     const source=await response.text();
     let html=source;
     html=html.replace('runtime-fixes.js?v=1.0.2','runtime-fixes.js?v=1.1.1');
-    html=html.replace('interaction-recovery.js?v=1.0.0','interaction-recovery.js?v=1.1.1');
     if(!html.includes('economic-calendar.js?v=1.0.0')){
       html=html.replace('</head>','<script src="economic-calendar.js?v=1.0.0" data-kd-economic-calendar></script>\n</head>');
-    }
-    if(!html.includes('interaction-recovery.js?v=1.1.1')){
-      html=html.replace('</body>','<script src="interaction-recovery.js?v=1.1.1"></script>\n</body>');
     }
     return new Response(html,{status:response.status,statusText:response.statusText,headers:safeHeaders(response)});
   }catch(e){
