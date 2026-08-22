@@ -90,8 +90,21 @@
   document.querySelectorAll('[data-auth-tab]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-auth-tab]').forEach(b=>b.classList.toggle('active',b===btn));const signup=btn.dataset.authTab==='signup';loginForm.hidden=signup;signupForm.hidden=!signup;accountPanel.hidden=true;error.textContent='';if(signup)injectPlanInfo();}));
   loginForm?.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';const fd=new FormData(loginForm);try{const d=await call('login','POST',Object.fromEntries(fd));update(d.user);open();}catch(x){error.textContent=x.message;}});
   signupForm?.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';const fd=new FormData(signupForm);try{const d=await call('signup','POST',Object.fromEntries(fd));update(d.user);open();}catch(x){error.textContent=x.message;}});
-  $('kdLogoutButton')?.addEventListener('click',async()=>{try{await call('logout','POST',{});}catch{}update(null);open();});
+  $('kdLogoutButton')?.addEventListener('click',async()=>{try{await call('logout','POST',{});}catch{}update(null);closeModal();});
   $('kdUpgradeButton')?.addEventListener('click',startCheckout);
   injectPlanInfo();
-  (async()=>{try{const d=await call('me');if(d.user){update(d.user);await confirmCheckoutFromUrl();}else{update(null);open();await confirmCheckoutFromUrl();}}catch{update(null);open();await confirmCheckoutFromUrl();}})();
+
+  // Authentication is optional for browsing the app. Do not open a full-screen
+  // modal on first load: an unavailable auth endpoint must never make the entire
+  // dashboard look present-but-unclickable. The account button can still open it.
+  (async()=>{
+    try{
+      const d=await call('me');
+      if(d.user){ update(d.user); await confirmCheckoutFromUrl(); }
+      else { update(null); await confirmCheckoutFromUrl(); }
+    }catch{
+      update(null);
+      await confirmCheckoutFromUrl();
+    }
+  })();
 })();
