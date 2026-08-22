@@ -1,4 +1,4 @@
-const CACHE="kd-intelligence-v1.10.0";
+const CACHE="kd-intelligence-v1.10.1";
 const CORE=[
   "./",
   "./index.html",
@@ -56,17 +56,35 @@ const COACH_FIX=`
 })();
 `;
 
+function safeHeaders(source){
+  const headers=new Headers(source.headers);
+  headers.delete('content-length');
+  headers.delete('content-encoding');
+  headers.delete('transfer-encoding');
+  return headers;
+}
+
 async function rewriteIndex(response){
   try{
     const source=await response.text();
     let html=source;
     html=html.replace('runtime-fixes.js?v=1.0.2','runtime-fixes.js?v=1.1.1');
     if(!html.includes('economic-calendar.js?v=1.0.0')){
-      html=html.replace('</head>','<script src="economic-calendar.js?v=1.0.0" data-kd-economic-calendar></script>\\n</head>');
+      html=html.replace('</head>','<script src="economic-calendar.js?v=1.0.0" data-kd-economic-calendar></script>\n</head>');
     }
-    return new Response(html,{status:response.status,statusText:response.statusText,headers:response.headers});
+    return new Response(html,{status:response.status,statusText:response.statusText,headers:safeHeaders(response)});
   }catch(e){
     console.warn('KD index runtime rewrite failed',e);
+    return response;
+  }
+}
+
+async function rewriteApp(response){
+  try{
+    const source=await response.text();
+    return new Response(source+'\n'+COACH_FIX,{status:response.status,statusText:response.statusText,headers:safeHeaders(response)});
+  }catch(e){
+    console.warn('KD app runtime rewrite failed',e);
     return response;
   }
 }
@@ -88,8 +106,7 @@ self.addEventListener("fetch",event=>{
     if(url.pathname==='/' || url.pathname.endsWith('/index.html')){
       outgoing=await rewriteIndex(response);
     }else if(url.pathname.endsWith('/app.js')){
-      const source=await response.text();
-      outgoing=new Response(source+'\n'+COACH_FIX,{status:response.status,headers:response.headers});
+      outgoing=await rewriteApp(response);
     }
     caches.open(CACHE).then(cache=>cache.put(event.request,outgoing.clone()));
     return outgoing;
