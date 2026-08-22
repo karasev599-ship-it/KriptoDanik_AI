@@ -6,10 +6,8 @@ import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUT = ROOT / "data" / "calendar.json"
-URLS = [
-    "https://nfs.faireconomy.media/ff_calendar_thisweek.json",
-    "https://nfs.faireconomy.media/ff_calendar_nextweek.json",
-]
+THIS_WEEK_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+NEXT_WEEK_URL = "https://nfs.faireconomy.media/ff_calendar_nextweek.json"
 CURRENCIES = {"USD", "EUR", "GBP", "JPY", "CAD", "AUD", "NZD", "CHF", "CNY"}
 
 
@@ -17,8 +15,9 @@ def fetch(url: str):
     request = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "KriptoDanik-AI-calendar/1.2",
+            "User-Agent": "KriptoDanik-AI-calendar/1.3",
             "Accept": "application/json",
+            "Cache-Control": "no-cache",
         },
     )
     with urllib.request.urlopen(request, timeout=20) as response:
@@ -28,18 +27,33 @@ def fetch(url: str):
     return data
 
 
+def load_existing():
+    if not OUT.exists():
+        return []
+    try:
+        payload = json.loads(OUT.read_text(encoding="utf-8"))
+        return payload.get("events", []) if isinstance(payload, dict) else []
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
 def main() -> None:
-    events = []
-    errors = []
-
-    for url in URLS:
-        try:
-            events.extend(fetch(url))
-        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
-            errors.append(f"{url}: {exc}")
-
     now = dt.datetime.now(dt.timezone.utc)
     until = now + dt.timedelta(days=9)
+    existing = load_existing()
+
+    # Forex Factory export endpoints are rate-limited. We only need one
+    # network request per run: refresh the current week Mon–Thu and the next
+    # week Fri–Sun, while retaining the other half from the existing cache.
+    url = NEXT_WEEK_URL if now.weekday() >= 4 else THIS_WEEK_URL
+    fetched = []
+    error = None
+    try:
+        fetched = fetch(url)
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
+        error = f"{url}: {exc}"
+
+    events = existing + fetched
     seen = set()
     clean = []
 
@@ -79,13 +93,8 @@ def main() -> None:
     clean.sort(key=lambda item: item["date"])
 
     if not clean:
-        if OUT.exists():
-            print("Calendar feed unavailable or empty; keeping existing calendar cache.")
-            if errors:
-                print("\n".join(errors))
-            return
-        details = "; ".join(errors) if errors else "no valid upcoming events"
-        raise SystemExit(f"Calendar update produced no usable events and no cache exists: {details}")
+        details = error or "no valid upcoming events"
+        raise SystemExit(f"Calendar update produced no usable events: {details}")
 
     payload = {
         "fetchedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -98,10 +107,9 @@ def main() -> None:
     temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     temporary.replace(OUT)
 
-    print(f"Wrote {len(clean)} events to {OUT}")
-    if errors:
-        print("Some calendar feeds were unavailable:")
-        print("\n".join(errors))
+    print(f"Wrote {len(clean)} events to {OUT} from {url}")
+    if error:
+        print(f"Refresh warning: {error}; retained usable events from the existing cache.")
 
 
 if __name__ == "__main__":
